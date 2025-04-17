@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - Trading Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            background: #131722;
+            color: #ffffff;
+        }
+
+        .tradingview-widget-container {
+            height: 100vh; /* Full viewport height */
+            margin: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        .trading-controls {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(30, 34, 45, 0.9);
+            border-radius: 4px;
+            z-index: 1000;
+            padding: 5px 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .lot-size {
+            width: 60px;
+            height: 30px;
+        }
+
+        .trade-btn {
+            padding: 5px 15px;
+            height: 30px;
+        }
+
+        .buy-btn {
+            background: #26a69a;
+        }
+
+        .sell-btn {
+            background: #ef5350;
+        }
+
+        /* Positions Panel Styles */
+        .positions-panel {
+            height: auto;
+            max-height: 30vh;
+            overflow-y: auto;
+        }
+
+        .positions-panel.active {
+            transform: translateY(0);
+        }
+
+        .positions-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2a2e39;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .positions-toggle i {
+            font-size: 20px;
+        }
+
+        .positions-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .positions-table th,
+        .positions-table td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #2a2e39;
+            color: #d1d4dc;
+        }
+
+        .positions-table th {
+            color: #787b86;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
+    <div class="trading-controls">
+        <input type="number" class="lot-size" value="0.01" step="0.01" min="0.01">
+        <button class="trade-btn buy-btn">BUY</button>
+        <button class="trade-btn sell-btn">SELL</button>
+    </div>
+
+    <div class="tradingview-widget-container">
+        <div id="tradingview_chart"></div>
+    </div>
+
+    <!-- Positions Toggle Button -->
+    <button class="positions-toggle" onclick="togglePositions()">
+        <i class="fas fa-table"></i>
+    </button>
+
+    <!-- Positions Panel -->
+    <div class="positions-panel" id="positionsPanel">
+        <table class="positions-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Time</th>
+                    <th>Symbol</th>
+                    <th>Type</th>
+                    <th>Lot</th>
+                    <th>Price</th>
+                    <th>S/L</th>
+                    <th>T/P</th>
+                    <th>Profit</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="9" style="text-align: center;">No Position(s) Found</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script type="text/javascript">
+        new TradingView.widget({
+            "width": "100%",
+            "height": "100%",
+            "symbol": "OANDA:XAUUSD",
+            "interval": "15",
+            "timezone": "Etc/UTC",
+            "theme": "dark",
+            "style": "1",
+            "locale": "en",
+            "toolbar_bg": "#f1f3f6",
+            "enable_publishing": false,
+            "hide_side_toolbar": false,
+            "allow_symbol_change": true,
+            "container_id": "tradingview_chart",
+            "studies": [
+                "MASimple@tv-basicstudies",
+                "RSI@tv-basicstudies",
+                "MACD@tv-basicstudies"
+            ],
+            "show_popup_button": true,
+            "popup_width": "1000",
+            "popup_height": "650",
+            "details": true,
+            "hotlist": true,
+            "calendar": true,
+            "show_trading_panel": true,
+            "withdateranges": true,
+            "save_image": true,
+            "hide_volume": false,
+            "support_host": "https://www.tradingview.com"
+        });
+
+        // Toggle positions panel
+        function togglePositions() {
+            const panel = document.getElementById('positionsPanel');
+            panel.classList.toggle('active');
+        }
+
+        // Handle Buy/Sell button clicks
+        document.querySelector('.buy-btn').addEventListener('click', () => {
+            const lotSize = document.querySelector('.lot-size').value;
+            console.log('Buy order placed with lot size:', lotSize);
+        });
+
+        document.querySelector('.sell-btn').addEventListener('click', () => {
+            const lotSize = document.querySelector('.lot-size').value;
+            console.log('Sell order placed with lot size:', lotSize);
+        });
+    </script>
+</body>
+</html>
+
+

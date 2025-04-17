@@ -1,0 +1,289 @@
+:root {
+    --primary-color: #2a2d3e;
+    --secondary-color: #1f2130;
+    --accent-color: #00c7ff;
+    --text-color: #ffffff;
+    --hover-color: #383b4e;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    display: flex;
+    min-height: 100vh;
+    background: #f0f2f5;
+    position: relative;
+    overflow-x: hidden;
+}
+
+.sidebar {
+    width: 250px;
+    background: var(--primary-color);
+    padding: 20px;
+    color: var(--text-color);
+    transition: all 0.3s ease;
+    position: fixed;
+    height: 100vh;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+}
+
+.sidebar.collapsed {
+    width: 70px;
+}
+
+/* Logo styles */
+.logo-container {
+    padding: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.logo {
+    max-width: 80px; /* Reduced size */
+    height: auto;
+    background: transparent; /* Transparent background */
+}
+
+/* For collapsed sidebar */
+.sidebar.collapsed .logo-container {
+    padding: 5px;
+}
+
+.sidebar.collapsed .logo {
+    max-width: 30px;
+}
+
+/* Mobile responsive */
+@media screen and (max-width: 768px) {
+    .logo-container {
+        padding: 10px;
+    }
+    
+    .logo {
+        max-width: 60px;
+    }
+}
+
+.toggle-btn {
+    position: absolute;
+    right: -15px;
+    top: 20px;
+    background: var(--accent-color);
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 1001;
+}
+
+nav ul {
+    list-style: none;
+}
+
+nav ul li {
+    margin-bottom: 5px;
+}
+
+nav ul li a {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    text-decoration: none;
+    color: var(--text-color);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    gap: 15px;
+    position: relative;
+}
+
+nav ul li a:hover {
+    background: var(--hover-color);
+    color: var(--accent-color);
+}
+
+nav ul li a i {
+    font-size: 20px;
+    min-width: 25px;
+}
+
+.sidebar.collapsed .logo span,
+.sidebar.collapsed nav ul li a span {
+    display: none;
+}
+
+/* Header and Menu Button Styles */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background: var(--primary-color);
+    display: none;
+    padding: 0 20px;
+    align-items: center;
+    z-index: 1002;
+}
+
+.menu-btn {
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+}
+
+.menu-btn i {
+    color: var(--text-color);
+    font-size: 24px;
+}
+
+/* Main Content Styles */
+main {
+    flex: 1;
+    padding: 20px;
+    margin-left: 250px;
+    transition: margin-left 0.3s ease;
+    width: 100%;
+    text-align: center; /* Center align main content */
+}
+
+main h1 {
+    margin-top: 20px;
+    font-size: 2rem;
+    color: var(--primary-color);
+}
+
+/* Mobile Styles */
+@media screen and (max-width: 768px) {
+    header {
+        display: flex;
+    }
+
+    .sidebar {
+        transform: translateX(-100%);
+        top: 0;
+        height: 100vh;
+    }
+
+    .sidebar.active {
+        transform: translateX(0);
+    }
+
+    main {
+        margin-left: 0;
+        padding-top: 80px; /* Added extra padding for header */
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+/* Tablet Styles */
+@media screen and (min-width: 769px) and (max-width: 1024px) {
+    .sidebar {
+        width: 200px;
+    }
+
+    main {
+        margin-left: 200px;
+    }
+
+    .sidebar.collapsed + main {
+        margin-left: 70px;
+    }
+}
+
+/* Overlay for mobile */
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+}
+
+@media screen and (max-width: 768px) {
+    .overlay.active {
+        display: block;
+    }
+}
+
+/* Gradient effects */
+nav ul li a::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    width: 0;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-color) 0%, transparent 100%);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+nav ul li a:hover::before {
+    width: 100%;
+    opacity: 0.1;
+}
+
+/* Animation for icons */
+nav ul li a:hover i {
+    transform: scale(1.1);
+    transition: transform 0.3s ease;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
