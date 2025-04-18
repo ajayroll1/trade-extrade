@@ -136,6 +136,263 @@
         }
     }
     </script>
+
+    <!-- Modern Alert Component -->
+    <div class="modern-alert-wrapper" id="alertWrapper">
+        <div class="modern-alert" id="modernAlert">
+            <div class="alert-content">
+                <div class="alert-header">
+                    <div class="alert-status-icon">
+                        <svg class="success-icon" viewBox="0 0 24 24">
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        </svg>
+                        <svg class="error-icon" viewBox="0 0 24 24">
+                            <path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/>
+                        </svg>
+                    </div>
+                    <h3 class="alert-heading">Success</h3>
+                </div>
+                <p class="alert-message">Operation completed successfully!</p>
+                <div class="alert-actions">
+                    <button class="alert-button confirm-btn">Continue</button>
+                    <button class="alert-button cancel-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    .modern-alert-wrapper {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.65);
+        backdrop-filter: blur(6px);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modern-alert {
+        background: #ffffff;
+        border-radius: 24px;
+        width: 90%;
+        max-width: 420px;
+        padding: 0;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        transform: scale(0.95);
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+
+    .modern-alert.show {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    .alert-content {
+        padding: 32px;
+    }
+
+    .alert-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+
+    .alert-status-icon {
+        width: 48px;
+        height: 48px;
+        margin-right: 16px;
+    }
+
+    .alert-status-icon svg {
+        width: 100%;
+        height: 100%;
+    }
+
+    .success-icon {
+        fill: #10B981;
+        display: none;
+    }
+
+    .error-icon {
+        fill: #EF4444;
+        display: none;
+    }
+
+    .alert-heading {
+        font-size: 24px;
+        font-weight: 700;
+        color: #111827;
+        margin: 0;
+    }
+
+    .alert-message {
+        font-size: 16px;
+        line-height: 1.5;
+        color: #6B7280;
+        margin: 0 0 32px 0;
+    }
+
+    .alert-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .alert-button {
+        flex: 1;
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+    }
+
+    .confirm-btn {
+        background: #3B82F6;
+        color: white;
+    }
+
+    .confirm-btn:hover {
+        background: #2563EB;
+        transform: translateY(-2px);
+    }
+
+    .cancel-btn {
+        background: #F3F4F6;
+        color: #4B5563;
+    }
+
+    .cancel-btn:hover {
+        background: #E5E7EB;
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 640px) {
+        .modern-alert {
+            width: 95%;
+            margin: 16px;
+        }
+        
+        .alert-content {
+            padding: 24px;
+        }
+        
+        .alert-actions {
+            flex-direction: column;
+        }
+        
+        .alert-button {
+            width: 100%;
+        }
+    }
+
+    /* Dark mode */
+    @media (prefers-color-scheme: dark) {
+        .modern-alert {
+            background: #1F2937;
+        }
+        
+        .alert-heading {
+            color: #F9FAFB;
+        }
+        
+        .alert-message {
+            color: #9CA3AF;
+        }
+        
+        .cancel-btn {
+            background: #374151;
+            color: #D1D5DB;
+        }
+        
+        .cancel-btn:hover {
+            background: #4B5563;
+        }
+    }
+    </style>
+
+    <script>
+    function showModernAlert(type, title, message, onConfirm = null, onCancel = null) {
+        const wrapper = document.getElementById('alertWrapper');
+        const alert = document.getElementById('modernAlert');
+        const heading = alert.querySelector('.alert-heading');
+        const messageEl = alert.querySelector('.alert-message');
+        const successIcon = alert.querySelector('.success-icon');
+        const errorIcon = alert.querySelector('.error-icon');
+        const confirmBtn = alert.querySelector('.confirm-btn');
+        const cancelBtn = alert.querySelector('.cancel-btn');
+
+        // Set content
+        heading.textContent = title;
+        messageEl.textContent = message;
+
+        // Show appropriate icon
+        successIcon.style.display = type === 'success' ? 'block' : 'none';
+        errorIcon.style.display = type === 'error' ? 'block' : 'none';
+
+        // Setup buttons
+        confirmBtn.onclick = () => {
+            if (onConfirm) onConfirm();
+            closeModernAlert();
+        };
+
+        cancelBtn.onclick = () => {
+            if (onCancel) onCancel();
+            closeModernAlert();
+        };
+
+        // Show alert
+        wrapper.style.display = 'flex';
+        setTimeout(() => alert.classList.add('show'), 10);
+
+        // Close on background click
+        wrapper.onclick = (e) => {
+            if (e.target === wrapper) closeModernAlert();
+        };
+    }
+
+    function closeModernAlert() {
+        const wrapper = document.getElementById('alertWrapper');
+        const alert = document.getElementById('modernAlert');
+        alert.classList.remove('show');
+        setTimeout(() => wrapper.style.display = 'none', 300);
+    }
+
+    // Example usage for logout
+    function handleLogout(event) {
+        event.preventDefault();
+        
+        showModernAlert(
+            'success',
+            'Confirm Logout',
+            'Are you sure you want to logout?',
+            () => {
+                // On confirm
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = "{% url 'logout' %}";
+                
+                const csrfToken = document.createElement('input');
+                csrfToken.type = 'hidden';
+                csrfToken.name = 'csrfmiddlewaretoken';
+                csrfToken.value = '{{ csrf_token }}';
+                form.appendChild(csrfToken);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        );
+    }
+    </script>
 </body>
 </html>
+
+
 
