@@ -1,10 +1,8 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
-from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
-
-# Add any other imports you need
+from django.contrib import messages
 
 def landing_page(request):
     if request.user.is_authenticated:
@@ -15,9 +13,22 @@ def signup_view(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():
+            # Get the username and password from the form
+            username = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password1')  # password1 is the first password field
+            
+            # Create and save the user
             user = form.save()
-            login(request, user)
-            return redirect('dashboard')
+            
+            # Print for debugging
+            print(f"User created - Username: {username}")
+            
+            # Log the user in immediately after signup
+            user = authenticate(request, username=username, password=password)
+            if user is not None:
+                login(request, user)
+                messages.success(request, 'Account created successfully!')
+                return redirect('dashboard')
         else:
             for error in form.errors.values():
                 messages.error(request, error)
@@ -31,11 +42,15 @@ def login_view(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         
+        # Print for debugging
+        print(f"Login attempt - Username: {username}")
+        
         user = authenticate(request, username=username, password=password)
         
         if user is not None:
             login(request, user)
-            return redirect('dashboard')  # Changed from 'home' to 'dashboard'
+            # messages.success(request, 'Login successful!')
+            return redirect('dashboard')
         else:
             messages.error(request, 'Invalid username or password.')
     
@@ -43,6 +58,7 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
+    messages.success(request, 'Logout successful!')
     return redirect('login')
 
 @login_required

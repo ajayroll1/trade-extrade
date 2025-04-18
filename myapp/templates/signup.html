@@ -637,31 +637,42 @@
             }
 
             form.addEventListener('submit', function(e) {
-                e.preventDefault(); // Prevent form submission
+                e.preventDefault(); 
 
                 const username = document.getElementById('username').value;
                 const email = document.getElementById('email').value;
                 const password1 = document.getElementById('password1').value;
                 const password2 = document.getElementById('password2').value;
 
-                // Form validation
-                if (!username || !email || !password1 || !password2) {
-                    alert('Please fill in all fields');
+                // Email validation
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    alert('Please enter a valid email address');
                     return;
                 }
 
+                // Username validation
+                const usernameRegex = /^[a-zA-Z0-9][a-zA-Z0-9._]{1,28}[a-zA-Z0-9]$/;
+                if (!usernameRegex.test(username)) {
+                    alert('Username must be 3-30 characters long and can only contain letters, numbers, dots, and underscores');
+                    return;
+                }
+
+                // Password validation
+                const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,100}$/;
+                if (!passwordRegex.test(password1)) {
+                    alert('Password must be 8-100 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character');
+                    return;
+                }
+
+                // Password match validation
                 if (password1 !== password2) {
                     alert('Passwords do not match!');
                     return;
                 }
 
-                if (password1.length < 8) {
-                    alert('Password must be at least 8 characters long');
-                    return;
-                }
-
-                // If all validations pass, show success alert
-                showSuccessAlert();
+                // If all validations pass
+                form.submit();
             });
 
             // Social signup handlers
