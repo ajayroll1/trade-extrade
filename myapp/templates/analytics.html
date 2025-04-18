@@ -1,118 +1,140 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analytics - Trading Platform</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            margin: 0;
-            background: #131722;
-            color: #ffffff;
-        }
+{% extends 'base.html' %}
 
-        .tradingview-widget-container {
-            height: 100vh; /* Full viewport height */
-            margin: 0;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-        }
+{% block title %}Analytics - Trading Platform{% endblock %}
 
-        .trading-controls {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background: rgba(30, 34, 45, 0.9);
-            border-radius: 4px;
-            z-index: 1000;
-            padding: 5px 10px;
-            display: flex;
-            gap: 5px;
-        }
+{% block extra_css %}
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background: #000000; /* Changed to pure black */
+        color: #ffffff;
+        overflow: hidden;
+    }
 
-        .lot-size {
-            width: 60px;
-            height: 30px;
-        }
+    .tradingview-widget-container {
+        height: calc(100vh + 20px);
+        width: 100%;
+        margin-top: -20px;
+        margin-left: 0;
+        margin-right: 0;
+        margin-bottom: 0;
+        padding: 0;
+        border-radius: 0;
+        overflow: hidden;
+        position: relative;
+        background: #000000; /* Added black background to container */
+    }
 
-        .trade-btn {
-            padding: 5px 15px;
-            height: 30px;
-        }
+    #tradingview_chart {
+        background: #000000; /* Added black background to chart */
+    }
 
-        .buy-btn {
-            background: #26a69a;
-        }
+    .trading-controls {
+        position: fixed;
+        top: 145px; /* Increased from 105px to 145px to move controls lower */
+        right: 10px;
+        border-radius: 4px;
+        z-index: 1000;
+        padding: 6px;
+        display: flex;
+        flex-direction: column; /* Changed to column for vertical layout */
+        gap: 6px; /* Increased gap between elements */
+    }
 
-        .sell-btn {
-            background: #ef5350;
-        }
+    .lot-size {
+        width: 65px; /* Reduced width from 80px to 65px */
+        height: 24px;
+        background: rgba(30, 34, 45, 0.9); /* Kept background for input */
+        border: 1px solid #363c4e;
+        color: #ffffff;
+        border-radius: 4px;
+        padding: 0 5px;
+        font-size: 12px;
+    }
 
-        /* Positions Panel Styles */
-        .positions-panel {
-            height: auto;
-            max-height: 30vh;
-            overflow-y: auto;
-        }
+    .trade-btn {
+        width: 65px; /* Reduced width from 80px to 65px */
+        padding: 4px 8px;
+        height: 24px;
+        border: none;
+        border-radius: 4px;
+        color: white;
+        cursor: pointer;
+        font-weight: 500;
+        font-size: 12px;
+    }
 
-        .positions-panel.active {
-            transform: translateY(0);
-        }
+    .buy-btn {
+        background: #26a69a;
+    }
 
-        .positions-toggle {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #2a2e39;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            cursor: pointer;
-            z-index: 1001;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-        }
+    .sell-btn {
+        background: #ef5350;
+    }
 
-        .positions-toggle i {
-            font-size: 20px;
-        }
+    .positions-panel {
+        height: auto;
+        max-height: 30vh;
+        overflow-y: auto;
+        margin: 0 20px;
+    }
 
-        .positions-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+    .positions-panel.active {
+        transform: translateY(0);
+    }
 
-        .positions-table th,
-        .positions-table td {
-            padding: 10px;
-            text-align: left;
-            border-bottom: 1px solid #2a2e39;
-            color: #d1d4dc;
-        }
+    .positions-toggle {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #2a2e39;
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        cursor: pointer;
+        z-index: 1001;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
 
-        .positions-table th {
-            color: #787b86;
-            font-weight: normal;
-        }
-    </style>
-</head>
-<body>
+    .positions-toggle i {
+        font-size: 20px;
+    }
+
+    .positions-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .positions-table th,
+    .positions-table td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #2a2e39;
+        color: #d1d4dc;
+    }
+
+    .positions-table th {
+        color: #787b86;
+        font-weight: normal;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="tradingview-widget-container">
+        <div id="tradingview_chart"></div>
+    </div>
+
     <div class="trading-controls">
         <input type="number" class="lot-size" value="0.01" step="0.01" min="0.01">
         <button class="trade-btn buy-btn">BUY</button>
         <button class="trade-btn sell-btn">SELL</button>
-    </div>
-
-    <div class="tradingview-widget-container">
-        <div id="tradingview_chart"></div>
     </div>
 
     <!-- Positions Toggle Button -->
@@ -143,59 +165,82 @@
             </tbody>
         </table>
     </div>
+{% endblock %}
 
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-    <script type="text/javascript">
-        new TradingView.widget({
-            "width": "100%",
-            "height": "100%",
-            "symbol": "OANDA:XAUUSD",
-            "interval": "15",
-            "timezone": "Etc/UTC",
-            "theme": "dark",
-            "style": "1",
-            "locale": "en",
-            "toolbar_bg": "#f1f3f6",
-            "enable_publishing": false,
-            "hide_side_toolbar": false,
-            "allow_symbol_change": true,
-            "container_id": "tradingview_chart",
-            "studies": [
-                "MASimple@tv-basicstudies",
-                "RSI@tv-basicstudies",
-                "MACD@tv-basicstudies"
-            ],
-            "show_popup_button": true,
-            "popup_width": "1000",
-            "popup_height": "650",
-            "details": true,
-            "hotlist": true,
-            "calendar": true,
-            "show_trading_panel": true,
-            "withdateranges": true,
-            "save_image": true,
-            "hide_volume": false,
-            "support_host": "https://www.tradingview.com"
-        });
+{% block extra_js %}
+<script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+<script type="text/javascript">
+    new TradingView.widget({
+        "width": "100%",
+        "height": "100%",
+        "symbol": "OANDA:XAUUSD",
+        "interval": "15",
+        "timezone": "Etc/UTC",
+        "theme": "dark",
+        "style": "1",
+        "locale": "en",
+        "toolbar_bg": "#000000", /* Changed toolbar background to black */
+        "enable_publishing": false,
+        "hide_side_toolbar": false,
+        "allow_symbol_change": true,
+        "container_id": "tradingview_chart",
+        "studies": [
+            "MASimple@tv-basicstudies",
+            "RSI@tv-basicstudies",
+            "MACD@tv-basicstudies"
+        ],
+        "studies_overrides": {
+            "volume.volume.color.0": "#ef5350",
+            "volume.volume.color.1": "#26a69a"
+        },
+        "show_popup_button": true,
+        "popup_width": "1000",
+        "popup_height": "650",
+        "details": true,
+        "hotlist": true,
+        "calendar": true,
+        "show_trading_panel": true,
+        "withdateranges": true,
+        "save_image": true,
+        "hide_volume": false,
+        "support_host": "https://www.tradingview.com"
+    });
 
-        // Toggle positions panel
-        function togglePositions() {
-            const panel = document.getElementById('positionsPanel');
-            panel.classList.toggle('active');
-        }
+    // Toggle positions panel
+    function togglePositions() {
+        const panel = document.getElementById('positionsPanel');
+        panel.classList.toggle('active');
+    }
 
-        // Handle Buy/Sell button clicks
-        document.querySelector('.buy-btn').addEventListener('click', () => {
-            const lotSize = document.querySelector('.lot-size').value;
-            console.log('Buy order placed with lot size:', lotSize);
-        });
+    // Handle Buy/Sell button clicks
+    document.querySelector('.buy-btn').addEventListener('click', () => {
+        const lotSize = document.querySelector('.lot-size').value;
+        console.log('Buy order placed with lot size:', lotSize);
+    });
 
-        document.querySelector('.sell-btn').addEventListener('click', () => {
-            const lotSize = document.querySelector('.lot-size').value;
-            console.log('Sell order placed with lot size:', lotSize);
-        });
-    </script>
-</body>
-</html>
+    document.querySelector('.sell-btn').addEventListener('click', () => {
+        const lotSize = document.querySelector('.lot-size').value;
+        console.log('Sell order placed with lot size:', lotSize);
+    });
+</script>
+{% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

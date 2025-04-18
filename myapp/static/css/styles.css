@@ -304,37 +304,41 @@ body {
     }
 }
 
+/* Theme Toggle Styles */
+.theme-toggle-item {
+    margin-top: auto;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    margin-top: 20px;
+    padding-top: 20px;
+}
 
+.theme-icon-light,
+.theme-icon-dark {
+    transition: all 0.3s ease;
+}
 
+/* Hide/show icons based on theme */
+[data-theme="dark"] .theme-icon-light {
+    display: none;
+}
 
+[data-theme="light"] .theme-icon-dark {
+    display: none;
+}
 
+/* Theme specific colors */
+[data-theme="dark"] {
+    --primary-color: #1a1a1a;
+    --secondary-color: #252525;
+    --text-color: #ffffff;
+    --hover-color: #333333;
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+[data-theme="light"] {
+    --primary-color: #2a2d3e;
+    --secondary-color: #1f2130;
+    --text-color: #ffffff;
+    --hover-color: #383b4e;
+}
 
 
