@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradePro - Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1c25 0%, #242631 100%);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 20px;
+        }
+
+        /* Add a stable wrapper for the login container */
+        .login-wrapper {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            max-width: 350px; /* Reduced from 400px */
+            z-index: 10;
+        }
+
+        .login-container {
+            max-width: 350px; /* Reduced from 400px */
+            width: 100%;
+            background: rgba(36, 38, 49, 0.95);
+            border-radius: 20px;
+            padding: 25px 20px; /* Reduced from 30px 25px */
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            /* Removed the animation property */
+        }
+
+        /* Remove the float animation keyframes since it's no longer needed */
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .login-header h2 {
+            color: #ffffff;
+            font-size: 24px; /* Reduced from 28px */
+            margin-bottom: 6px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-header p {
+            color: #a0a3bd;
+            font-size: 14px; /* Reduced from 16px */
+        }
+
+        .form-group {
+            margin-bottom: 15px; /* Reduced from 20px */
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            color: #ffffff;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 40px 12px 15px;
+            background: rgba(26, 28, 37, 0.8);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            border-color: #2962ff;
+            box-shadow: 0 0 0 4px rgba(41, 98, 255, 0.2);
+            outline: none;
+        }
+
+        .form-group i {
+            position: absolute;
+            right: 15px;
+            top: 45px;
+            color: #a0a3bd;
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+
+        .forgot-password a {
+            color: #2962ff;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .forgot-password a:hover {
+            color: #1e4bd8;
+            text-decoration: underline;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(45deg, #2962ff, #1e4bd8);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .login-btn:hover::before {
+            left: 100%;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(41, 98, 255, 0.3);
+        }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 20px;
+            color: #a0a3bd;
+            font-size: 14px;
+        }
+
+        .signup-link a {
+            color: #2962ff;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .signup-link a:hover {
+            color: #1e4bd8;
+            text-decoration: underline;
+        }
+
+        /* Add these new styles for background charts */
+        .trading-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .chart-container {
+            position: absolute;
+            opacity: 0.1;
+            width: 300px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .chart-top-right {
+            top: 20px;
+            right: 20px;
+        }
+
+        .chart-bottom-left {
+            bottom: 20px;
+            left: 20px;
+        }
+
+        .chart-top-left {
+            top: 20px;
+            left: 20px;
+        }
+
+        .chart-bottom-right {
+            bottom: 20px;
+            right: 20px;
+        }
+
+        .swiper {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 100%;
+            height: 100vh;
+            z-index: -1;
+        }
+
+        .swiper-slide {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.1);
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .message-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            animation: slideIn 0.5s ease-out forwards, fadeOut 0.5s ease-out 4.5s forwards;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .alert-success {
+            border-left: 4px solid #00c853;
+            color: #00913b;
+        }
+
+        .alert-error {
+            border-left: 4px solid #ff3d57;
+            color: #dc1d3b;
+        }
+
+        .alert-icon {
+            margin-right: 12px;
+            font-size: 20px;
+        }
+
+        .alert-close {
+            cursor: pointer;
+            font-size: 18px;
+            color: #666;
+            background: none;
+            border: none;
+            padding: 0 5px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Add trading background elements -->
+    <div class="trading-background">
+        <!-- Swiper -->
+        <div class="swiper">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide">
+                    <canvas id="btcChart"></canvas>
+                </div>
+                <div class="swiper-slide">
+                    <canvas id="ethChart"></canvas>
+                </div>
+                <div class="swiper-slide">
+                    <canvas id="forexChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Static chart containers -->
+        <div class="chart-container chart-top-right">
+            <canvas id="chart1"></canvas>
+        </div>
+        <div class="chart-container chart-bottom-left">
+            <canvas id="chart2"></canvas>
+        </div>
+        <div class="chart-container chart-top-left">
+            <canvas id="chart3"></canvas>
+        </div>
+        <div class="chart-container chart-bottom-right">
+            <canvas id="chart4"></canvas>
+        </div>
+    </div>
+
+    <div class="login-wrapper">
+        <div class="login-container">
+            <div class="login-header">
+                <h2>Welcome Back</h2>
+                <p>Enter your credentials to access your account</p>
+            </div>
+
+            <form method="POST" action="{% url 'login' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                    <i class="fas fa-user"></i>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                    <i class="fas fa-lock"></i>
+                </div>
+
+                {% if messages %}
+                <div class="message-container">
+                    {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                        <div style="display: flex; align-items: center;">
+                            {% if message.tags == 'success' %}
+                                <i class="fas fa-check-circle alert-icon"></i>
+                            {% elif message.tags == 'error' %}
+                                <i class="fas fa-exclamation-circle alert-icon"></i>
+                            {% endif %}
+                            {{ message }}
+                        </div>
+                        <button type="button" class="alert-close">&times;</button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="forgot-password">
+                    <a href="#" id="forgotPasswordLink">Forgot Password?</a>
+                </div>
+
+                <button type="submit" class="login-btn">
+                    Login to Account
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+
+                <div class="signup-link">
+                    Don't have an account? <a href="{% url 'signup' %}">Sign Up</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add required scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    <script>
+        // Initialize Swiper
+        const swiper = new Swiper('.swiper', {
+            effect: 'fade',
+            autoplay: {
+                delay: 5000,
+                disableOnInteraction: false,
+            },
+            loop: true,
+        });
+
+        // Create animated charts
+        function createChart(canvasId, label, color) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            const data = Array.from({length: 20}, () => Math.random() * 100);
+            
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 20}, (_, i) => i),
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        borderColor: color,
+                        borderWidth: 1,
+                        fill: false,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { display: false },
+                        x: { display: false }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // Initialize all charts
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize main swiper charts
+            const btcChart = createChart('btcChart', 'BTC/USD', 'rgba(247, 147, 26, 0.2)');
+            const ethChart = createChart('ethChart', 'ETH/USD', 'rgba(41, 98, 255, 0.2)');
+            const forexChart = createChart('forexChart', 'EUR/USD', 'rgba(0, 200, 83, 0.2)');
+
+            // Initialize corner charts
+            const chart1 = createChart('chart1', 'Chart 1', 'rgba(255, 99, 132, 0.2)');
+            const chart2 = createChart('chart2', 'Chart 2', 'rgba(54, 162, 235, 0.2)');
+            const chart3 = createChart('chart3', 'Chart 3', 'rgba(255, 206, 86, 0.2)');
+            const chart4 = createChart('chart4', 'Chart 4', 'rgba(75, 192, 192, 0.2)');
+
+            // Animate all charts
+            setInterval(() => {
+                [btcChart, ethChart, forexChart, chart1, chart2, chart3, chart4].forEach(chart => {
+                    const data = chart.data.datasets[0].data;
+                    data.shift();
+                    data.push(Math.random() * 100);
+                    chart.update('none');
+                });
+            }, 1000);
+
+            // Add floating animation to input icons
+            document.querySelectorAll('.form-group input').forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.nextElementSibling.style.transform = 'translateX(-5px)';
+                });
+
+                input.addEventListener('blur', function() {
+                    this.nextElementSibling.style.transform = 'translateX(0)';
+                });
+            });
+
+            // Form submission
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+
+                // Add your login logic here
+                console.log('Login attempt:', { email, password });
+                alert('Login successful!'); // Replace with actual login logic
+            });
+
+            // Forgot password link
+            document.getElementById('forgotPassword').addEventListener('click', function(e) {
+                e.preventDefault();
+                // Add your forgot password logic here
+                alert('Password reset link will be sent to your email');
+            });
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle login form submission
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value.trim();
+                
+                if (!username || !password) {
+                    e.preventDefault();
+                    alert('Please fill in all fields');
+                }
+            });
+
+            // Handle alert close buttons
+            document.querySelectorAll('.alert-close').forEach(button => {
+                button.addEventListener('click', function() {
+                    this.closest('.alert').remove();
+                });
+            });
+
+            // Auto-remove messages after 5 seconds
+            setTimeout(function() {
+                const messages = document.querySelector('.message-container');
+                if (messages) {
+                    messages.remove();
+                }
+            }, 5000);
+
+            // Handle forgot password link
+            const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+            if (forgotPasswordLink) {
+                forgotPasswordLink.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    alert('Password reset functionality coming soon!');
+                });
+            }
+
+            // Add floating animation to input icons
+            document.querySelectorAll('.form-group input').forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.nextElementSibling.style.transform = 'translateX(-5px)';
+                });
+
+                input.addEventListener('blur', function() {
+                    this.nextElementSibling.style.transform = 'translateX(0)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+
+
