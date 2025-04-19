@@ -3,6 +3,11 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
+from django.core.mail import send_mail
+from django.conf import settings
+import random
+
+from .forms import CustomUserCreationForm
 
 def landing_page(request):
     if request.user.is_authenticated:
@@ -11,30 +16,16 @@ def landing_page(request):
 
 def signup_view(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            # Get the username and password from the form
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password1')  # password1 is the first password field
-            
-            # Create and save the user
             user = form.save()
-            
-            # Print for debugging
-            print(f"User created - Username: {username}")
-            
-            # Log the user in immediately after signup
-            user = authenticate(request, username=username, password=password)
-            if user is not None:
-                login(request, user)
-                messages.success(request, 'Account created successfully!')
-                return redirect('dashboard')
+            messages.success(request, 'Account created successfully. Please login.')
+            return redirect('login')
         else:
             for error in form.errors.values():
                 messages.error(request, error)
     else:
-        form = UserCreationForm()
-    
+        form = CustomUserCreationForm()
     return render(request, 'signup.html', {'form': form})
 
 def login_view(request):
