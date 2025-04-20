@@ -6,24 +6,74 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
 import random
+from django.http import JsonResponse
 
 from .forms import CustomUserCreationForm
+
+def generate_otp():
+    return ''.join([str(random.randint(0, 9)) for _ in range(6)])
+
+def send_otp_email(email, otp):
+    subject = 'Your OTP for Registration'
+    message = f'Your OTP for registration is: {otp}\nThis OTP will expire in 10 minutes.'
+    try:
+        send_mail(
+            subject,
+            message,
+            settings.EMAIL_HOST_USER,  # From email from settings.py
+            [email],  # To email (user's input email)
+            fail_silently=False,
+        )
+        return True
+    except Exception as e:
+        print(f"Error sending email: {e}")
+        return False
 
 def landing_page(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
     return redirect('login')
 
+def send_otp(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        if email:
+            otp = generate_otp()
+            # Store OTP in session
+            request.session['signup_otp'] = otp
+            request.session['signup_email'] = email
+            request.session.set_expiry(600)  # OTP expires in 10 minutes
+            
+            if send_otp_email(email, otp):  # Send to the email provided in the form
+                return JsonResponse({'success': True, 'message': 'OTP sent successfully'})
+            else:
+                return JsonResponse({'success': False, 'message': 'Failed to send OTP'})
+    return JsonResponse({'success': False, 'message': 'Invalid request'})
+
 def signup_view(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
+        otp = request.POST.get('otp')
+        stored_otp = request.session.get('signup_otp')
+        stored_email = request.session.get('signup_email')
+        
+        if not stored_otp or not stored_email:
+            messages.error(request, 'OTP verification required')
+            return render(request, 'signup.html', {'form': form})
+        
+        if otp != stored_otp:
+            messages.error(request, 'Invalid OTP')
+            return render(request, 'signup.html', {'form': form})
+        
+        if form.is_valid() and form.cleaned_data['email'] == stored_email:
             user = form.save()
+            # Clear session data
+            del request.session['signup_otp']
+            del request.session['signup_email']
             messages.success(request, 'Account created successfully. Please login.')
             return redirect('login')
         else:
-            for error in form.errors.values():
-                messages.error(request, error)
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = CustomUserCreationForm()
     return render(request, 'signup.html', {'form': form})

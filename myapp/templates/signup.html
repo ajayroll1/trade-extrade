@@ -131,21 +131,15 @@
 
         /* Make signup container more prominent */
         .signup-wrapper {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
             width: 100%;
-            max-width: 400px;
-            z-index: 10;
+            max-width: 400px; /* Reduced from 480px */
+            margin: 0 auto;
         }
 
         .signup-container {
-            max-width: 700px; /* Increased for horizontal layout */
-            width: 100%;
-            background: rgba(36, 38, 49, 0.95);
-            border-radius: 20px;
-            padding: 20px;
+            background: rgba(36, 38, 49, 0.95);  /* Adding back the background */
+            border-radius: 24px;
+            padding: 32px; /* Slightly reduced padding */
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -153,7 +147,7 @@
 
         .form-content {
             display: flex;
-            gap: 30px;
+            gap: 36px; /* Reduced from 40px */
         }
 
         .form-left, .form-right {
@@ -166,7 +160,7 @@
         }
 
         .form-group {
-            margin-bottom: 12px;
+            margin-bottom: 22px; /* Reduced from 25px */
         }
 
         /* Responsive design */
@@ -183,14 +177,14 @@
 
         .signup-header h2 {
             color: #ffffff;
-            font-size: 28px;
-            margin-bottom: 8px;
+            font-size: 22px; /* Reduced from 24px */
+            margin-bottom: 5px;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
         .signup-header p {
             color: #a0a3bd;
-            font-size: 16px;
+            font-size: 13px; /* Reduced from 14px */
         }
 
         .form-group {
@@ -208,12 +202,12 @@
 
         .form-group input {
             width: 100%;
-            padding: 12px 40px 12px 15px;
+            padding: 11px 36px 11px 14px; /* Reduced from 12px 40px 12px 15px */
             background: rgba(26, 28, 37, 0.8);
             border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
+            border-radius: 11px; /* Reduced from 12px */
             color: #ffffff;
-            font-size: 14px;
+            font-size: 13px; /* Reduced from 14px */
             transition: all 0.3s ease;
         }
 
@@ -357,12 +351,12 @@
 
         .social-buttons {
             display: flex;
-            gap: 15px;
+            gap: 9px; /* Reduced from 10px */
             justify-content: center;
         }
 
         .social-btn {
-            padding: 12px 25px;
+            padding: 11px 18px; /* Reduced from 12px 20px */
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             background: rgba(26, 28, 37, 0.8);
@@ -403,9 +397,18 @@
             left: 20px;
         }
 
-        @media (max-width: 480px) {
+        @media (max-width: 420px) { /* Changed from 480px */
             .signup-container {
-                padding: 20px;
+                padding: 20px; /* Further reduced padding for mobile */
+                border-radius: 20px;
+            }
+
+            .signup-header h2 {
+                font-size: 22px; /* Slightly smaller heading for mobile */
+            }
+
+            .signup-header p {
+                font-size: 14px;
             }
 
             .social-buttons {
@@ -492,6 +495,42 @@
             backdrop-filter: blur(3px);
             z-index: 999;
         }
+
+        .send-otp-btn {
+            background: linear-gradient(45deg, #2962ff, #1e4bd8);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 11px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-left: 1%;  /* Changed from 10px to 1% */
+            margin-top: 2%;
+            white-space: nowrap;
+            box-shadow: 0 4px 15px rgba(41, 98, 255, 0.2);
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 20px;
+            color: white;  /* Changed text color to white */
+        }
+
+        .login-link a {
+            color: white;  /* Changed login link color to white */
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .login-link a:hover {
+            color: #2962ff;  /* Changed hover color to blue for better interaction feedback */
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -549,24 +588,41 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="password1">Password</label>
-                            <input type="password" id="password1" name="password1" required>
-                            <i class="fas fa-lock"></i>
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required>
+                            <i class="fas fa-envelope"></i>
                         </div>
                     </div>
 
                     <!-- Right Column -->
                     <div class="form-right">
                         <div class="form-group">
-                            <label for="email">Email</label>
-                            <input type="email" id="email" name="email" required>
-                            <i class="fas fa-envelope"></i>
+                            <label for="password1">Password</label>
+                            <input type="password" id="password1" name="password1" required>
+                            <i class="fas fa-lock"></i>
                         </div>
 
                         <div class="form-group">
                             <label for="password2">Confirm Password</label>
                             <input type="password" id="password2" name="password2" required>
                             <i class="fas fa-lock"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OTP Section -->
+                <div class="otp-section">
+                    <div class="form-group otp-group">
+                        <label for="otp">Email Verification Code</label>
+                        <div class="otp-input-group">
+                            <input type="text" id="otp" name="otp" maxlength="6" placeholder="Enter 6-digit OTP" required>
+                            <i class="fas fa-key"></i>
+                            <button type="button" id="sendOtpBtn" class="send-otp-btn">
+                                Send OTP
+                            </button>
+                        </div>
+                        <div class="otp-timer" id="otpTimer" style="display: none;">
+                            Resend OTP in <span id="timer">60</span>s
                         </div>
                     </div>
                 </div>
@@ -597,27 +653,17 @@
                     Create Trading Account →
                 </button>
 
-                <div style="margin-top: 20px; text-align: center; color: white;" class="login-link">
-                    Already have an account? <a href="{% url 'login' %}" style="color: #2962ff; text-decoration: none; font-weight: 600;">Login</a>
+                <div class="login-link">
+                    Already have an account? <a href="{% url 'login' %}">Login</a>
                 </div>
 
-                <div class="terms" style="margin-top: 15px;">
+                <div class="terms">
                     By signing up, you agree to our 
                     <a href="#">Terms of Service</a> and 
                     <a href="#">Privacy Policy</a>
                 </div>
 
-                <div class="social-signup">
-                    <p>Or continue with</p>
-                    <div class="social-buttons">
-                        <button type="button" class="social-btn google-btn">
-                            <i class="fab fa-google"></i> Google
-                        </button>
-                        <button type="button" class="social-btn apple-btn">
-                            <i class="fab fa-apple"></i> Apple
-                        </button>
-                    </div>
-                </div>
+               
             </form>
         </div>
     </div>
@@ -817,3 +863,77 @@
     <p>Your trading account has been created. You can now start your trading journey.</p>
     <button class="alert-btn" onclick="closeAlert()">Got it!</button>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const sendOtpBtn = document.getElementById('sendOtpBtn');
+        const otpTimer = document.getElementById('otpTimer');
+        const timerSpan = document.getElementById('timer');
+        let timeLeft = 60;
+        let timerId = null;
+
+        function startTimer() {
+            sendOtpBtn.disabled = true;
+            otpTimer.style.display = 'block';
+            timeLeft = 60;
+
+            timerId = setInterval(() => {
+                timeLeft--;
+                timerSpan.textContent = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerId);
+                    sendOtpBtn.disabled = false;
+                    otpTimer.style.display = 'none';
+                }
+            }, 1000);
+        }
+
+        sendOtpBtn.addEventListener('click', function() {
+            const email = document.getElementById('email').value;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            
+            if (!emailRegex.test(email)) {
+                alert('Please enter a valid email address first');
+                return;
+            }
+
+            // Disable button and show loading state
+            sendOtpBtn.disabled = true;
+            sendOtpBtn.textContent = 'Sent';
+
+            // Send OTP request
+            const formData = new FormData();
+            formData.append('email', email);
+            formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+            fetch('/send-otp/', {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('OTP sent successfully! Please check your email and spam folder.');
+                    startTimer();
+                } else {
+                    alert(data.message || 'Failed to send OTP. Please try again.');
+                    sendOtpBtn.disabled = false;
+                    sendOtpBtn.textContent = 'Send OTP';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to send OTP. Please try again.');
+                sendOtpBtn.disabled = false;
+                sendOtpBtn.textContent = 'Send OTP';
+            });
+        });
+
+        // Add OTP input validation
+        const otpInput = document.getElementById('otp');
+        otpInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 6);
+        });
+    });
+</script>

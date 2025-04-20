@@ -135,11 +135,11 @@ LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'login'
 
 # Email Configuration
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'ajaymahto2580@gmail.com'
-# EMAIL_HOST_PASSWORD = 'odgm jydv dbtu endm'  # Your app password
-# DEFAULT_FROM_EMAIL = 'ajaymahto2580@gmail.com'
-# EMAIL_TIMEOUT = 20
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'ajaymahto2580@gmail.com'  # Your Gmail address
+EMAIL_HOST_PASSWORD = 'odgm jydv dbtu endm'  # Your app password
+DEFAULT_FROM_EMAIL = 'ajaymahto2580@gmail.com'  # Your Gmail address
+EMAIL_TIMEOUT = 20

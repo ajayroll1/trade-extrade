@@ -12,6 +12,7 @@ urlpatterns = [
     path('signal/', views.signal, name='signal'),
     path('pamm/', views.pamm, name='pamm'),
     path('history/', views.history, name='history'),
+    path('send-otp/', views.send_otp, name='send_otp'),
 ]
 
 
