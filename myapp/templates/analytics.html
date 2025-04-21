@@ -170,16 +170,19 @@
 {% block extra_js %}
 <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
 <script type="text/javascript">
+    const API_KEY = "{{ env.TRADINGVIEW_API_KEY|safe }}";
+    const API_SECRET = "{{ env.TRADINGVIEW_API_SECRET|safe }}";
+
     new TradingView.widget({
         "width": "100%",
         "height": "100%",
-        "symbol": "OANDA:XAUUSD",
+        "symbol": "BINANCE:BTCUSDT", // Changed to Binance symbol format
         "interval": "15",
         "timezone": "Etc/UTC",
         "theme": "dark",
         "style": "1",
         "locale": "en",
-        "toolbar_bg": "#000000", /* Changed toolbar background to black */
+        "toolbar_bg": "#000000",
         "enable_publishing": false,
         "hide_side_toolbar": false,
         "allow_symbol_change": true,
@@ -193,18 +196,51 @@
             "volume.volume.color.0": "#ef5350",
             "volume.volume.color.1": "#26a69a"
         },
-        "show_popup_button": true,
-        "popup_width": "1000",
-        "popup_height": "650",
+        "datafeed": {
+            "type": "udf",
+            "url": "https://api.binance.com/api/v3",
+            "client_id": API_KEY,
+            "client_secret": API_SECRET,
+            "supported_resolutions": ["1", "3", "5", "15", "30", "60", "120", "240", "360", "480", "720", "1D", "3D", "1W", "1M"],
+            "exchanges": [
+                {
+                    "value": "BINANCE",
+                    "name": "Binance",
+                    "desc": "Binance Exchange"
+                }
+            ],
+            "symbols_types": [
+                {
+                    "name": "crypto",
+                    "value": "crypto"
+                }
+            ]
+        },
+        "streaming_data": true,
+        "auto_refresh": true,
+        "real_time": true,
+        "allow_symbol_change": true,
         "details": true,
         "hotlist": true,
         "calendar": true,
-        "show_trading_panel": true,
-        "withdateranges": true,
-        "save_image": true,
-        "hide_volume": false,
-        "support_host": "https://www.tradingview.com"
+        "show_popup_button": true,
+        "popup_width": "1000",
+        "popup_height": "650"
     });
+
+    // Add Binance WebSocket connection for real-time price updates
+    const binanceSocket = new WebSocket('wss://stream.binance.com:9443/ws/btcusdt@trade');
+
+    binanceSocket.onmessage = function(event) {
+        const data = JSON.parse(event.data);
+        // You can use this data to update your UI in real-time
+        console.log('Price update:', data.p);
+    };
+
+    // Error handling for WebSocket
+    binanceSocket.onerror = function(error) {
+        console.error('WebSocket Error:', error);
+    };
 
     // Toggle positions panel
     function togglePositions() {
@@ -224,6 +260,9 @@
     });
 </script>
 {% endblock %}
+
+
+
 
 
 

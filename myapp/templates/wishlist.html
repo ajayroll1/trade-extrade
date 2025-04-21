@@ -259,6 +259,13 @@
         color: var(--accent-color);
     }
 
+    .positive {
+        color: #26a69a;
+    }
+    .negative {
+        color: #ef5350;
+    }
+
     /* Ensure proper display states */
     .market-categories {
         display: none;
@@ -326,54 +333,192 @@
         <!-- Market categories will be dynamically added here -->
     </div>
 </div>
+
+<!-- Add this HTML for the trading modal -->
+<div id="tradingModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Place Order: <span id="selectedSymbol"></span></h2>
+        <div class="current-price">
+            Current Price: <span id="modalPrice">0.00</span>
+        </div>
+        <div class="trade-form">
+            <div class="form-group">
+                <label>Amount (USDT)</label>
+                <input type="number" id="tradeAmount" min="10" step="1">
+            </div>
+            <div class="form-group">
+                <label>Stop Loss (%)</label>
+                <input type="number" id="stopLoss" value="2" min="0.1" max="100" step="0.1">
+            </div>
+            <div class="form-group">
+                <label>Take Profit (%)</label>
+                <input type="number" id="takeProfit" value="4" min="0.1" max="100" step="0.1">
+            </div>
+            <div class="buttons">
+                <button class="buy-btn" onclick="placeTrade('BUY')">BUY</button>
+                <button class="sell-btn" onclick="placeTrade('SELL')">SELL</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .modal {
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.7);
+    }
+
+    .modal-content {
+        background-color: #1e222d;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #363c4e;
+        width: 80%;
+        max-width: 400px;
+        border-radius: 8px;
+        color: #fff;
+    }
+
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .trade-form {
+        margin-top: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: #999;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #363c4e;
+        background: #2a2e39;
+        color: #fff;
+        border-radius: 4px;
+    }
+
+    .buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .buy-btn, .sell-btn {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 4px;
+        color: white;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .buy-btn {
+        background: #26a69a;
+    }
+
+    .sell-btn {
+        background: #ef5350;
+    }
+
+    .pair-item {
+        cursor: pointer;
+    }
+</style>
 {% endblock %}
 
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Initial data for pairs
-        const pairsData = [
-            { symbol: 'EURUSD', price: 1.13795, change: 0.76, low: 1.12927, high: 1.13854 },
-            { symbol: 'GBPUSD', price: 1.32742, change: 0.33, low: 1.32742, high: 1.32902 },
-            { symbol: 'USDCAD', price: 1.39241, change: -0.24, low: 1.39133, high: 1.39599 },
-            { symbol: 'BTCUSD', price: 83458.62, change: -0.15, low: 83044.38, high: 83892.32 }
-        ];
-
         const pairsList = document.querySelector('.pairs-list');
+        const pairs = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'XRPUSDT'];
         
-        // Function to create pair items
-        function createPairItem(pair) {
+        // Function to format price
+        function formatPrice(price) {
+            return parseFloat(price).toFixed(5);
+        }
+
+        // Function to format percent change
+        function formatChange(change) {
+            return `${parseFloat(change).toFixed(2)}% ${parseFloat(change) >= 0 ? '↑' : '↓'}`;
+        }
+
+        // Function to create pair item HTML
+        function createPairItem(symbol, price, change) {
             return `
-                <div class="pair-item">
-                    <div class="symbol">${pair.symbol}</div>
-                    <div class="values">
-                        <div class="main-value">${pair.price.toFixed(5)}</div>
-                        <div class="change ${pair.change >= 0 ? 'positive' : 'negative'}">
-                            ${pair.change}% ${pair.change >= 0 ? '↑' : '↓'}
-                        </div>
-                    </div>
-                    <div class="hl-values">
-                        <div>L: ${pair.low}</div>
-                        <div>H: ${pair.high}</div>
-                    </div>
-                    <div class="pair-actions">
-                        <button class="action-button buy-button">
-                            <i class="fas fa-arrow-up"></i> Buy
-                        </button>
-                        <button class="action-button sell-button">
-                            <i class="fas fa-arrow-down"></i> Sell
-                        </button>
-                        <button class="action-button delete-button">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                <div class="pair-item" data-symbol="${symbol}" onclick="openTradeModal('${symbol}', ${price})">
+                    <div class="pair-info">
+                        <span class="symbol">${symbol}</span>
+                        <span class="main-value">${formatPrice(price)}</span>
+                        <span class="change ${parseFloat(change) >= 0 ? 'positive' : 'negative'}">${formatChange(change)}</span>
                     </div>
                 </div>
             `;
         }
 
-        // Initialize pairs list
-        pairsData.forEach(pair => {
-            pairsList.innerHTML += createPairItem(pair);
+        // Initialize WebSocket connections for each pair
+        const sockets = {};
+        
+        pairs.forEach(pair => {
+            // First get initial price
+            fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${pair}`)
+                .then(response => response.json())
+                .then(data => {
+                    const html = createPairItem(pair, data.lastPrice, data.priceChangePercent);
+                    pairsList.innerHTML += html;
+                })
+                .catch(error => console.error('Error fetching initial price:', error));
+
+            // Then setup WebSocket for live updates
+            const socket = new WebSocket(`wss://stream.binance.com:9443/ws/${pair.toLowerCase()}@ticker`);
+            
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                const pairItem = document.querySelector(`[data-symbol="${pair}"]`);
+                if (pairItem) {
+                    const mainValue = pairItem.querySelector('.main-value');
+                    const changeElement = pairItem.querySelector('.change');
+                    
+                    mainValue.textContent = formatPrice(data.c);  // Current price
+                    const priceChange = parseFloat(data.P);  // 24h price change percent
+                    changeElement.textContent = formatChange(priceChange);
+                    changeElement.className = `change ${priceChange >= 0 ? 'positive' : 'negative'}`;
+                }
+            };
+
+            socket.onerror = (error) => {
+                console.error(`WebSocket Error for ${pair}:`, error);
+            };
+
+            socket.onclose = () => {
+                console.log(`WebSocket Closed for ${pair}`);
+                // Attempt to reconnect after 5 seconds
+                setTimeout(() => {
+                    console.log(`Attempting to reconnect ${pair}...`);
+                    sockets[pair] = new WebSocket(`wss://stream.binance.com:9443/ws/${pair.toLowerCase()}@ticker`);
+                }, 5000);
+            };
+
+            sockets[pair] = socket;
         });
 
         // Search functionality
@@ -387,64 +532,92 @@
                 item.style.display = symbol.includes(searchTerm) ? 'flex' : 'none';
             });
         });
+    });
 
-        // Tab switching
-        const tabs = document.querySelectorAll('.tab');
-        const marketCategories = document.querySelector('.market-categories');
-        
-        tabs.forEach(tab => {
-            tab.addEventListener('click', function() {
-                tabs.forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
+    let currentPrice = 0;
+    let selectedSymbol = '';
+    const modal = document.getElementById('tradingModal');
+    const modalClose = document.querySelector('.close');
 
-                if (this.textContent === 'ALL SYMBOLS') {
-                    pairsList.style.display = 'none';
-                    marketCategories.style.display = 'block';
-                } else {
-                    pairsList.style.display = 'flex';
-                    marketCategories.style.display = 'none';
-                }
+    function openTradeModal(symbol, price) {
+        selectedSymbol = symbol;
+        currentPrice = price;
+        document.getElementById('selectedSymbol').textContent = symbol;
+        document.getElementById('modalPrice').textContent = formatPrice(price);
+        modal.style.display = 'block';
+    }
+
+    modalClose.onclick = function() {
+        modal.style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    async function placeTrade(type) {
+        const amount = document.getElementById('tradeAmount').value;
+        const stopLoss = document.getElementById('stopLoss').value;
+        const takeProfit = document.getElementById('takeProfit').value;
+
+        if (!amount || amount < 10) {
+            alert('Please enter a valid amount (minimum 10 USDT)');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/place_trade/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    symbol: selectedSymbol,
+                    type: type,
+                    amount: amount,
+                    stopLoss: stopLoss,
+                    takeProfit: takeProfit,
+                    price: currentPrice
+                })
             });
-        });
 
-        // Auto-update prices
-        setInterval(() => {
-            const pairItems = document.querySelectorAll('.pair-item');
-            pairItems.forEach(item => {
-                const mainValue = item.querySelector('.main-value');
-                const currentValue = parseFloat(mainValue.textContent);
-                const change = (Math.random() - 0.5) * 0.001;
-                const newValue = (currentValue + change).toFixed(5);
-                mainValue.textContent = newValue;
-                
-                const changeElement = item.querySelector('.change');
-                const changeValue = (change * 100).toFixed(2);
-                changeElement.textContent = `${changeValue}% ${change >= 0 ? '↑' : '↓'}`;
-                changeElement.className = `change ${change >= 0 ? 'positive' : 'negative'}`;
-            });
-        }, 3000);
+            const data = await response.json();
+            
+            if (data.success) {
+                alert(`${type} order placed successfully!`);
+                modal.style.display = 'none';
+            } else {
+                alert(`Error: ${data.error}`);
+            }
+        } catch (error) {
+            console.error('Error placing trade:', error);
+            alert('Failed to place trade. Please try again.');
+        }
+    }
 
-        // Action buttons handlers
-        document.addEventListener('click', function(e) {
-            if (e.target.closest('.action-button')) {
-                const button = e.target.closest('.action-button');
-                const pairItem = button.closest('.pair-item');
-                const symbol = pairItem.querySelector('.symbol').textContent;
-                
-                if (button.classList.contains('buy-button')) {
-                    alert(`Buying ${symbol}`);
-                } else if (button.classList.contains('sell-button')) {
-                    alert(`Selling ${symbol}`);
-                } else if (button.classList.contains('delete-button')) {
-                    if (confirm(`Remove ${symbol} from wishlist?`)) {
-                        pairItem.remove();
-                    }
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
                 }
             }
-        });
-    });
+        }
+        return cookieValue;
+    }
 </script>
 {% endblock %}
+
+
+
 
 
 

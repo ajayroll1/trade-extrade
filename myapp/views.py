@@ -9,6 +9,8 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 import random
 import json
+from dotenv import load_dotenv
+import os
 
 from .forms import CustomUserCreationForm
 
@@ -110,7 +112,14 @@ def dashboard(request):
 
 @login_required
 def wishlist(request):
-    return render(request, 'wishlist.html')
+    load_dotenv()
+    context = {
+        'env': {
+            'BINANCE_API_KEY': os.getenv('BINANCE_API_KEY'),
+            'BINANCE_API_SECRET': os.getenv('BINANCE_API_SECRET')
+        }
+    }
+    return render(request, 'wishlist.html', context)
 
 @login_required
 def trades(request):
@@ -118,7 +127,16 @@ def trades(request):
 
 @login_required
 def analytics(request):
-    return render(request, 'analytics.html')
+    # Load environment variables
+    load_dotenv()
+    
+    context = {
+        'env': {
+            'TRADINGVIEW_API_KEY': os.getenv('TRADINGVIEW_API_KEY'),
+            'TRADINGVIEW_API_SECRET': os.getenv('TRADINGVIEW_API_SECRET')
+        }
+    }
+    return render(request, 'analytics.html', context)
 
 @login_required
 def signal(request):
