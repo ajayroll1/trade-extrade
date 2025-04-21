@@ -13,6 +13,9 @@ urlpatterns = [
     path('pamm/', views.pamm, name='pamm'),
     path('history/', views.history, name='history'),
     path('send-otp/', views.send_otp, name='send_otp'),
+    path('send-reset-code/', views.send_reset_code, name='send-reset-code'),
+    path('verify-reset-code/', views.verify_reset_code, name='verify-reset-code'),
+    path('update-password/', views.update_password, name='update-password'),
 ]
 
 

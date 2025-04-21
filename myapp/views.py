@@ -5,8 +5,10 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
-import random
+from django.contrib.auth.models import User
 from django.http import JsonResponse
+import random
+import json
 
 from .forms import CustomUserCreationForm
 
@@ -14,14 +16,14 @@ def generate_otp():
     return ''.join([str(random.randint(0, 9)) for _ in range(6)])
 
 def send_otp_email(email, otp):
-    subject = 'Your OTP for Registration'
-    message = f'Your OTP for registration is: {otp}\nThis OTP will expire in 10 minutes.'
+    subject = 'Password Reset OTP'
+    message = f'Your OTP for password reset is: {otp}\nThis OTP will expire in 10 minutes.'
     try:
         send_mail(
             subject,
             message,
-            settings.EMAIL_HOST_USER,  # From email from settings.py
-            [email],  # To email (user's input email)
+            settings.EMAIL_HOST_USER,
+            [email],
             fail_silently=False,
         )
         return True
@@ -132,51 +134,141 @@ def history(request):
 
 def send_reset_code(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        email = data.get('email')
-        
         try:
-            user = User.objects.get(email=email)
-            # Generate 6-digit code
-            verification_code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+            data = json.loads(request.body)
+            email = data.get('email')
             
-            # In a real application, you would send this code via email
-            # For now, we'll just return it in the response
-            print(f"Verification code for {email}: {verification_code}")
-            
-            # You should store this code in the database with an expiration time
-            # For now, we'll just send it back to verify on the client side
-            return JsonResponse({
-                'success': True,
-                'code': verification_code  # In production, don't send the code back directly
-            })
-        except User.DoesNotExist:
+            if not email:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Email is required'
+                })
+
+            try:
+                user = User.objects.get(email=email)
+                # Generate OTP
+                otp = generate_otp()
+                
+                # Store OTP in session
+                request.session['reset_otp'] = otp
+                request.session['reset_email'] = email
+                request.session.set_expiry(600)  # 10 minutes
+                
+                # Send OTP email
+                if send_otp_email(email, otp):
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Verification code sent successfully'
+                    })
+                else:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Failed to send verification code'
+                    })
+                    
+            except User.DoesNotExist:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'No account exists with this email address'
+                })
+                
+        except json.JSONDecodeError:
             return JsonResponse({
                 'success': False,
-                'error': 'No account found with this email address'
+                'message': 'Invalid JSON data'
+            })
+            
+    return JsonResponse({
+        'success': False,
+        'message': 'Invalid request method'
+    })
+
+def verify_reset_code(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            code = data.get('code')
+            
+            stored_otp = request.session.get('reset_otp')
+            stored_email = request.session.get('reset_email')
+            
+            if not stored_otp or not stored_email:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Verification code has expired. Please request a new code.'
+                })
+            
+            if email != stored_email:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Email does not match the one used for code request'
+                })
+            
+            if code != stored_otp:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Invalid verification code'
+                })
+            
+            # Code is valid
+            return JsonResponse({
+                'success': True,
+                'message': 'Code verified successfully'
+            })
+            
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'success': False,
+                'message': 'Invalid request data'
             })
     
-    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+    return JsonResponse({
+        'success': False,
+        'message': 'Invalid request method'
+    })
 
 def update_password(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        email = data.get('email')
-        code = data.get('code')
-        new_password = data.get('new_password')
-        
         try:
-            user = User.objects.get(email=email)
-            # In a real application, you would verify the code against what's stored in the database
-            # For now, we'll just update the password
-            user.set_password(new_password)
-            user.save()
+            data = json.loads(request.body)
+            email = data.get('email')
+            new_password = data.get('new_password')
             
-            return JsonResponse({'success': True})
-        except User.DoesNotExist:
+            stored_email = request.session.get('reset_email')
+            
+            if not stored_email or email != stored_email:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Invalid password reset request'
+                })
+            
+            try:
+                user = User.objects.get(email=email)
+                user.set_password(new_password)
+                user.save()
+                
+                # Clear session data
+                del request.session['reset_otp']
+                del request.session['reset_email']
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Password updated successfully'
+                })
+            except User.DoesNotExist:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'User not found'
+                })
+                
+        except json.JSONDecodeError:
             return JsonResponse({
                 'success': False,
-                'error': 'User not found'
+                'message': 'Invalid request data'
             })
     
-    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+    return JsonResponse({
+        'success': False,
+        'message': 'Invalid request method'
+    })

@@ -108,14 +108,14 @@
         }
 
         .forgot-password a {
-            color: #2962ff;
+            color: white;
             text-decoration: none;
             font-size: 14px;
             transition: all 0.3s ease;
         }
 
         .forgot-password a:hover {
-            color: #1e4bd8;
+            color: #2962ff;
             text-decoration: underline;
         }
 
@@ -376,7 +376,7 @@
                 {% endif %}
 
                 <div class="forgot-password">
-                    <a href="#" id="forgotPasswordLink">Forgot Password?</a>
+                    <a href="#" id="forgotPasswordLink" style="color: white;">Forgot Password?</a>
                 </div>
 
                 <button type="submit" class="login-btn">
@@ -547,7 +547,7 @@
             if (forgotPasswordLink) {
                 forgotPasswordLink.addEventListener('click', function(e) {
                     e.preventDefault();
-                    alert('Password reset functionality coming soon!');
+                    modal.style.display = 'block';
                 });
             }
 
@@ -560,6 +560,205 @@
                 input.addEventListener('blur', function() {
                     this.nextElementSibling.style.transform = 'translateX(0)';
                 });
+            });
+        });
+    </script>
+    <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); z-index: 1000;">
+        <div class="modal-content" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #242631; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; box-shadow: 0 2px 10px rgba(0,0,0,0.3); color: white;">
+            <div class="modal-header" style="margin-bottom: 20px;">
+                <h3 style="margin: 0; color: white;">Reset Password</h3>
+                <span class="close-modal" style="position: absolute; right: 20px; top: 20px; cursor: pointer; font-size: 20px; color: white;">&times;</span>
+            </div>
+            
+            <div class="modal-body">
+                <p style="color: #a0a3bd; margin-bottom: 20px;">Enter your email address and we'll send you a verification code.</p>
+                
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label for="resetEmail" style="display: block; margin-bottom: 8px; color: white;">Email Address</label>
+                    <input type="email" id="resetEmail" style="width: 100%; padding: 10px; border: 1px solid #2f3241; border-radius: 4px; background: #1a1c25; color: white;" placeholder="Enter your email">
+                </div>
+
+                <div id="verificationCodeSection" style="display: none; margin-bottom: 20px;">
+                    <label for="verificationCode" style="display: block; margin-bottom: 8px; color: white;">Verification Code</label>
+                    <input type="text" id="verificationCode" style="width: 100%; padding: 10px; border: 1px solid #2f3241; border-radius: 4px; background: #1a1c25; color: white;" placeholder="Enter 6-digit code">
+                </div>
+
+                <div id="newPasswordSection" style="display: none;">
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="newPassword" style="display: block; margin-bottom: 8px; color: white;">New Password</label>
+                        <input type="password" id="newPassword" style="width: 100%; padding: 10px; border: 1px solid #2f3241; border-radius: 4px; background: #1a1c25; color: white;" placeholder="Enter new password">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="confirmPassword" style="display: block; margin-bottom: 8px; color: white;">Confirm Password</label>
+                        <input type="password" id="confirmPassword" style="width: 100%; padding: 10px; border: 1px solid #2f3241; border-radius: 4px; background: #1a1c25; color: white;" placeholder="Confirm new password">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer" style="text-align: right;">
+                <button id="sendCodeBtn" style="padding: 10px 20px; background-color: #2962ff; color: white; border: none; border-radius: 4px; cursor: pointer;">Send Code</button>
+                <button id="verifyCodeBtn" style="display: none; padding: 10px 20px; background-color: #2962ff; color: white; border: none; border-radius: 4px; cursor: pointer;">Verify Code</button>
+                <button id="resetPasswordBtn" style="display: none; padding: 10px 20px; background-color: #2962ff; color: white; border: none; border-radius: 4px; cursor: pointer;">Reset Password</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('forgotPasswordModal');
+            const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+            const closeModal = document.querySelector('.close-modal');
+            const sendCodeBtn = document.getElementById('sendCodeBtn');
+            const verifyCodeBtn = document.getElementById('verifyCodeBtn');
+            const resetPasswordBtn = document.getElementById('resetPasswordBtn');
+
+            // Show modal when clicking forgot password link
+            forgotPasswordLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                modal.style.display = 'block';
+            });
+
+            // Close modal when clicking X
+            closeModal.addEventListener('click', function() {
+                modal.style.display = 'none';
+                resetForm();
+            });
+
+            // Send verification code
+            sendCodeBtn.addEventListener('click', async function() {
+                const email = document.getElementById('resetEmail').value.trim();
+                
+                if (!email) {
+                    alert('Please enter your email address');
+                    return;
+                }
+
+                if (!isValidEmail(email)) {
+                    alert('Please enter a valid email address');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/send-reset-code/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        },
+                        body: JSON.stringify({ email: email })
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        document.getElementById('verificationCodeSection').style.display = 'block';
+                        sendCodeBtn.style.display = 'none';
+                        verifyCodeBtn.style.display = 'inline-block';
+                        alert('Verification code sent to your email!');
+                    } else {
+                        alert(data.message);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                }
+            });
+
+            function isValidEmail(email) {
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            }
+
+            function resetForm() {
+                document.getElementById('resetEmail').value = '';
+                document.getElementById('verificationCode').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+                document.getElementById('verificationCodeSection').style.display = 'none';
+                document.getElementById('newPasswordSection').style.display = 'none';
+                sendCodeBtn.style.display = 'inline-block';
+                verifyCodeBtn.style.display = 'none';
+                resetPasswordBtn.style.display = 'none';
+            }
+
+            // Add this after your existing sendCodeBtn event listener
+            verifyCodeBtn.addEventListener('click', async function() {
+                const email = document.getElementById('resetEmail').value.trim();
+                const code = document.getElementById('verificationCode').value.trim();
+                
+                if (!code) {
+                    alert('Please enter the verification code');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/verify-reset-code/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        },
+                        body: JSON.stringify({ 
+                            email: email,
+                            code: code 
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        document.getElementById('newPasswordSection').style.display = 'block';
+                        verifyCodeBtn.style.display = 'none';
+                        resetPasswordBtn.style.display = 'inline-block';
+                        alert('Code verified successfully!');
+                    } else {
+                        alert(data.message);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                }
+            });
+
+            // Add reset password button handler
+            resetPasswordBtn.addEventListener('click', async function() {
+                const email = document.getElementById('resetEmail').value.trim();
+                const newPassword = document.getElementById('newPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                
+                if (!newPassword || !confirmPassword) {
+                    alert('Please fill in all password fields');
+                    return;
+                }
+                
+                if (newPassword !== confirmPassword) {
+                    alert('Passwords do not match');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/update-password/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            new_password: newPassword
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        alert('Password updated successfully!');
+                        modal.style.display = 'none';
+                        resetForm();
+                    } else {
+                        alert(data.message || 'Failed to update password');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                }
             });
         });
     </script>
