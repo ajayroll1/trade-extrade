@@ -445,12 +445,6 @@
     async function confirmOrder() {
         const quantity = parseFloat(document.querySelector('.lot-size').value);
         const total = (currentPrice * quantity).toFixed(2);
-        const availableBalance = parseFloat("{{ user.balance }}".replace(/[^0-9.-]+/g,"")); // Get balance from user object
-
-        if (total > availableBalance) {
-            alert('Insufficient balance to execute this trade.');
-            return;
-        }
 
         try {
             const response = await fetch('/api/execute_trade/', {
@@ -464,18 +458,22 @@
                     symbol: 'BTCUSDT',
                     quantity: quantity,
                     price: currentPrice,
-                    total: total
+                    total: total,
+                    stopLoss: 0,  // आप इसे UI से input ले सकते हैं
+                    takeProfit: 0,  // आप इसे UI से input ले सकते हैं
+                    commission: 0
                 })
             });
 
             const result = await response.json();
+            
             if (result.success) {
                 showModernAlert(
                     'success',
                     'Trade Executed Successfully',
-                    'Your trade has been completed successfully. Check your trading history for details.',
-                    () => {}, // Confirm callback
-                    () => {}  // Cancel callback
+                    'Your trade has been completed successfully.',
+                    () => {}, 
+                    () => {}  
                 );
                 
                 if (typeof updateDashboardBalance === 'function') {
@@ -486,8 +484,8 @@
                     'error',
                     'Order Failed',
                     `Error: ${result.error}`,
-                    () => {}, // Confirm callback
-                    () => {}  // Cancel callback
+                    () => {}, 
+                    () => {}  
                 );
             }
         } catch (error) {
@@ -495,14 +493,49 @@
             showModernAlert(
                 'error',
                 'Trade Failed',
-                'Unable to complete your trade. Please try again or contact support.',
-                () => {}, // Confirm callback
-                () => {}  // Cancel callback
+                'Unable to complete your trade. Please try again.',
+                () => {}, 
+                () => {}  
             );
         }
 
         document.getElementById('confirmationPopup').style.display = 'none';
-    }F
+    }
+
+    // Add this new function to handle trade history
+    async function addTradeToHistory(tradeData) {
+        try {
+            const response = await fetch('/api/add_trade_history/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    id: Date.now(), // Temporary ID, should be handled by backend
+                    time: new Date().toISOString(),
+                    symbol: tradeData.symbol,
+                    type: tradeData.type,
+                    lot: tradeData.quantity,
+                    status: tradeData.status,
+                    entry: tradeData.entryPrice,
+                    exit: tradeData.exitPrice,
+                    sl: tradeData.sl,
+                    tp: tradeData.tp,
+                    commission: tradeData.commission,
+                    profit: tradeData.profit,
+                    swap: tradeData.swap
+                })
+            });
+
+            const result = await response.json();
+            if (!result.success) {
+                console.error('Failed to add trade to history:', result.error);
+            }
+        } catch (error) {
+            console.error('Error adding trade to history:', error);
+        }
+    }
 
     // Helper function to get CSRF token
     function getCookie(name) {
@@ -541,6 +574,16 @@
     });
 </script>
 {% endblock %}
+
+
+
+
+
+
+
+
+
+
 
 
 

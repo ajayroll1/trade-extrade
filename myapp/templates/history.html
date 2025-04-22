@@ -127,6 +127,39 @@
             </button>
         </div>
     </div>
+
+    <!-- Summary Cards Moved to Top -->
+    <div class="summary-cards">
+        <div class="summary-card">
+            <div class="summary-card-title">Balance</div>
+            <div class="summary-card-value">$10,319.97</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-card-title">Deposit</div>
+            <div class="summary-card-value">$0.00</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-card-title">Withdraw</div>
+            <div class="summary-card-value">$100.00</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-card-title">Commission</div>
+            <div class="summary-card-value">$0.00</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-card-title">SWAP</div>
+            <div class="summary-card-value">-$3.10</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-card-title">Profit</div>
+            <div class="summary-card-value" style="color: var(--accent-green);">$423.07</div>
+        </div>
+    </div>
+
+    <!-- Add some spacing between cards and table -->
+    <div style="margin-top: 30px;"></div>
+
+    <!-- Order History Table -->
     <div class="history-table-container">
         <table class="history-table">
             <thead>
@@ -165,39 +198,100 @@
             </tbody>
         </table>
     </div>
-    <div class="summary-cards">
-        <div class="summary-card">
-            <div class="summary-card-title">Balance</div>
-            <div class="summary-card-value">$10,319.97</div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-card-title">Deposit</div>
-            <div class="summary-card-value">$0.00</div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-card-title">Withdraw</div>
-            <div class="summary-card-value">$100.00</div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-card-title">Commission</div>
-            <div class="summary-card-value">$0.00</div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-card-title">SWAP</div>
-            <div class="summary-card-value">-$3.10</div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-card-title">Profit</div>
-            <div class="summary-card-value" style="color: var(--accent-green);">$423.07</div>
-        </div>
-    </div>
 </div>
 {% endblock content %}
 
 {% block extra_js %}
 <script>
+    // Load trade history when page loads
+    document.addEventListener('DOMContentLoaded', loadTradeHistory);
+
+    async function loadTradeHistory() {
+        try {
+            const response = await fetch('/api/get_trade_history/');
+            const data = await response.json();
+            
+            if (data.success) {
+                updateTradeTable(data.trades);
+                updateSummaryCards(data.summary);
+            }
+        } catch (error) {
+            console.error('Error loading trade history:', error);
+        }
+    }
+
+    function updateTradeTable(trades) {
+        const tbody = document.querySelector('.history-table tbody');
+        if (!trades || trades.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="13" style="text-align: center;">No trades found</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = trades.map(trade => `
+            <tr>
+                <td>${trade.id}</td>
+                <td>${formatDate(trade.time)}</td>
+                <td>${trade.symbol}</td>
+                <td><span class="${trade.type.toLowerCase()}-order">${trade.type}</span></td>
+                <td>${trade.lot}</td>
+                <td><span class="status-${trade.status.toLowerCase()}">${trade.status}</span></td>
+                <td>${trade.entry}</td>
+                <td>${trade.exit}</td>
+                <td>${trade.sl}</td>
+                <td>${trade.tp}</td>
+                <td>${trade.commission}</td>
+                <td class="${trade.profit >= 0 ? 'profit-positive' : 'profit-negative'}">${trade.profit}</td>
+                <td>${trade.swap}</td>
+            </tr>
+        `).join('');
+    }
+
+    function updateSummaryCards(summary) {
+        document.querySelector('.summary-card:nth-child(1) .summary-card-value').textContent = formatCurrency(summary.balance);
+        document.querySelector('.summary-card:nth-child(2) .summary-card-value').textContent = formatCurrency(summary.deposit);
+        document.querySelector('.summary-card:nth-child(3) .summary-card-value').textContent = formatCurrency(summary.withdraw);
+        document.querySelector('.summary-card:nth-child(4) .summary-card-value').textContent = formatCurrency(summary.commission);
+        document.querySelector('.summary-card:nth-child(5) .summary-card-value').textContent = formatCurrency(summary.swap);
+        document.querySelector('.summary-card:nth-child(6) .summary-card-value').textContent = formatCurrency(summary.profit);
+    }
+
+    function formatDate(dateString) {
+        return new Date(dateString).toLocaleString();
+    }
+
+    function formatCurrency(amount) {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+    }
+
     function exportHistory() {
-        console.log('Exporting history...');
+        // Implementation for exporting history to CSV
+        const table = document.querySelector('.history-table');
+        let csv = [];
+        
+        // Add headers
+        const headers = Array.from(table.querySelectorAll('th'))
+            .map(th => th.textContent.trim());
+        csv.push(headers.join(','));
+        
+        // Add rows
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const rowData = Array.from(row.querySelectorAll('td'))
+                .map(td => td.textContent.trim());
+            csv.push(rowData.join(','));
+        });
+        
+        // Create and download CSV file
+        const csvContent = csv.join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.setAttribute('hidden', '');
+        a.setAttribute('href', url);
+        a.setAttribute('download', 'trade_history.csv');
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     }
 </script>
 {% endblock extra_js %}

@@ -16,6 +16,9 @@ urlpatterns = [
     path('send-reset-code/', views.send_reset_code, name='send-reset-code'),
     path('verify-reset-code/', views.verify_reset_code, name='verify-reset-code'),
     path('update-password/', views.update_password, name='update-password'),
+    path('api/add_trade_history/', views.add_trade_history, name='add_trade_history'),
+    path('api/get_trade_history/', views.get_trade_history, name='get_trade_history'),
+    path('api/execute_trade/', views.execute_trade, name='execute_trade'),
 ]
 
 

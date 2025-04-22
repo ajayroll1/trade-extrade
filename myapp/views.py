@@ -9,10 +9,13 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 import random
 import json
+from datetime import datetime
 from dotenv import load_dotenv
 import os
+from django.views.decorators.http import require_http_methods
 
 from .forms import CustomUserCreationForm
+from .models import Trade
 
 def generate_otp():
     return ''.join([str(random.randint(0, 9)) for _ in range(6)])
@@ -283,3 +286,99 @@ def update_password(request):
         'success': False,
         'message': 'Invalid request method'
     })
+
+@login_required
+@require_http_methods(["POST"])
+def add_trade_history(request):
+    try:
+        data = json.loads(request.body)
+        
+        # Create new trade history entry
+        trade = TradeHistory.objects.create(
+            user=request.user,
+            trade_id=data['id'],
+            symbol=data['symbol'],
+            type=data['type'],
+            lot=data['lot'],
+            status=data['status'],
+            entry=data['entry'],
+            exit=data['exit'],
+            sl=data['sl'],
+            tp=data['tp'],
+            commission=data['commission'],
+            profit=data['profit'],
+            swap=data['swap']
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Trade added to history successfully',
+            'trade_id': trade.id
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+@login_required
+@require_http_methods(["GET"])
+def get_trade_history(request):
+    try:
+        # Get all trades for the current user
+        trades = TradeHistory.objects.filter(user=request.user).values(
+            'trade_id', 'time', 'symbol', 'type', 'lot', 'status',
+            'entry', 'exit', 'sl', 'tp', 'commission', 'profit', 'swap'
+        )
+
+        # Calculate summary
+        summary = {
+            'balance': request.user.balance,  # Assuming you have a balance field in your User model
+            'deposit': sum(t['profit'] for t in trades if t['type'] == 'DEPOSIT'),
+            'withdraw': sum(t['profit'] for t in trades if t['type'] == 'WITHDRAW'),
+            'commission': sum(t['commission'] for t in trades),
+            'swap': sum(t['swap'] for t in trades),
+            'profit': sum(t['profit'] for t in trades if t['type'] in ['BUY', 'SELL'])
+        }
+        
+        return JsonResponse({
+            'success': True,
+            'trades': list(trades),
+            'summary': summary
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+@login_required
+@require_http_methods(["POST"])
+def execute_trade(request):
+    try:
+        data = json.loads(request.body)
+        
+        # Create new trade
+        trade = Trade.objects.create(
+            user=request.user,
+            symbol=data['symbol'],
+            type=data['type'],
+            quantity=data['quantity'],
+            entry_price=data['price'],
+            total_amount=data['total'],
+            status='closed',  # या 'open' जैसी आपकी requirement हो
+            stop_loss=data['stopLoss'],
+            take_profit=data['takeProfit'],
+            commission=data['commission']
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Trade executed successfully',
+            'trade_id': trade.id
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
