@@ -23,21 +23,19 @@
     }
 
     .top-pairs {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        display: flex;
         gap: 20px;
         margin-bottom: 30px;
+        flex-wrap: wrap;
     }
 
     .pair-box {
-        background: #f8f9fa;
-        padding: 15px;
+        background: #fff;
+        padding: 15px 20px;
         border-radius: 8px;
-        transition: transform 0.2s;
-    }
-
-    .pair-box:hover {
-        transform: translateY(-2px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        min-width: 200px;
+        flex: 1;
     }
 
     .pair-box span {
@@ -45,10 +43,23 @@
     }
 
     .pair-box .price {
-        color: #2196F3;
+        font-size: 1.4em;
         font-weight: bold;
-        font-size: 1.2em;
-        margin-top: 5px;
+        margin: 8px 0;
+        color: #2c3e50;
+    }
+
+    .pair-box .change {
+        font-size: 0.9em;
+        font-weight: 500;
+    }
+
+    .change.positive {
+        color: #00c853;
+    }
+
+    .change.negative {
+        color: #ff3d00;
     }
 
     .search-bar {
@@ -301,19 +312,132 @@
 {% block content %}
 <div class="trading-container">
     <div class="top-pairs">
-        <div class="pair-box">
-            <span>EURUSD</span>
-            <span class="price">$ 1.13795</span>
+        <div class="pair-box" id="EURUSDT">
+            <span>EUR/USDT</span>
+            <span class="price">Loading...</span>
+            <span class="change"></span>
         </div>
-        <div class="pair-box">
-            <span>XAUUSD</span>
-            <span class="price">$ 3294.69</span>
+        <div class="pair-box" id="BTCUSDT">
+            <span>BTC/USDT</span>
+            <span class="price">Loading...</span>
+            <span class="change"></span>
         </div>
-        <div class="pair-box">
-            <span>BTCUSD</span>
-            <span class="price">$ 83458.62</span>
+        <div class="pair-box" id="ETHUSDT">
+            <span>ETH/USDT</span>
+            <span class="price">Loading...</span>
+            <span class="change"></span>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const pairs = ['EURUSDT', 'BTCUSDT', 'ETHUSDT'];
+            const sockets = {};
+
+            function formatPrice(price) {
+                return parseFloat(price).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+
+            function updatePairBox(pairId, price, change) {
+                const box = document.getElementById(pairId);
+                if (box) {
+                    const priceElement = box.querySelector('.price');
+                    const changeElement = box.querySelector('.change');
+                    
+                    priceElement.textContent = `$ ${formatPrice(price)}`;
+                    
+                    const changeValue = parseFloat(change);
+                    const changeText = changeValue >= 0 ? `+${changeValue.toFixed(2)}%` : `${changeValue.toFixed(2)}%`;
+                    changeElement.textContent = changeText;
+                    changeElement.className = `change ${changeValue >= 0 ? 'positive' : 'negative'}`;
+                }
+            }
+
+            // First get initial prices
+            pairs.forEach(pair => {
+                fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${pair}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        updatePairBox(pair, data.lastPrice, data.priceChangePercent);
+                    })
+                    .catch(error => console.error('Error fetching initial price:', error));
+
+                // Setup WebSocket connection for live updates
+                const socket = new WebSocket(`wss://stream.binance.com:9443/ws/${pair.toLowerCase()}@ticker`);
+                
+                socket.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    updatePairBox(pair, data.c, data.P);  // c = current price, P = price change percentage
+                };
+
+                socket.onerror = (error) => {
+                    console.error(`WebSocket Error for ${pair}:`, error);
+                };
+
+                socket.onclose = () => {
+                    console.log(`WebSocket Closed for ${pair}`);
+                    // Attempt to reconnect after 5 seconds
+                    setTimeout(() => {
+                        console.log(`Attempting to reconnect ${pair}...`);
+                        sockets[pair] = new WebSocket(`wss://stream.binance.com:9443/ws/${pair.toLowerCase()}@ticker`);
+                    }, 5000);
+                };
+
+                sockets[pair] = socket;
+            });
+        });
+    </script>
+
+    <style>
+        .top-pairs {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .pair-box {
+            background: #fff;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            min-width: 200px;
+            flex: 1;
+        }
+
+        .pair-box span {
+            display: block;
+        }
+
+        .pair-box .price {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin: 8px 0;
+            color: #2c3e50;
+        }
+
+        .pair-box .change {
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .change.positive {
+            color: #00c853;
+        }
+
+        .change.negative {
+            color: #ff3d00;
+        }
+
+        @media (max-width: 768px) {
+            .pair-box {
+                min-width: 100%;
+            }
+        }
+    </style>
 
     <div class="search-bar">
         <input type="text" placeholder="Search eg: EUR/USD, BTC">
@@ -615,6 +739,8 @@
     }
 </script>
 {% endblock %}
+
+
 
 
 

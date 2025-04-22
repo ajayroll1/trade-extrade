@@ -112,14 +112,7 @@ def dashboard(request):
 
 @login_required
 def wishlist(request):
-    load_dotenv()
-    context = {
-        'env': {
-            'BINANCE_API_KEY': os.getenv('BINANCE_API_KEY'),
-            'BINANCE_API_SECRET': os.getenv('BINANCE_API_SECRET')
-        }
-    }
-    return render(request, 'wishlist.html', context)
+    return render(request, 'wishlist.html')
 
 @login_required
 def trades(request):
