@@ -90,40 +90,52 @@
         padding: 20px;
         color: #8a8d98;
     }
+
+    .trade-type {
+        font-weight: bold;
+    }
+
+    .trade-type.buy {
+        color: #4CAF50;
+    }
+
+    .trade-type.sell {
+        color: #f44336;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="trades-container">
     <div class="action-buttons">
-        <button class="action-btn">Cancel all order</button>
-        <button class="action-btn">Cancel limit order</button>
-        <button class="action-btn">Cancel stop order</button>
-        <button class="action-btn">Close all position</button>
-        <button class="action-btn">Close profitable position</button>
-        <button class="action-btn">Close losing position</button>
+        <button class="action-btn" onclick="cancelAllOrders()">Cancel all order</button>
+        <button class="action-btn" onclick="cancelLimitOrders()">Cancel limit order</button>
+        <button class="action-btn" onclick="cancelStopOrders()">Cancel stop order</button>
+        <button class="action-btn" onclick="closeAllPositions()">Close all position</button>
+        <button class="action-btn" onclick="closeProfitablePositions()">Close profitable position</button>
+        <button class="action-btn" onclick="closeLosingPositions()">Close losing position</button>
     </div>
 
     <div class="account-info">
         <div class="info-item">
             <span>Balance:</span>
-            <span>10319.97</span>
+            <span id="balance">10319.97</span>
         </div>
         <div class="info-item">
             <span>Equity:</span>
-            <span>10319.97</span>
+            <span id="equity">10319.97</span>
         </div>
         <div class="info-item">
             <span>Used Margin:</span>
-            <span>0.00</span>
+            <span id="usedMargin">0.00</span>
         </div>
         <div class="info-item">
             <span>Free Margin:</span>
-            <span>10319.97</span>
+            <span id="freeMargin">10319.97</span>
         </div>
         <div class="info-item">
             <span>Margin Level:</span>
-            <span>0.00 %</span>
+            <span id="marginLevel">0.00 %</span>
         </div>
     </div>
 
@@ -144,13 +156,234 @@
                 <th>PROFIT</th>
             </tr>
         </thead>
-        <tbody>
-            <tr>
-                <td colspan="12" class="no-orders">No Order(s) Found</td>
-            </tr>
+        <tbody id="tradesBody">
+            {% if trades %}
+                {% for trade in trades %}
+                <tr data-trade-id="{{ trade.id }}">
+                    <td>{{ trade.id }}</td>
+                    <td>{{ trade.created_at|date:"d M Y" }}<br>{{ trade.created_at|time:"H:i:s" }}</td>
+                    <td>{{ trade.symbol }}</td>
+                    <td class="trade-type {{ trade.type|lower }}">{{ trade.type }}</td>
+                    <td>{{ trade.quantity }}</td>
+                    <td>{{ trade.entry_price }}</td>
+                    <td>-</td>
+                    <td>{{ trade.stop_loss|default:"-" }}</td>
+                    <td>{{ trade.take_profit|default:"-" }}</td>
+                    <td>{{ trade.commission }}</td>
+                    <td class="ltp">{{ trade.entry_price }}</td>
+                    <td class="profit">0.00</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="12" class="no-orders">No Order(s) Found</td>
+                </tr>
+            {% endif %}
         </tbody>
     </table>
 </div>
 {% endblock %}
 
+{% block extra_js %}
+<script>
+    // WebSocket connection for real-time price updates
+    const ws = new WebSocket('wss://stream.binance.com:9443/ws');
+    
+    // Subscribe to price streams for all active trades
+    const subscribeToPriceStreams = () => {
+        const symbols = Array.from(document.querySelectorAll('#tradesBody tr')).map(tr => {
+            const symbol = tr.querySelector('td:nth-child(3)').textContent;
+            return `${symbol.toLowerCase()}@trade`;
+        });
+        
+        if (symbols.length > 0) {
+            ws.send(JSON.stringify({
+                method: "SUBSCRIBE",
+                params: symbols,
+                id: 1
+            }));
+        }
+    };
+
+    ws.onopen = () => {
+        console.log('WebSocket Connected');
+        subscribeToPriceStreams();
+    };
+
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.e === 'trade') {
+            const symbol = data.s;
+            const price = parseFloat(data.p);
+            
+            // Update LTP and profit for all trades of this symbol
+            document.querySelectorAll('#tradesBody tr').forEach(tr => {
+                if (tr.querySelector('td:nth-child(3)').textContent === symbol) {
+                    const entryPrice = parseFloat(tr.querySelector('td:nth-child(6)').textContent);
+                    const quantity = parseFloat(tr.querySelector('td:nth-child(5)').textContent);
+                    const type = tr.querySelector('td:nth-child(4)').textContent.toLowerCase();
+                    
+                    // Update LTP
+                    tr.querySelector('.ltp').textContent = price.toFixed(2);
+                    
+                    // Calculate and update profit
+                    let profit = 0;
+                    if (type === 'buy') {
+                        profit = (price - entryPrice) * quantity;
+                    } else {
+                        profit = (entryPrice - price) * quantity;
+                    }
+                    
+                    const profitCell = tr.querySelector('.profit');
+                    profitCell.textContent = profit.toFixed(2);
+                    profitCell.className = `profit ${profit >= 0 ? 'positive' : 'negative'}`;
+                }
+            });
+        }
+    };
+
+    // Action button functions
+    async function cancelAllOrders() {
+        try {
+            const response = await fetch('/api/cancel_all_orders/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+            const data = await response.json();
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Failed to cancel orders: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to cancel orders');
+        }
+    }
+
+    async function cancelLimitOrders() {
+        try {
+            const response = await fetch('/api/cancel_limit_orders/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+            const data = await response.json();
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Failed to cancel limit orders: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to cancel limit orders');
+        }
+    }
+
+    async function cancelStopOrders() {
+        try {
+            const response = await fetch('/api/cancel_stop_orders/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+            const data = await response.json();
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Failed to cancel stop orders: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to cancel stop orders');
+        }
+    }
+
+    async function closeAllPositions() {
+        try {
+            const response = await fetch('/api/close_all_positions/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+            const data = await response.json();
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Failed to close positions: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to close positions');
+        }
+    }
+
+    async function closeProfitablePositions() {
+        try {
+            const response = await fetch('/api/close_profitable_positions/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+            const data = await response.json();
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Failed to close profitable positions: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to close profitable positions');
+        }
+    }
+
+    async function closeLosingPositions() {
+        try {
+            const response = await fetch('/api/close_losing_positions/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+            const data = await response.json();
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Failed to close losing positions: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Failed to close losing positions');
+        }
+    }
+
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}
 

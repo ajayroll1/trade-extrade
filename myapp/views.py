@@ -13,6 +13,8 @@ from datetime import datetime
 from dotenv import load_dotenv
 import os
 from django.views.decorators.http import require_http_methods
+from decimal import Decimal
+import logging
 
 from .forms import CustomUserCreationForm
 from .models import Trade
@@ -119,7 +121,54 @@ def wishlist(request):
 
 @login_required
 def trades(request):
-    return render(request, 'trades.html')
+    # Get all trades for the current user, ordered by creation date (newest first)
+    trades = Trade.objects.filter(user=request.user).order_by('-created_at')[:50]  # Limit to 50 trades
+    
+    # Initialize prices and profits
+    for trade in trades:
+        trade.current_price = None  # Will be updated via WebSocket
+        trade.live_profit = 0.0     # Will be updated via WebSocket
+    
+    return render(request, 'trades.html', {'trades': trades})
+
+def get_current_price(symbol):
+    """
+    Get current price from Binance API
+    """
+    import requests
+    
+    logger = logging.getLogger(__name__)
+    
+    try:
+        # Convert symbol to Binance format if needed
+        binance_symbol = symbol.replace('/', '')
+        url = f'https://api.binance.com/api/v3/ticker/price?symbol={binance_symbol}'
+        
+        logger.info(f"Fetching price for {binance_symbol} from {url}")
+        response = requests.get(url, timeout=5)  # Add timeout
+        
+        if response.status_code == 200:
+            data = response.json()
+            price = float(data['price'])
+            logger.info(f"Successfully fetched price for {binance_symbol}: {price}")
+            return price
+        else:
+            error_msg = f"Error fetching price for {binance_symbol}: {response.status_code} - {response.text}"
+            logger.error(error_msg)
+            return None
+    except requests.exceptions.Timeout:
+        logger.error(f"Timeout while fetching price for {binance_symbol}")
+        return None
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Request error while fetching price for {binance_symbol}: {e}")
+        return None
+    except Exception as e:
+        logger.error(f"Unexpected error while fetching price for {binance_symbol}: {e}")
+        return None
+
+def calculate_live_profit(trade):
+    # This will be implemented in the WebSocket consumer
+    return None
 
 @login_required
 def analytics(request):
@@ -144,7 +193,22 @@ def pamm(request):
 
 @login_required
 def history(request):
-    return render(request, 'history.html')
+    # Get all trades for the current user, ordered by creation date (newest first)
+    trades = Trade.objects.filter(user=request.user).order_by('-created_at')
+    
+    # Calculate summary statistics
+    total_trades = trades.count()
+    total_profit = sum(float(trade.profit) for trade in trades)
+    
+    # Calculate win rate
+    winning_trades = trades.filter(profit__gt=0).count()
+    win_rate = (winning_trades / total_trades * 100) if total_trades > 0 else 0
+    
+    return render(request, 'history.html', {
+        'trades': trades,
+        'total_profit': total_profit,
+        'win_rate': win_rate
+    })
 
 def send_reset_code(request):
     if request.method == 'POST':
@@ -289,74 +353,14 @@ def update_password(request):
 
 @login_required
 @require_http_methods(["POST"])
-def add_trade_history(request):
-    try:
-        data = json.loads(request.body)
-        
-        # Create new trade history entry
-        trade = TradeHistory.objects.create(
-            user=request.user,
-            trade_id=data['id'],
-            symbol=data['symbol'],
-            type=data['type'],
-            lot=data['lot'],
-            status=data['status'],
-            entry=data['entry'],
-            exit=data['exit'],
-            sl=data['sl'],
-            tp=data['tp'],
-            commission=data['commission'],
-            profit=data['profit'],
-            swap=data['swap']
-        )
-        
-        return JsonResponse({
-            'success': True,
-            'message': 'Trade added to history successfully',
-            'trade_id': trade.id
-        })
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        })
-
-@login_required
-@require_http_methods(["GET"])
-def get_trade_history(request):
-    try:
-        # Get all trades for the current user
-        trades = TradeHistory.objects.filter(user=request.user).values(
-            'trade_id', 'time', 'symbol', 'type', 'lot', 'status',
-            'entry', 'exit', 'sl', 'tp', 'commission', 'profit', 'swap'
-        )
-
-        # Calculate summary
-        summary = {
-            'balance': request.user.balance,  # Assuming you have a balance field in your User model
-            'deposit': sum(t['profit'] for t in trades if t['type'] == 'DEPOSIT'),
-            'withdraw': sum(t['profit'] for t in trades if t['type'] == 'WITHDRAW'),
-            'commission': sum(t['commission'] for t in trades),
-            'swap': sum(t['swap'] for t in trades),
-            'profit': sum(t['profit'] for t in trades if t['type'] in ['BUY', 'SELL'])
-        }
-        
-        return JsonResponse({
-            'success': True,
-            'trades': list(trades),
-            'summary': summary
-        })
-    except Exception as e:
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        })
-
-@login_required
-@require_http_methods(["POST"])
 def execute_trade(request):
     try:
         data = json.loads(request.body)
+        
+        # Calculate total amount (quantity * entry_price)
+        quantity = float(data['quantity'])
+        entry_price = float(data['price'])
+        total_amount = quantity * entry_price
         
         # Create new trade
         trade = Trade.objects.create(
@@ -365,11 +369,10 @@ def execute_trade(request):
             type=data['type'],
             quantity=data['quantity'],
             entry_price=data['price'],
-            total_amount=data['total'],
-            status='closed',  # या 'open' जैसी आपकी requirement हो
+            total_amount=total_amount,  # Add the calculated total amount
+            status='active',  # Changed from 'closed' to 'active'
             stop_loss=data['stopLoss'],
-            take_profit=data['takeProfit'],
-            commission=data['commission']
+            take_profit=data['takeProfit']
         )
         
         return JsonResponse({
@@ -382,3 +385,67 @@ def execute_trade(request):
             'success': False,
             'error': str(e)
         })
+
+@login_required
+def get_live_profit(request):
+    print("\n=== Live Profit API Call ===")
+    print(f"User: {request.user}")
+    print(f"Request Method: {request.method}")
+    
+    try:
+        # Get all active trades for the current user
+        trades = Trade.objects.filter(user=request.user, status='active')
+        print(f"Found {trades.count()} active trades")
+        
+        if trades.count() == 0:
+            print("No active trades found")
+            return JsonResponse({
+                'success': True,
+                'profits': []
+            })
+        
+        profits = []
+        for trade in trades:
+            try:
+                print(f"\nProcessing Trade {trade.id}:")
+                print(f"Symbol: {trade.symbol}")
+                print(f"Type: {trade.type}")
+                print(f"Quantity: {trade.quantity}")
+                print(f"Entry Price: {trade.entry_price}")
+                
+                # Get current price from Binance API
+                current_price = get_current_price(trade.symbol)
+                print(f"Current Price: {current_price}")
+                
+                if current_price is None:
+                    print("Could not get current price, skipping trade")
+                    continue
+                    
+                # Calculate live profit
+                if trade.type == 'BUY':
+                    live_profit = (Decimal(str(current_price)) - trade.entry_price) * trade.quantity
+                else:  # SELL
+                    live_profit = (trade.entry_price - Decimal(str(current_price))) * trade.quantity
+                
+                print(f"Calculated Live Profit: {live_profit}")
+                
+                profits.append({
+                    'trade_id': trade.id,
+                    'current_price': current_price,
+                    'live_profit': float(live_profit)
+                })
+            except Exception as trade_error:
+                print(f"Error processing trade {trade.id}: {trade_error}")
+                continue
+        
+        print(f"\nReturning {len(profits)} profit updates")
+        return JsonResponse({
+            'success': True,
+            'profits': profits
+        })
+    except Exception as e:
+        print(f"Error in get_live_profit: {e}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
