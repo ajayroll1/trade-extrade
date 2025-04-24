@@ -129,6 +129,36 @@
     .summary-card-value.negative {
         color: #ef5350;
     }
+
+    .export-btn {
+        background: linear-gradient(45deg, #2962ff, #1565c0);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(41, 98, 255, 0.2);
+    }
+
+    .export-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(41, 98, 255, 0.3);
+        background: linear-gradient(45deg, #1565c0, #0d47a1);
+    }
+
+    .export-btn:active {
+        transform: translateY(0);
+    }
+
+    .export-btn i {
+        font-size: 16px;
+    }
 </style>
 {% endblock %}
 
@@ -136,7 +166,10 @@
 <div class="history-container">
     <div class="history-header">
         <h1 class="history-title">Trade History</h1>
-        <button class="action-btn" onclick="exportHistory()">Export History</button>
+        <button class="action-btn export-btn" onclick="exportHistory()">
+            <i class="fas fa-download"></i>
+            Export History
+        </button>
     </div>
 
     <div class="summary-cards">
