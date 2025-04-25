@@ -18,7 +18,7 @@ import logging
 from django.db.models import Count, Sum
 
 from .forms import CustomUserCreationForm
-from .models import Trade
+from .models import Trade, WishlistItem
 
 def generate_otp():
     return ''.join([str(random.randint(0, 9)) for _ in range(6)])
@@ -118,7 +118,106 @@ def dashboard(request):
 
 @login_required
 def wishlist(request):
-    return render(request, 'wishlist.html')
+    # Get user's wishlist items
+    wishlist_items = WishlistItem.objects.filter(user=request.user)
+    return render(request, 'wishlist.html', {'wishlist_items': wishlist_items})
+
+@login_required
+@require_http_methods(["POST"])
+def add_to_wishlist(request):
+    try:
+        data = json.loads(request.body)
+        symbol = data.get('symbol')
+        price = data.get('price')
+        category = data.get('category')
+        
+        if not symbol or not category:
+            return JsonResponse({
+                'success': False,
+                'message': 'Symbol and category are required'
+            })
+            
+        # Convert price to Decimal
+        if price:
+            price = Decimal(str(price))
+        
+        # Map frontend category names to model choices
+        category_map = {
+            'Crypto': 'CRYPTO',
+            'Stocks': 'STOCKS',
+            'Indices': 'INDICES',
+            'Commodities': 'COMMODITIES',
+            'Forex': 'FOREX'
+        }
+        
+        db_category = category_map.get(category, 'CRYPTO')
+        
+        # Check if item already exists
+        wishlist_item, created = WishlistItem.objects.get_or_create(
+            user=request.user,
+            symbol=symbol,
+            defaults={
+                'category': db_category,
+                'last_price': price,
+                'price_change': 0
+            }
+        )
+        
+        if not created:
+            # Update price if item already exists
+            wishlist_item.last_price = price
+            wishlist_item.save()
+            message = 'Wishlist item updated'
+        else:
+            message = 'Added to wishlist'
+        
+        return JsonResponse({
+            'success': True,
+            'message': message,
+            'item_id': wishlist_item.id
+        })
+            
+    except Exception as e:
+        print(f"Error adding to wishlist: {e}")
+        return JsonResponse({
+            'success': False,
+            'message': 'Failed to add item to wishlist'
+        })
+
+@login_required
+@require_http_methods(["POST"])
+def remove_from_wishlist(request):
+    try:
+        data = json.loads(request.body)
+        symbol = data.get('symbol')
+        
+        if not symbol:
+            return JsonResponse({
+                'success': False,
+                'message': 'Symbol is required'
+            })
+            
+        # Try to find and delete the item
+        try:
+            wishlist_item = WishlistItem.objects.get(user=request.user, symbol=symbol)
+            wishlist_item.delete()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Removed from wishlist'
+            })
+        except WishlistItem.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Item not found in wishlist'
+            })
+            
+    except Exception as e:
+        print(f"Error removing from wishlist: {e}")
+        return JsonResponse({
+            'success': False,
+            'message': 'Failed to remove item from wishlist'
+        })
 
 @login_required
 def trades(request):
@@ -450,3 +549,50 @@ def get_live_profit(request):
             'success': False,
             'error': str(e)
         }, status=500)
+
+@login_required
+@require_http_methods(["POST"])
+def update_wishlist_price(request):
+    try:
+        data = json.loads(request.body)
+        symbol = data.get('symbol')
+        price = data.get('price')
+        price_change = data.get('price_change')
+        
+        if not symbol or price is None:
+            return JsonResponse({
+                'success': False,
+                'message': 'Symbol and price are required'
+            })
+            
+        # Convert price to Decimal
+        if price:
+            price = Decimal(str(price))
+        
+        if price_change:
+            price_change = Decimal(str(price_change))
+            
+        # Find and update the item
+        try:
+            wishlist_item = WishlistItem.objects.get(user=request.user, symbol=symbol)
+            wishlist_item.last_price = price
+            if price_change is not None:
+                wishlist_item.price_change = price_change
+            wishlist_item.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Price updated'
+            })
+        except WishlistItem.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'message': 'Item not found in wishlist'
+            })
+            
+    except Exception as e:
+        print(f"Error updating wishlist price: {e}")
+        return JsonResponse({
+            'success': False,
+            'message': 'Failed to update price'
+        })
