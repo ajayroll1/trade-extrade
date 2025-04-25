@@ -17,3 +17,26 @@ class Trade(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+class WishlistItem(models.Model):
+    CATEGORY_CHOICES = [
+        ('CRYPTO', 'Cryptocurrency'),
+        ('STOCKS', 'Stocks'),
+        ('INDICES', 'Indices'),
+        ('COMMODITIES', 'Commodities'),
+        ('FOREX', 'Forex'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    symbol = models.CharField(max_length=20)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES)
+    added_at = models.DateTimeField(auto_now_add=True)
+    last_price = models.DecimalField(max_digits=20, decimal_places=8, null=True)
+    price_change = models.DecimalField(max_digits=10, decimal_places=2, null=True)
+
+    class Meta:
+        unique_together = ['user', 'symbol']
+        ordering = ['-added_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.symbol}"

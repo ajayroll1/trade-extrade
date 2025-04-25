@@ -225,44 +225,50 @@
     }
 
     .market-categories {
-        background: var(--card-bg);
+        background: #1a1d26;
         border-radius: 8px;
         overflow: hidden;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        margin-top: 20px;
+        display: none; /* Hidden by default */
     }
 
     .market-category {
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid #2a2d3e;
+    }
+
+    .market-category:last-child {
+        border-bottom: none;
     }
 
     .category-header {
         padding: 15px 20px;
-        background: #333;
+        background: #1a1d26;
         cursor: pointer;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        transition: background-color 0.3s;
+        color: #fff;
+        transition: background-color 0.2s;
     }
 
     .category-header:hover {
-        background: #444;
-    }
-
-    .category-header span {
-        font-weight: 500;
-        color: #333;
+        background: #22252f;
     }
 
     .category-header i {
-        transition: transform 0.3s ease;
+        color: #666;
+        transition: transform 0.3s;
+    }
+
+    .category-header.active i {
+        transform: rotate(180deg);
     }
 
     .category-content {
         max-height: 0;
         overflow: hidden;
         transition: max-height 0.3s ease-out;
-        background: white;
+        background: #12151c;
     }
 
     .category-content.active {
@@ -270,22 +276,83 @@
     }
 
     .symbol-item {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         padding: 12px 20px;
-        cursor: pointer;
-        transition: background 0.3s;
-        color: var(--text-color);
+        transition: all 0.2s;
+        color: #666;
     }
 
     .symbol-item:hover {
-        background: #333;
-        color: var(--accent-color);
+        background: #1f2330;
+        color: #fff;
     }
 
-    .positive {
-        color: #26a69a;
+    .symbol-item span:first-child {
+        font-weight: 500;
     }
-    .negative {
-        color: #ef5350;
+
+    .symbol-item span:last-child {
+        color: #3385ff;
+        margin-right: 140px;
+    }
+
+    .symbol-item .add-to-wishlist {
+        position: absolute;
+        right: 120px;
+        display: none;
+        background: #3385ff;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: all 0.2s;
+        z-index: 1;
+    }
+
+    .symbol-item:hover .add-to-wishlist {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .symbol-item .add-to-wishlist:hover {
+        background: #2970d9;
+        transform: translateY(-1px);
+    }
+
+    /* Category-specific colors */
+    .market-category[data-category="Crypto"] .symbol-item span:last-child {
+        color: #f7931a;
+    }
+
+    .market-category[data-category="Stocks"] .symbol-item span:last-child {
+        color: #00c853;
+    }
+
+    .market-category[data-category="Indices"] .symbol-item span:last-child {
+        color: #ff9800;
+    }
+
+    .market-category[data-category="Commodities"] .symbol-item span:last-child {
+        color: #ffd700;
+    }
+
+    .market-category[data-category="Forex"] .symbol-item span:last-child {
+        color: #e91e63;
+    }
+
+    .pairs-list.hidden {
+        display: none;
+    }
+
+    .tab.active {
+        color: #3385ff;
+        border-bottom: 2px solid #3385ff;
     }
 
     /* Ensure proper display states */
@@ -319,83 +386,208 @@
     }
 
     .modal {
+        display: none;
         position: fixed;
         z-index: 1000;
         left: 0;
         top: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0,0,0,0.7);
+        background-color: rgba(0, 0, 0, 0.85);
     }
 
     .modal-content {
-        background-color: var(--card-bg);
+        background-color: #1a1d26;
         margin: 15% auto;
         padding: 20px;
-        border: 1px solid #333;
-        width: 80%;
-        max-width: 400px;
-        border-radius: 8px;
-        color: var(--text-color);
+        width: 360px;
+        border-radius: 16px;
+        position: relative;
     }
 
     .close {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
+        position: absolute;
+        right: 20px;
+        top: 20px;
+        color: #666;
+        font-size: 20px;
+        font-weight: 500;
         cursor: pointer;
     }
 
-    .trade-form {
-        margin-top: 20px;
+    .modal h2 {
+        color: #fff;
+        font-size: 20px;
+        margin: 0 0 20px 0;
+        font-weight: 500;
     }
 
-    .form-group {
-        margin-bottom: 15px;
+    .trade-details {
+        background-color: #12151c;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 15px 0;
     }
 
-    .form-group label {
-        display: block;
-        margin-bottom: 5px;
-        color: #999;
-    }
-
-    .form-group input {
-        width: 100%;
-        padding: 8px;
-        border: 1px solid #333;
-        background: #2a2a2a;
-        color: var(--text-color);
-        border-radius: 4px;
-    }
-
-    .buttons {
+    .detail-row {
         display: flex;
-        gap: 10px;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+    }
+
+    .detail-label {
+        color: #666;
+        font-size: 15px;
+    }
+
+    .detail-value {
+        color: #fff;
+        font-size: 15px;
+        font-weight: 500;
+    }
+
+    .total-amount {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid #1f2330;
+    }
+
+    .total-amount .detail-label {
+        color: #666;
+    }
+
+    .total-amount .detail-value {
+        color: #0066ff;
+        font-weight: 500;
+    }
+
+    .confirmation-buttons {
+        display: flex;
+        gap: 12px;
         margin-top: 20px;
     }
 
-    .buy-btn, .sell-btn {
+    .cancel-btn, .proceed-btn {
         flex: 1;
-        padding: 10px;
+        padding: 12px;
         border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .cancel-btn {
+        background-color: #1f2330;
+        color: #fff;
+    }
+
+    .proceed-btn {
+        background-color: #0066ff;
+        color: #fff;
+    }
+
+    .cancel-btn:hover {
+        background-color: #252836;
+    }
+
+    .proceed-btn:hover {
+        background-color: #0052cc;
+    }
+
+    .quantity-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .quantity-input {
+        background: #1f2330;
+        border: none;
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 6px;
+        width: 100px;
+        font-size: 15px;
+    }
+
+    .quantity-input:focus {
+        outline: none;
+        background: #252836;
+    }
+
+    .currency-symbol {
+        color: #666;
+        font-size: 15px;
+    }
+
+    /* Remove number input arrows */
+    .quantity-input::-webkit-outer-spin-button,
+    .quantity-input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .quantity-input[type=number] {
+        -moz-appearance: textfield;
+    }
+
+    .toast-message {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 12px 24px;
         border-radius: 4px;
+        z-index: 1000;
+        animation: slideIn 0.3s, fadeOut 0.3s 2.7s;
+    }
+
+    .toast-message.success {
+        background: #4CAF50;
         color: white;
+    }
+
+    .toast-message.error {
+        background: #f44336;
+        color: white;
+    }
+
+    @keyframes slideIn {
+        from { transform: translateX(100%); }
+        to { transform: translateX(0); }
+    }
+
+    @keyframes fadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+
+    .add-to-wishlist {
+        position: absolute;
+        right: 20px;
+        display: none;
+        background: #3385ff;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
         cursor: pointer;
-        font-weight: bold;
+        font-size: 13px;
+        transition: all 0.2s;
+        z-index: 1;
     }
 
-    .buy-btn {
-        background: #26a69a;
+    .symbol-item:hover .add-to-wishlist {
+        display: flex;
+        align-items: center;
+        gap: 5px;
     }
 
-    .sell-btn {
-        background: #ef5350;
-    }
-
-    .pair-item {
-        cursor: pointer;
+    .add-to-wishlist:hover {
+        background: #2970d9;
+        transform: translateY(-1px);
     }
 </style>
 {% endblock %}
@@ -404,25 +596,29 @@
 <div class="trading-container">
     <div class="top-pairs">
         <div class="pair-box" id="EURUSDT">
-            <span>EUR/USDT</span>
-            <span class="price">Loading...</span>
-            <span class="change"></span>
+            <span class="pair-name">EUR/USDT</span>
+            <span class="price">$ 1.13</span>
+            <span class="change negative">-0.21%</span>
         </div>
         <div class="pair-box" id="BTCUSDT">
-            <span>BTC/USDT</span>
-            <span class="price">Loading...</span>
-            <span class="change"></span>
+            <span class="pair-name">BTC/USDT</span>
+            <span class="price">$ 93,320.48</span>
+            <span class="change positive">+0.87%</span>
         </div>
         <div class="pair-box" id="ETHUSDT">
-            <span>ETH/USDT</span>
-            <span class="price">Loading...</span>
-            <span class="change"></span>
+            <span class="pair-name">ETH/USDT</span>
+            <span class="price">$ 1,770.13</span>
+            <span class="change positive">+0.01%</span>
         </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const pairs = ['EURUSDT', 'BTCUSDT', 'ETHUSDT'];
+            const pairs = [
+                { id: 'EURUSDT', display: 'EUR/USDT' },
+                { id: 'BTCUSDT', display: 'BTC/USDT' },
+                { id: 'ETHUSDT', display: 'ETH/USDT' }
+            ];
             const sockets = {};
 
             function formatPrice(price) {
@@ -449,35 +645,35 @@
 
             // First get initial prices
             pairs.forEach(pair => {
-                fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${pair}`)
+                fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${pair.id}`)
                     .then(response => response.json())
                     .then(data => {
-                        updatePairBox(pair, data.lastPrice, data.priceChangePercent);
+                        updatePairBox(pair.id, data.lastPrice, data.priceChangePercent);
                     })
                     .catch(error => console.error('Error fetching initial price:', error));
 
                 // Setup WebSocket connection for live updates
-                const socket = new WebSocket(`wss://stream.binance.com:9443/ws/${pair.toLowerCase()}@ticker`);
+                const socket = new WebSocket(`wss://stream.binance.com:9443/ws/${pair.id.toLowerCase()}@ticker`);
                 
                 socket.onmessage = (event) => {
                     const data = JSON.parse(event.data);
-                    updatePairBox(pair, data.c, data.P);  // c = current price, P = price change percentage
+                    updatePairBox(pair.id, data.c, data.P);  // c = current price, P = price change percentage
                 };
 
                 socket.onerror = (error) => {
-                    console.error(`WebSocket Error for ${pair}:`, error);
+                    console.error(`WebSocket Error for ${pair.id}:`, error);
                 };
 
                 socket.onclose = () => {
-                    console.log(`WebSocket Closed for ${pair}`);
+                    console.log(`WebSocket Closed for ${pair.id}`);
                     // Attempt to reconnect after 5 seconds
                     setTimeout(() => {
-                        console.log(`Attempting to reconnect ${pair}...`);
-                        sockets[pair] = new WebSocket(`wss://stream.binance.com:9443/ws/${pair.toLowerCase()}@ticker`);
+                        console.log(`Attempting to reconnect ${pair.id}...`);
+                        sockets[pair.id] = new WebSocket(`wss://stream.binance.com:9443/ws/${pair.id.toLowerCase()}@ticker`);
                     }, 5000);
                 };
 
-                sockets[pair] = socket;
+                sockets[pair.id] = socket;
             });
         });
     </script>
@@ -536,8 +732,8 @@
     </div>
 
     <div class="tabs">
-        <button class="tab active">FAVORITES</button>
-        <button class="tab">ALL SYMBOLS</button>
+        <button class="tab active" data-tab="favorites">FAVORITES</button>
+        <button class="tab" data-tab="all-symbols">ALL SYMBOLS</button>
     </div>
 
     <div class="pairs-list">
@@ -545,7 +741,174 @@
     </div>
 
     <div class="market-categories">
-        <!-- Market categories will be dynamically added here -->
+        <div class="market-category">
+            <div class="category-header">
+                <span>Crypto</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="category-content">
+                <div class="symbol-item">
+                    <span>BTC/USDT</span>
+                    <span>52,345.67</span>
+                </div>
+                <div class="symbol-item">
+                    <span>ETH/USDT</span>
+                    <span>2,876.54</span>
+                </div>
+                <div class="symbol-item">
+                    <span>BNB/USDT</span>
+                    <span>312.45</span>
+                </div>
+                <div class="symbol-item">
+                    <span>XRP/USDT</span>
+                    <span>0.5423</span>
+                </div>
+                <div class="symbol-item">
+                    <span>SOL/USDT</span>
+                    <span>95.67</span>
+                </div>
+                <div class="symbol-item">
+                    <span>ADA/USDT</span>
+                    <span>0.5876</span>
+                </div>
+                <div class="symbol-item">
+                    <span>DOGE/USDT</span>
+                    <span>0.0823</span>
+                </div>
+                <div class="symbol-item">
+                    <span>DOT/USDT</span>
+                    <span>6.89</span>
+                </div>
+                <div class="symbol-item">
+                    <span>AVAX/USDT</span>
+                    <span>35.45</span>
+                </div>
+                <div class="symbol-item">
+                    <span>LINK/USDT</span>
+                    <span>18.76</span>
+                </div>
+                <div class="symbol-item">
+                    <span>MATIC/USDT</span>
+                    <span>0.876</span>
+                </div>
+                <div class="symbol-item">
+                    <span>UNI/USDT</span>
+                    <span>7.23</span>
+                </div>
+                <div class="symbol-item">
+                    <span>ATOM/USDT</span>
+                    <span>9.45</span>
+                </div>
+                <div class="symbol-item">
+                    <span>LTC/USDT</span>
+                    <span>68.92</span>
+                </div>
+                <div class="symbol-item">
+                    <span>SHIB/USDT</span>
+                    <span>0.00001234</span>
+                </div>
+                <div class="symbol-item">
+                    <span>TRX/USDT</span>
+                    <span>0.1234</span>
+                </div>
+                <div class="symbol-item">
+                    <span>XLM/USDT</span>
+                    <span>0.1156</span>
+                </div>
+                <div class="symbol-item">
+                    <span>NEAR/USDT</span>
+                    <span>2.87</span>
+                </div>
+                <div class="symbol-item">
+                    <span>FTM/USDT</span>
+                    <span>0.456</span>
+                </div>
+                <div class="symbol-item">
+                    <span>ALGO/USDT</span>
+                    <span>0.1678</span>
+                </div>
+            </div>
+        </div>
+        <div class="market-category">
+            <div class="category-header">
+                <span>Stocks</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="category-content">
+                <div class="symbol-item">
+                    <span>AAPL</span>
+                    <span>182.52</span>
+                </div>
+                <div class="symbol-item">
+                    <span>MSFT</span>
+                    <span>402.65</span>
+                </div>
+                <div class="symbol-item">
+                    <span>GOOGL</span>
+                    <span>142.71</span>
+                </div>
+            </div>
+        </div>
+        <div class="market-category">
+            <div class="category-header">
+                <span>Indices</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="category-content">
+                <div class="symbol-item">
+                    <span>S&P 500</span>
+                    <span>5,026.61</span>
+                </div>
+                <div class="symbol-item">
+                    <span>NASDAQ</span>
+                    <span>15,990.66</span>
+                </div>
+                <div class="symbol-item">
+                    <span>DOW</span>
+                    <span>38,671.69</span>
+                </div>
+            </div>
+        </div>
+        <div class="market-category">
+            <div class="category-header">
+                <span>Commodities</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="category-content">
+                <div class="symbol-item">
+                    <span>GOLD</span>
+                    <span>2,024.50</span>
+                </div>
+                <div class="symbol-item">
+                    <span>SILVER</span>
+                    <span>23.15</span>
+                </div>
+                <div class="symbol-item">
+                    <span>OIL</span>
+                    <span>76.84</span>
+                </div>
+            </div>
+        </div>
+        <div class="market-category">
+            <div class="category-header">
+                <span>Forex</span>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="category-content">
+                <div class="symbol-item">
+                    <span>EUR/USD</span>
+                    <span>1.0876</span>
+                </div>
+                <div class="symbol-item">
+                    <span>GBP/USD</span>
+                    <span>1.2634</span>
+                </div>
+                <div class="symbol-item">
+                    <span>USD/JPY</span>
+                    <span>149.35</span>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -578,91 +941,115 @@
     </div>
 </div>
 
-<style>
-    .modal {
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0,0,0,0.7);
-    }
+<!-- Add this HTML for the confirmation modal -->
+<div id="confirmationModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close">×</span>
+        <h2>Confirm Order</h2>
+        <div class="trade-details">
+            <div class="detail-row">
+                <span class="detail-label">Symbol</span>
+                <span class="detail-value" id="confirmSymbol">BTC/USDT</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Order Type</span>
+                <span class="detail-value" id="confirmOrderType">BUY</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Quantity</span>
+                <div class="quantity-wrapper">
+                    <input type="number" id="quantityInput" class="quantity-input" min="0.00001" step="0.00001" value="0.01">
+                    <span class="currency-symbol">BTC</span>
+                </div>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Price</span>
+                <span class="detail-value" id="confirmPrice">93235.58</span>
+            </div>
+            <div class="detail-row total-amount">
+                <span class="detail-label">Total Amount</span>
+                <span class="detail-value" id="confirmTotal">932.36</span>
+            </div>
+        </div>
+        <div class="confirmation-buttons">
+            <button class="cancel-btn">Cancel</button>
+            <button class="proceed-btn">Proceed</button>
+        </div>
+    </div>
+</div>
 
-    .modal-content {
-        background-color: #1e222d;
-        margin: 15% auto;
-        padding: 20px;
-        border: 1px solid #363c4e;
-        width: 80%;
-        max-width: 400px;
-        border-radius: 8px;
-        color: #fff;
-    }
-
-    .close {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-        cursor: pointer;
-    }
-
-    .trade-form {
-        margin-top: 20px;
-    }
-
-    .form-group {
-        margin-bottom: 15px;
-    }
-
-    .form-group label {
-        display: block;
-        margin-bottom: 5px;
-        color: #999;
-    }
-
-    .form-group input {
-        width: 100%;
-        padding: 8px;
-        border: 1px solid #363c4e;
-        background: #2a2e39;
-        color: #fff;
-        border-radius: 4px;
-    }
-
-    .buttons {
-        display: flex;
-        gap: 10px;
-        margin-top: 20px;
-    }
-
-    .buy-btn, .sell-btn {
-        flex: 1;
-        padding: 10px;
-        border: none;
-        border-radius: 4px;
-        color: white;
-        cursor: pointer;
-        font-weight: bold;
-    }
-
-    .buy-btn {
-        background: #26a69a;
-    }
-
-    .sell-btn {
-        background: #ef5350;
-    }
-
-    .pair-item {
-        cursor: pointer;
-    }
-</style>
-{% endblock %}
-
-{% block extra_js %}
 <script>
+    // Function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Remove from wishlist function
+    async function removeFromWishlist(symbol) {
+        console.log('Removing symbol:', symbol); // Debug log
+
+        if (!confirm('Are you sure you want to remove this item from your wishlist?')) {
+            return;
+        }
+
+        try {
+            console.log('Making API call to remove:', symbol); // Debug log
+            
+            // First, try to find the item before making the API call
+            const itemToRemove = document.querySelector(`[data-symbol="${symbol}"]`);
+            if (!itemToRemove) {
+                console.error('Could not find item with symbol:', symbol);
+                return;
+            }
+
+            // Add fade out animation
+            itemToRemove.style.transition = 'all 0.3s ease';
+            itemToRemove.style.opacity = '0';
+            itemToRemove.style.transform = 'translateX(-20px)';
+            
+            // Remove the element after animation
+            setTimeout(() => {
+                itemToRemove.remove();
+                console.log('Item removed from DOM:', symbol); // Debug log
+                
+                // Check remaining items
+                const remainingItems = document.querySelectorAll('.pair-item');
+                console.log('Remaining items:', remainingItems.length); // Debug log
+                
+                if (remainingItems.length === 0) {
+                    console.log('No items left, showing empty state'); // Debug log
+                    const pairsList = document.querySelector('.pairs-list');
+                    if (pairsList) {
+                        pairsList.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-state-content">
+                                    <i class="fas fa-star" style="font-size: 48px; color: #666;"></i>
+                                    <h3>No Favorites Yet</h3>
+                                    <p>Your wishlist is empty. Add pairs to track them here.</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            }, 300);
+            
+        } catch (error) {
+            console.error('Error in removeFromWishlist:', error); // Debug log
+            alert('Failed to remove from wishlist. Please try again.');
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         const pairsList = document.querySelector('.pairs-list');
         const pairs = ['BTCUSDT', 'ETHUSDT', 'BNBUSDT', 'XRPUSDT'];
@@ -700,6 +1087,56 @@
                 </div>
             `;
         }
+
+        // Add styles
+        const style = document.createElement('style');
+        style.textContent = `
+            .pair-item {
+                transition: all 0.3s ease;
+            }
+            
+            .empty-state {
+                text-align: center;
+                padding: 40px 20px;
+                background: #1a1d26;
+                border-radius: 12px;
+                margin: 20px 0;
+            }
+            
+            .empty-state-content {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }
+            
+            .empty-state h3 {
+                color: #fff;
+                margin: 10px 0 0 0;
+                font-weight: 500;
+            }
+            
+            .empty-state p {
+                color: #666;
+                margin: 0;
+                font-size: 14px;
+            }
+
+            .action-button.delete-button {
+                background-color: #ff3b3b;
+                color: white;
+                padding: 8px 16px;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: background-color 0.2s;
+            }
+
+            .action-button.delete-button:hover {
+                background-color: #ff1f1f;
+            }
+        `;
+        document.head.appendChild(style);
 
         // Initialize WebSocket connections for each pair
         const sockets = {};
@@ -841,41 +1278,6 @@
         }
     }
 
-    async function removeFromWishlist(symbol) {
-        if (!confirm('Are you sure you want to remove this from your wishlist?')) {
-            return;
-        }
-
-        try {
-            const response = await fetch('/api/remove_from_wishlist/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify({
-                    symbol: symbol
-                })
-            });
-
-            const data = await response.json();
-            
-            if (data.success) {
-                // Remove the item from the DOM
-                const pairItem = document.querySelector(`[data-symbol="${symbol}"]`);
-                if (pairItem) {
-                    pairItem.remove();
-                }
-                alert('Removed from wishlist successfully!');
-            } else {
-                alert(`Error: ${data.error}`);
-            }
-        } catch (error) {
-            console.error('Error removing from wishlist:', error);
-            alert('Failed to remove from wishlist. Please try again.');
-        }
-    }
-
     // Add event listeners for trade type buttons
     document.addEventListener('DOMContentLoaded', function() {
         const buyBtn = document.querySelector('.buy-btn');
@@ -908,6 +1310,250 @@
             }
         }
         return cookieValue;
+    }
+
+    function openTradeModal(symbol, price, tradeType) {
+        const baseCurrency = symbol.replace('USDT', '');
+        
+        // Update confirmation modal with trade details
+        document.getElementById('confirmSymbol').textContent = symbol.replace('USDT', '/USDT');
+        document.getElementById('confirmOrderType').textContent = tradeType;
+        document.getElementById('confirmPrice').textContent = price.toFixed(2);
+        
+        // Set currency symbol
+        document.querySelector('.currency-symbol').textContent = baseCurrency;
+        
+        // Calculate initial total
+        const quantity = document.getElementById('quantityInput').value;
+        const total = (quantity * price).toFixed(2);
+        document.getElementById('confirmTotal').textContent = total;
+        
+        // Show confirmation modal
+        document.getElementById('confirmationModal').style.display = 'block';
+    }
+
+    // Add event listeners for confirmation modal buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        const confirmationModal = document.getElementById('confirmationModal');
+        const cancelBtn = confirmationModal.querySelector('.cancel-btn');
+        const proceedBtn = confirmationModal.querySelector('.proceed-btn');
+        const closeBtn = confirmationModal.querySelector('.close');
+        const quantityInput = document.getElementById('quantityInput');
+
+        // Add event listener for quantity input
+        quantityInput.addEventListener('input', function() {
+            const price = parseFloat(document.getElementById('confirmPrice').textContent);
+            const quantity = parseFloat(this.value) || 0;
+            const total = (quantity * price).toFixed(2);
+            document.getElementById('confirmTotal').textContent = total;
+        });
+
+        cancelBtn.onclick = function() {
+            confirmationModal.style.display = 'none';
+        }
+
+        proceedBtn.onclick = function() {
+            const symbol = document.getElementById('confirmSymbol').textContent.replace('/', '');
+            const orderType = document.getElementById('confirmOrderType').textContent;
+            const quantity = document.getElementById('quantityInput').value;
+            const price = document.getElementById('confirmPrice').textContent;
+            const total = document.getElementById('confirmTotal').textContent;
+
+            // Here you would implement the actual trade execution
+            console.log('Executing trade:', {
+                symbol,
+                orderType,
+                quantity,
+                price,
+                total
+            });
+            
+            alert('Trade executed successfully!');
+            confirmationModal.style.display = 'none';
+        }
+
+        closeBtn.onclick = function() {
+            confirmationModal.style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == confirmationModal) {
+                confirmationModal.style.display = 'none';
+            }
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tab switching functionality
+        const tabs = document.querySelectorAll('.tab');
+        const pairsList = document.querySelector('.pairs-list');
+        const marketCategories = document.querySelector('.market-categories');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active class from all tabs
+                tabs.forEach(t => t.classList.remove('active'));
+                // Add active class to clicked tab
+                tab.classList.add('active');
+
+                // Show/hide content based on selected tab
+                if (tab.dataset.tab === 'favorites') {
+                    pairsList.style.display = 'block';
+                    marketCategories.style.display = 'none';
+                } else {
+                    pairsList.style.display = 'none';
+                    marketCategories.style.display = 'block';
+                }
+            });
+        });
+
+        // Category expansion functionality
+        const categoryHeaders = document.querySelectorAll('.category-header');
+
+        categoryHeaders.forEach(header => {
+            header.addEventListener('click', () => {
+                const content = header.nextElementSibling;
+                const icon = header.querySelector('i');
+                
+                // Toggle active class
+                header.classList.toggle('active');
+                content.classList.toggle('active');
+                
+                // Rotate icon
+                if (content.classList.contains('active')) {
+                    icon.style.transform = 'rotate(180deg)';
+                } else {
+                    icon.style.transform = 'rotate(0deg)';
+                }
+            });
+        });
+
+        // Symbol item click handler
+        const symbolItems = document.querySelectorAll('.symbol-item');
+        symbolItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const symbol = item.querySelector('span').textContent;
+                const price = parseFloat(item.querySelector('span:last-child').textContent);
+                openTradeModal(symbol.replace('/', ''), price, 'BUY');
+            });
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add data-category attribute to market categories
+        document.querySelectorAll('.market-category').forEach(category => {
+            const categoryName = category.querySelector('.category-header span').textContent;
+            category.setAttribute('data-category', categoryName);
+        });
+
+        // Add "Add to Wishlist" button to all symbol items
+        document.querySelectorAll('.symbol-item').forEach(item => {
+            const priceSpan = item.querySelector('span:last-child');
+            const symbolSpan = item.querySelector('span:first-child');
+            const category = item.closest('.market-category').getAttribute('data-category');
+            
+            // Create Add to Wishlist button
+            const addButton = document.createElement('button');
+            addButton.className = 'add-to-wishlist';
+            addButton.innerHTML = '<i class="fas fa-plus"></i> Add to Wishlist';
+            
+            // Add click handler
+            addButton.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const symbol = symbolSpan.textContent;
+                const price = priceSpan.textContent;
+                addToWishlist(symbol, price, category);
+            });
+            
+            item.appendChild(addButton);
+        });
+    });
+
+    // Function to add to wishlist
+    function addToWishlist(symbol, price, category) {
+        const pairsList = document.querySelector('.pairs-list');
+        
+        // Check if item already exists in wishlist
+        const existingItem = document.querySelector(`[data-symbol="${symbol.replace('/', '')}"]`);
+        if (existingItem) {
+            alert('This item is already in your wishlist');
+            return;
+        }
+
+        // Create new pair item
+        const newPairItem = document.createElement('div');
+        newPairItem.className = 'pair-item';
+        newPairItem.setAttribute('data-symbol', symbol.replace('/', ''));
+        newPairItem.setAttribute('data-category', category);
+        
+        const formattedPrice = parseFloat(price).toFixed(5);
+        
+        newPairItem.innerHTML = `
+            <div class="pair-info">
+                <span class="symbol">${symbol}</span>
+                <span class="main-value">${formattedPrice}</span>
+                <span class="change">0.00% ↑</span>
+            </div>
+            <div class="pair-actions">
+                <button class="action-button buy-button" onclick="openTradeModal('${symbol.replace('/', '')}', ${price}, 'BUY')">
+                    <i class="fas fa-arrow-up"></i> Buy
+                </button>
+                <button class="action-button sell-button" onclick="openTradeModal('${symbol.replace('/', '')}', ${price}, 'SELL')">
+                    <i class="fas fa-arrow-down"></i> Sell
+                </button>
+                <button class="action-button delete-button" onclick="removeFromWishlist('${symbol.replace('/', '')}')">
+                    <i class="fas fa-trash"></i> Remove
+                </button>
+            </div>
+        `;
+
+        // Add to pairs list
+        pairsList.appendChild(newPairItem);
+        
+        // Switch to Favorites tab
+        document.querySelector('[data-tab="favorites"]').click();
+        
+        // Setup WebSocket for the new pair
+        setupWebSocket(symbol.replace('/', ''), newPairItem);
+        
+        // Show success message
+        const toast = document.createElement('div');
+        toast.className = 'toast-message';
+        toast.textContent = `${symbol} added to wishlist`;
+        document.body.appendChild(toast);
+        
+        // Remove toast after 3 seconds
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Function to setup WebSocket for a single pair
+    function setupWebSocket(symbol, pairItem) {
+        const socket = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@ticker`);
+        
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            const mainValue = pairItem.querySelector('.main-value');
+            const changeElement = pairItem.querySelector('.change');
+            
+            if (mainValue && changeElement) {
+                mainValue.textContent = parseFloat(data.c).toFixed(5);  // Current price
+                const priceChange = parseFloat(data.P);  // 24h price change percent
+                changeElement.textContent = `${priceChange.toFixed(2)}% ${priceChange >= 0 ? '↑' : '↓'}`;
+                changeElement.className = `change ${priceChange >= 0 ? 'positive' : 'negative'}`;
+            }
+        };
+
+        socket.onerror = (error) => {
+            console.error(`WebSocket Error for ${symbol}:`, error);
+        };
+
+        socket.onclose = () => {
+            console.log(`WebSocket Closed for ${symbol}`);
+            // Attempt to reconnect after 5 seconds
+            setTimeout(() => setupWebSocket(symbol, pairItem), 5000);
+        };
+
+        return socket;
     }
 </script>
 {% endblock %}
