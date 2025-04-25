@@ -9,12 +9,13 @@ from django.contrib.auth.models import User
 from django.http import JsonResponse
 import random
 import json
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 import os
 from django.views.decorators.http import require_http_methods
 from decimal import Decimal
 import logging
+from django.db.models import Count, Sum
 
 from .forms import CustomUserCreationForm
 from .models import Trade
