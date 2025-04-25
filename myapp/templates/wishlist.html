@@ -1043,6 +1043,9 @@
                 {% endfor %}
             ];
 
+            // Clear any existing items first
+            pairsList.innerHTML = '';
+            
             // If no items, show empty state
             if (wishlistItems.length === 0 || (wishlistItems.length === 1 && !wishlistItems[0].id)) {
                 pairsList.innerHTML = `
@@ -1056,9 +1059,6 @@
                 `;
                 return;
             }
-            
-            // Clear any existing items
-            pairsList.innerHTML = '';
             
             // Add each item to the UI
             wishlistItems.forEach(item => {
@@ -1981,6 +1981,12 @@
                 return;
             }
 
+            // Remove empty state message if it exists
+            const emptyState = document.querySelector('.pairs-list .empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+
             // Create pair item for UI display
             const pairItem = document.createElement('div');
             pairItem.className = 'pair-item';
@@ -2317,7 +2323,8 @@
 
                         // Check if wishlist is empty
                         const wishlist = document.querySelector('.pairs-list');
-                        if (wishlist.children.length === 0) {
+                        const remainingItems = wishlist.querySelectorAll('.pair-item');
+                        if (remainingItems.length === 0) {
                             wishlist.innerHTML = `
                                 <div class="empty-state">
                                     <div class="empty-state-content">

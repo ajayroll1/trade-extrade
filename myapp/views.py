@@ -118,9 +118,8 @@ def dashboard(request):
 
 @login_required
 def wishlist(request):
-    # Get user's wishlist items
-    wishlist_items = WishlistItem.objects.filter(user=request.user)
-    return render(request, 'wishlist.html', {'wishlist_items': wishlist_items})
+    # Just render the template without database items
+    return render(request, 'wishlist.html')
 
 @login_required
 @require_http_methods(["POST"])
