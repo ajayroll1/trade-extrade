@@ -2295,8 +2295,13 @@
 
     // Function to remove from wishlist (needs to be global for the onclick handlers)
     function removeFromWishlist(symbol) {
+        // Use a more flexible selector that works for both symbol formats
         const item = document.querySelector(`.pair-item[data-symbol="${symbol}"]`);
-        if (!item) return;
+        
+        if (!item) {
+            console.error(`Item with symbol ${symbol} not found in wishlist`);
+            return;
+        }
 
         if (confirm('Are you sure you want to remove this item from your wishlist?')) {
             // Send request to server to remove item from database
