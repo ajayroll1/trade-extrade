@@ -1009,21 +1009,27 @@
 {% block content %}
 <div class="trading-container">
     <div class="top-pairs">
-        <div class="pair-box" id="EURUSDT">
-            <span class="pair-name">EUR/USDT</span>
-            <span class="price">$ 1.13</span>
-            <span class="change negative">-0.21%</span>
-        </div>
-        <div class="pair-box" id="BTCUSDT">
-            <span class="pair-name">BTC/USDT</span>
-            <span class="price">$ 93,320.48</span>
-            <span class="change positive">+0.87%</span>
-        </div>
-        <div class="pair-box" id="ETHUSDT">
-            <span class="pair-name">ETH/USDT</span>
-            <span class="price">$ 1,770.13</span>
-            <span class="change positive">+0.01%</span>
-        </div>
+        <a href="/analytics/?symbol=EURUSDT" class="pair-box-link">
+            <div class="pair-box" id="EURUSDT">
+                <span class="pair-name">EUR/USDT</span>
+                <span class="price">$ 1.13</span>
+                <span class="change negative">-0.21%</span>
+            </div>
+        </a>
+        <a href="/analytics/?symbol=BTCUSDT" class="pair-box-link">
+            <div class="pair-box" id="BTCUSDT">
+                <span class="pair-name">BTC/USDT</span>
+                <span class="price">$ 93,320.48</span>
+                <span class="change positive">+0.87%</span>
+            </div>
+        </a>
+        <a href="/analytics/?symbol=ETHUSDT" class="pair-box-link">
+            <div class="pair-box" id="ETHUSDT">
+                <span class="pair-name">ETH/USDT</span>
+                <span class="price">$ 1,770.13</span>
+                <span class="change positive">+0.01%</span>
+            </div>
+        </a>
     </div>
 
     <!-- Add code to load wishlist items from database -->
@@ -1045,7 +1051,7 @@
 
             // Clear any existing items first
             pairsList.innerHTML = '';
-            
+
             // If no items, show empty state
             if (wishlistItems.length === 0 || (wishlistItems.length === 1 && !wishlistItems[0].id)) {
                 pairsList.innerHTML = `
@@ -1059,11 +1065,11 @@
                 `;
                 return;
             }
-            
+
             // Add each item to the UI
             wishlistItems.forEach(item => {
                 if (!item.id) return; // Skip empty items
-                
+
                 // Format the symbol for display (add / if needed)
                 let displaySymbol = item.symbol;
                 if (!displaySymbol.includes('/')) {
@@ -1078,23 +1084,23 @@
                         displaySymbol = displaySymbol.replace('ETH', '/ETH');
                     }
                 }
-                
+
                 const symbolId = displaySymbol.replace('/', '');
-                
+
                 // Format price based on value
                 const numPrice = parseFloat(item.price);
                 const formattedPrice = numPrice < 0.01 ? numPrice.toFixed(8) :
                                      numPrice < 1 ? numPrice.toFixed(5) :
                                      numPrice < 100 ? numPrice.toFixed(3) :
                                      numPrice.toFixed(2);
-                
+
                 // Create the UI element
                 const pairItem = document.createElement('div');
                 pairItem.className = 'pair-item';
                 pairItem.setAttribute('data-symbol', symbolId);
                 pairItem.setAttribute('data-category', item.category);
                 pairItem.setAttribute('data-id', item.id);
-                
+
                 pairItem.innerHTML = `
                     <div class="pair-info">
                         <span class="symbol">${displaySymbol}</span>
@@ -1119,10 +1125,10 @@
                         </button>
                     </div>
                 `;
-                
+
                 // Add to wishlist UI
                 pairsList.appendChild(pairItem);
-                
+
                 // Setup real-time updates
                 if (item.category === 'Cryptocurrency' && symbolId.includes('USDT')) {
                     // Use Binance WebSocket for crypto
@@ -1209,13 +1215,24 @@
             flex-wrap: wrap;
         }
 
+        .pair-box-link {
+            text-decoration: none;
+            flex: 1;
+            min-width: 200px;
+            transition: transform 0.2s;
+        }
+
+        .pair-box-link:hover {
+            transform: translateY(-3px);
+        }
+
         .pair-box {
             background: #fff;
             padding: 15px 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            min-width: 200px;
-            flex: 1;
+            width: 100%;
+            height: 100%;
         }
 
         .pair-box span {
@@ -1976,10 +1993,6 @@
         function addToWishlist(symbol, price, category) {
             // Check if already in wishlist
             const symbolId = symbol.replace('/', '');
-            
-            // Debug - check what symbol is being passed
-            console.log("Adding to wishlist:", symbol, "symbolId:", symbolId);
-            
             if (document.querySelector(`.pair-item[data-symbol="${symbolId}"]`)) {
                 showToast(`${symbol} is already in your wishlist`, 'info');
                 return;
@@ -2299,13 +2312,8 @@
 
     // Function to remove from wishlist (needs to be global for the onclick handlers)
     function removeFromWishlist(symbol) {
-        // Use a more flexible selector that works for both symbol formats
         const item = document.querySelector(`.pair-item[data-symbol="${symbol}"]`);
-        
-        if (!item) {
-            console.error(`Item with symbol ${symbol} not found in wishlist`);
-            return;
-        }
+        if (!item) return;
 
         if (confirm('Are you sure you want to remove this item from your wishlist?')) {
             // Send request to server to remove item from database
@@ -2345,7 +2353,7 @@
                             `;
                         }
                     }, 300);
-                    
+
                     showToast('Item removed from wishlist', 'success');
                 } else {
                     showToast(data.message || 'Failed to remove from database', 'error');
@@ -2529,109 +2537,8 @@
 
     // Create a new function to show confirmation directly
     function showConfirmationModal(symbol, price, orderType) {
-        const confirmModal = document.getElementById('confirmationModal');
-
-        if (confirmModal) {
-            // Format the symbol for display
-            const displaySymbol = symbol.includes('/') ? symbol : symbol.replace(/(USDT|USD|BTC|ETH)$/, '/$1');
-
-            // Set confirmation details
-            document.getElementById('confirmSymbol').textContent = displaySymbol;
-            document.getElementById('confirmOrderType').textContent = orderType;
-
-            // Convert price to number if it's a string
-            const priceValue = typeof price === 'number' ? price : parseFloat(price);
-            document.getElementById('confirmPrice').textContent = priceValue.toFixed(2);
-
-            // Set currency symbol based on the trading pair
-            const currencySymbol = displaySymbol.split('/')[0];
-            document.querySelector('.currency-symbol').textContent = currencySymbol;
-
-            // Set default quantity and update total
-            const quantityInput = document.getElementById('quantityInput');
-            // Calculate a sensible default quantity based on price
-            // For expensive assets, use smaller quantity
-            let defaultQuantity;
-            if (priceValue > 10000) { // Like BTC
-                defaultQuantity = 0.001;
-            } else if (priceValue > 1000) { // Like ETH
-                defaultQuantity = 0.01;
-            } else if (priceValue > 100) { // Mid-priced assets
-                defaultQuantity = 0.1;
-            } else if (priceValue > 10) { // Lower priced assets
-                defaultQuantity = 1;
-            } else if (priceValue > 1) { // Very low priced
-                defaultQuantity = 10;
-            } else if (priceValue > 0.1) { // Extremely low priced
-                defaultQuantity = 100;
-            } else if (priceValue > 0.01) { // Micro priced
-                defaultQuantity = 1000;
-            } else { // Ultra low priced like SHIB
-                defaultQuantity = 10000;
-            }
-            quantityInput.value = defaultQuantity;
-
-            // Calculate and display total
-            updateTotalAmount();
-
-            // Function to update total amount
-            function updateTotalAmount() {
-                const quantity = parseFloat(quantityInput.value);
-                if (!isNaN(quantity) && priceValue > 0) {
-                    const total = (quantity * priceValue).toFixed(2);
-                    document.getElementById('confirmTotal').textContent = total;
-                }
-            }
-
-            // Add input event to quantity input to update total in real-time
-            quantityInput.addEventListener('input', updateTotalAmount);
-
-            // Show the confirmation modal
-            confirmModal.style.display = 'block';
-
-            // Setup confirmation buttons
-            const cancelBtn = confirmModal.querySelector('.cancel-btn');
-            const proceedBtn = confirmModal.querySelector('.proceed-btn');
-            const closeBtn = confirmModal.querySelector('.close');
-
-            cancelBtn.onclick = function() {
-                confirmModal.style.display = 'none';
-                // Remove event listener when closing
-                quantityInput.removeEventListener('input', updateTotalAmount);
-            }
-
-            proceedBtn.onclick = function() {
-                // Hide confirmation modal
-                confirmModal.style.display = 'none';
-
-                // Get trade details for success message
-                const quantity = parseFloat(quantityInput.value);
-                const total = document.getElementById('confirmTotal').textContent;
-
-                // Show success message
-                showOrderSuccessMessage(orderType, displaySymbol, quantity, currencySymbol, priceValue, total);
-
-                // Remove event listener when closing
-                quantityInput.removeEventListener('input', updateTotalAmount);
-            }
-
-            closeBtn.onclick = function() {
-                confirmModal.style.display = 'none';
-                // Remove event listener when closing
-                quantityInput.removeEventListener('input', updateTotalAmount);
-            }
-
-            // Close when clicking outside the modal
-            window.onclick = function(event) {
-                if (event.target === confirmModal) {
-                    confirmModal.style.display = 'none';
-                    // Remove event listener when closing
-                    quantityInput.removeEventListener('input', updateTotalAmount);
-                }
-            }
-        } else {
-            console.error('Confirmation modal element not found');
-        }
+        // Redirect to analytics page with the symbol parameter
+        window.location.href = `/analytics/?symbol=${symbol}`;
     }
 
     // Function to show a success message after order confirmation
