@@ -1976,6 +1976,10 @@
         function addToWishlist(symbol, price, category) {
             // Check if already in wishlist
             const symbolId = symbol.replace('/', '');
+            
+            // Debug - check what symbol is being passed
+            console.log("Adding to wishlist:", symbol, "symbolId:", symbolId);
+            
             if (document.querySelector(`.pair-item[data-symbol="${symbolId}"]`)) {
                 showToast(`${symbol} is already in your wishlist`, 'info');
                 return;
