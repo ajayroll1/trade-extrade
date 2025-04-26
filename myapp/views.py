@@ -53,7 +53,7 @@ def send_otp(request):
             request.session['signup_otp'] = otp
             request.session['signup_email'] = email
             request.session.set_expiry(600)  # OTP expires in 10 minutes
-            
+
             if send_otp_email(email, otp):  # Send to the email provided in the form
                 return JsonResponse({'success': True, 'message': 'OTP sent successfully'})
             else:
@@ -66,15 +66,15 @@ def signup_view(request):
         otp = request.POST.get('otp')
         stored_otp = request.session.get('signup_otp')
         stored_email = request.session.get('signup_email')
-        
+
         if not stored_otp or not stored_email:
             messages.error(request, 'OTP verification required')
             return render(request, 'signup.html', {'form': form})
-        
+
         if otp != stored_otp:
             messages.error(request, 'Invalid OTP')
             return render(request, 'signup.html', {'form': form})
-        
+
         if form.is_valid() and form.cleaned_data['email'] == stored_email:
             user = form.save()
             # Clear session data
@@ -92,19 +92,19 @@ def login_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-        
+
         # Print for debugging
         print(f"Login attempt - Username: {username}")
-        
+
         user = authenticate(request, username=username, password=password)
-        
+
         if user is not None:
             login(request, user)
             # messages.success(request, 'Login successful!')
             return redirect('dashboard')
         else:
             messages.error(request, 'Invalid username or password.')
-    
+
     return render(request, 'login.html')
 
 def logout_view(request):
@@ -120,12 +120,17 @@ def dashboard(request):
 def wishlist(request):
     # Get all wishlist items for the current user
     wishlist_items = WishlistItem.objects.filter(user=request.user)
-    
+
+    # Debug logging
+    print(f"Found {wishlist_items.count()} wishlist items for user {request.user.username}")
+    for item in wishlist_items:
+        print(f"Item: {item.id} - {item.symbol} - {item.category} - {item.last_price}")
+
     # Pass them to the template context
     context = {
         'wishlist_items': wishlist_items
     }
-    
+
     return render(request, 'wishlist.html', context)
 
 @login_required
@@ -136,17 +141,17 @@ def add_to_wishlist(request):
         symbol = data.get('symbol')
         price = data.get('price')
         category = data.get('category')
-        
+
         if not symbol or not category:
             return JsonResponse({
                 'success': False,
                 'message': 'Symbol and category are required'
             })
-            
+
         # Convert price to Decimal
         if price:
             price = Decimal(str(price))
-        
+
         # Map frontend category names to model choices
         category_map = {
             'Crypto': 'CRYPTO',
@@ -155,9 +160,9 @@ def add_to_wishlist(request):
             'Commodities': 'COMMODITIES',
             'Forex': 'FOREX'
         }
-        
+
         db_category = category_map.get(category, 'CRYPTO')
-        
+
         # Check if item already exists
         wishlist_item, created = WishlistItem.objects.get_or_create(
             user=request.user,
@@ -168,7 +173,7 @@ def add_to_wishlist(request):
                 'price_change': 0
             }
         )
-        
+
         if not created:
             # Update price if item already exists
             wishlist_item.last_price = price
@@ -176,13 +181,13 @@ def add_to_wishlist(request):
             message = 'Wishlist item updated'
         else:
             message = 'Added to wishlist'
-        
+
         return JsonResponse({
             'success': True,
             'message': message,
             'item_id': wishlist_item.id
         })
-            
+
     except Exception as e:
         print(f"Error adding to wishlist: {e}")
         return JsonResponse({
@@ -196,18 +201,18 @@ def remove_from_wishlist(request):
     try:
         data = json.loads(request.body)
         symbol = data.get('symbol')
-        
+
         if not symbol:
             return JsonResponse({
                 'success': False,
                 'message': 'Symbol is required'
             })
-            
+
         # Try to find and delete the item
         try:
             wishlist_item = WishlistItem.objects.get(user=request.user, symbol=symbol)
             wishlist_item.delete()
-            
+
             return JsonResponse({
                 'success': True,
                 'message': 'Removed from wishlist'
@@ -217,7 +222,7 @@ def remove_from_wishlist(request):
                 'success': False,
                 'message': 'Item not found in wishlist'
             })
-            
+
     except Exception as e:
         print(f"Error removing from wishlist: {e}")
         return JsonResponse({
@@ -229,12 +234,12 @@ def remove_from_wishlist(request):
 def trades(request):
     # Get all trades for the current user, ordered by creation date (newest first)
     trades = Trade.objects.filter(user=request.user).order_by('-created_at')[:50]  # Limit to 50 trades
-    
+
     # Initialize prices and profits
     for trade in trades:
         trade.current_price = None  # Will be updated via WebSocket
         trade.live_profit = 0.0     # Will be updated via WebSocket
-    
+
     return render(request, 'trades.html', {'trades': trades})
 
 def get_current_price(symbol):
@@ -242,17 +247,17 @@ def get_current_price(symbol):
     Get current price from Binance API
     """
     import requests
-    
+
     logger = logging.getLogger(__name__)
-    
+
     try:
         # Convert symbol to Binance format if needed
         binance_symbol = symbol.replace('/', '')
         url = f'https://api.binance.com/api/v3/ticker/price?symbol={binance_symbol}'
-        
+
         logger.info(f"Fetching price for {binance_symbol} from {url}")
         response = requests.get(url, timeout=5)  # Add timeout
-        
+
         if response.status_code == 200:
             data = response.json()
             price = float(data['price'])
@@ -280,7 +285,7 @@ def calculate_live_profit(trade):
 def analytics(request):
     # Load environment variables
     load_dotenv()
-    
+
     context = {
         'env': {
             'TRADINGVIEW_API_KEY': os.getenv('TRADINGVIEW_API_KEY'),
@@ -301,15 +306,15 @@ def pamm(request):
 def history(request):
     # Get all trades for the current user, ordered by creation date (newest first)
     trades = Trade.objects.filter(user=request.user).order_by('-created_at')
-    
+
     # Calculate summary statistics
     total_trades = trades.count()
     total_profit = sum(float(trade.profit) for trade in trades)
-    
+
     # Calculate win rate
     winning_trades = trades.filter(profit__gt=0).count()
     win_rate = (winning_trades / total_trades * 100) if total_trades > 0 else 0
-    
+
     return render(request, 'history.html', {
         'trades': trades,
         'total_profit': total_profit,
@@ -321,7 +326,7 @@ def send_reset_code(request):
         try:
             data = json.loads(request.body)
             email = data.get('email')
-            
+
             if not email:
                 return JsonResponse({
                     'success': False,
@@ -332,12 +337,12 @@ def send_reset_code(request):
                 user = User.objects.get(email=email)
                 # Generate OTP
                 otp = generate_otp()
-                
+
                 # Store OTP in session
                 request.session['reset_otp'] = otp
                 request.session['reset_email'] = email
                 request.session.set_expiry(600)  # 10 minutes
-                
+
                 # Send OTP email
                 if send_otp_email(email, otp):
                     return JsonResponse({
@@ -349,19 +354,19 @@ def send_reset_code(request):
                         'success': False,
                         'message': 'Failed to send verification code'
                     })
-                    
+
             except User.DoesNotExist:
                 return JsonResponse({
                     'success': False,
                     'message': 'No account exists with this email address'
                 })
-                
+
         except json.JSONDecodeError:
             return JsonResponse({
                 'success': False,
                 'message': 'Invalid JSON data'
             })
-            
+
     return JsonResponse({
         'success': False,
         'message': 'Invalid request method'
@@ -373,40 +378,40 @@ def verify_reset_code(request):
             data = json.loads(request.body)
             email = data.get('email')
             code = data.get('code')
-            
+
             stored_otp = request.session.get('reset_otp')
             stored_email = request.session.get('reset_email')
-            
+
             if not stored_otp or not stored_email:
                 return JsonResponse({
                     'success': False,
                     'message': 'Verification code has expired. Please request a new code.'
                 })
-            
+
             if email != stored_email:
                 return JsonResponse({
                     'success': False,
                     'message': 'Email does not match the one used for code request'
                 })
-            
+
             if code != stored_otp:
                 return JsonResponse({
                     'success': False,
                     'message': 'Invalid verification code'
                 })
-            
+
             # Code is valid
             return JsonResponse({
                 'success': True,
                 'message': 'Code verified successfully'
             })
-            
+
         except json.JSONDecodeError:
             return JsonResponse({
                 'success': False,
                 'message': 'Invalid request data'
             })
-    
+
     return JsonResponse({
         'success': False,
         'message': 'Invalid request method'
@@ -418,24 +423,24 @@ def update_password(request):
             data = json.loads(request.body)
             email = data.get('email')
             new_password = data.get('new_password')
-            
+
             stored_email = request.session.get('reset_email')
-            
+
             if not stored_email or email != stored_email:
                 return JsonResponse({
                     'success': False,
                     'message': 'Invalid password reset request'
                 })
-            
+
             try:
                 user = User.objects.get(email=email)
                 user.set_password(new_password)
                 user.save()
-                
+
                 # Clear session data
                 del request.session['reset_otp']
                 del request.session['reset_email']
-                
+
                 return JsonResponse({
                     'success': True,
                     'message': 'Password updated successfully'
@@ -445,13 +450,13 @@ def update_password(request):
                     'success': False,
                     'message': 'User not found'
                 })
-                
+
         except json.JSONDecodeError:
             return JsonResponse({
                 'success': False,
                 'message': 'Invalid request data'
             })
-    
+
     return JsonResponse({
         'success': False,
         'message': 'Invalid request method'
@@ -462,12 +467,12 @@ def update_password(request):
 def execute_trade(request):
     try:
         data = json.loads(request.body)
-        
+
         # Calculate total amount (quantity * entry_price)
         quantity = float(data['quantity'])
         entry_price = float(data['price'])
         total_amount = quantity * entry_price
-        
+
         # Create new trade
         trade = Trade.objects.create(
             user=request.user,
@@ -480,7 +485,7 @@ def execute_trade(request):
             stop_loss=data['stopLoss'],
             take_profit=data['takeProfit']
         )
-        
+
         return JsonResponse({
             'success': True,
             'message': 'Trade executed successfully',
@@ -497,19 +502,19 @@ def get_live_profit(request):
     print("\n=== Live Profit API Call ===")
     print(f"User: {request.user}")
     print(f"Request Method: {request.method}")
-    
+
     try:
         # Get all active trades for the current user
         trades = Trade.objects.filter(user=request.user, status='active')
         print(f"Found {trades.count()} active trades")
-        
+
         if trades.count() == 0:
             print("No active trades found")
             return JsonResponse({
                 'success': True,
                 'profits': []
             })
-        
+
         profits = []
         for trade in trades:
             try:
@@ -518,23 +523,23 @@ def get_live_profit(request):
                 print(f"Type: {trade.type}")
                 print(f"Quantity: {trade.quantity}")
                 print(f"Entry Price: {trade.entry_price}")
-                
+
                 # Get current price from Binance API
                 current_price = get_current_price(trade.symbol)
                 print(f"Current Price: {current_price}")
-                
+
                 if current_price is None:
                     print("Could not get current price, skipping trade")
                     continue
-                    
+
                 # Calculate live profit
                 if trade.type == 'BUY':
                     live_profit = (Decimal(str(current_price)) - trade.entry_price) * trade.quantity
                 else:  # SELL
                     live_profit = (trade.entry_price - Decimal(str(current_price))) * trade.quantity
-                
+
                 print(f"Calculated Live Profit: {live_profit}")
-                
+
                 profits.append({
                     'trade_id': trade.id,
                     'current_price': current_price,
@@ -543,7 +548,7 @@ def get_live_profit(request):
             except Exception as trade_error:
                 print(f"Error processing trade {trade.id}: {trade_error}")
                 continue
-        
+
         print(f"\nReturning {len(profits)} profit updates")
         return JsonResponse({
             'success': True,
@@ -564,20 +569,20 @@ def update_wishlist_price(request):
         symbol = data.get('symbol')
         price = data.get('price')
         price_change = data.get('price_change')
-        
+
         if not symbol or price is None:
             return JsonResponse({
                 'success': False,
                 'message': 'Symbol and price are required'
             })
-            
+
         # Convert price to Decimal
         if price:
             price = Decimal(str(price))
-        
+
         if price_change:
             price_change = Decimal(str(price_change))
-            
+
         # Find and update the item
         try:
             wishlist_item = WishlistItem.objects.get(user=request.user, symbol=symbol)
@@ -585,7 +590,7 @@ def update_wishlist_price(request):
             if price_change is not None:
                 wishlist_item.price_change = price_change
             wishlist_item.save()
-            
+
             return JsonResponse({
                 'success': True,
                 'message': 'Price updated'
@@ -595,7 +600,7 @@ def update_wishlist_price(request):
                 'success': False,
                 'message': 'Item not found in wishlist'
             })
-            
+
     except Exception as e:
         print(f"Error updating wishlist price: {e}")
         return JsonResponse({
