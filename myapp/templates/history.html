@@ -217,11 +217,11 @@
                     </td>
                     <td>{{ trade.symbol }}</td>
                     <td class="trade-type {{ trade.type|lower }}">{{ trade.type }}</td>
-                    <td>{{ trade.quantity }}</td>
-                    <td>{{ trade.entry_price }}</td>
-                    <td>{{ trade.total_amount }}</td>
-                    <td>{{ trade.stop_loss|default:"-" }}</td>
-                    <td>{{ trade.take_profit|default:"-" }}</td>
+                    <td>{{ trade.quantity|floatformat:1 }}</td>
+                    <td>{{ trade.entry_price|floatformat:2 }}</td>
+                    <td>{{ trade.total_amount|floatformat:2 }}</td>
+                    <td>{{ trade.stop_loss|floatformat:2|default:"-" }}</td>
+                    <td>{{ trade.take_profit|floatformat:2|default:"-" }}</td>
                     <td class="{% if trade.profit >= 0 %}profit-positive{% else %}profit-negative{% endif %}">
                         ${{ trade.profit|floatformat:2 }}
                     </td>
