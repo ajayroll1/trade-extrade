@@ -632,12 +632,15 @@ def close_trade(request):
             else:  # SELL
                 profit = (trade.entry_price - Decimal(str(closing_price))) * trade.quantity
             
-            # Update trade
+            # Update trade - these changes will make the trade appear in history
             trade.closing_price = Decimal(str(closing_price))
             trade.profit = profit
             trade.status = 'closed'  # Mark as closed
             trade.closed_at = datetime.now(timezone.utc)
             trade.save()
+
+            # The trade will now automatically appear in the history page
+            # since the history view shows all trades regardless of status
 
             return JsonResponse({
                 'success': True,
@@ -649,6 +652,150 @@ def close_trade(request):
             return JsonResponse({
                 'success': False,
                 'error': 'Trade not found'
+            })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+@login_required
+@require_http_methods(["POST"])
+def update_sltp(request):
+    try:
+        data = json.loads(request.body)
+        trade_id = data.get('trade_id')
+        stop_loss = data.get('stop_loss')
+        take_profit = data.get('take_profit')
+
+        if not trade_id:
+            return JsonResponse({
+                'success': False,
+                'error': 'Trade ID is required'
+            })
+
+        try:
+            # Get the trade
+            trade = Trade.objects.get(id=trade_id, user=request.user, status='active')
+            
+            # Update stop loss and take profit values
+            if stop_loss:
+                trade.stop_loss = Decimal(str(stop_loss))
+            else:
+                trade.stop_loss = None
+                
+            if take_profit:
+                trade.take_profit = Decimal(str(take_profit))
+            else:
+                trade.take_profit = None
+                
+            trade.save()
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Stop Loss and Take Profit updated successfully',
+                'trade_id': trade.id,
+                'stop_loss': float(trade.stop_loss) if trade.stop_loss else None,
+                'take_profit': float(trade.take_profit) if trade.take_profit else None
+            })
+        except Trade.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'Trade not found or not active'
+            })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+@login_required
+@require_http_methods(["POST"])
+def update_trade_status(request):
+    try:
+        data = json.loads(request.body)
+        trade_id = data.get('trade_id')
+        current_price = data.get('current_price')
+
+        if not trade_id or current_price is None:
+            return JsonResponse({
+                'success': False,
+                'error': 'Trade ID and current price are required'
+            })
+
+        try:
+            # Get the trade
+            trade = Trade.objects.get(id=trade_id, user=request.user, status='active')
+            
+            # Convert current price to Decimal
+            current_price = Decimal(str(current_price))
+            
+            # Check if stop loss or take profit has been triggered
+            status_changed = False
+            message = ""
+            
+            if trade.type == 'BUY':
+                # For BUY trades, stop loss is triggered when price falls below stop loss level
+                if trade.stop_loss and current_price <= trade.stop_loss:
+                    trade.status = 'closed'
+                    trade.closing_price = trade.stop_loss
+                    trade.profit = (trade.stop_loss - trade.entry_price) * trade.quantity
+                    trade.closed_at = datetime.now(timezone.utc)
+                    status_changed = True
+                    message = "Stop Loss triggered"
+                
+                # For BUY trades, take profit is triggered when price rises above take profit level
+                elif trade.take_profit and current_price >= trade.take_profit:
+                    trade.status = 'closed'
+                    trade.closing_price = trade.take_profit
+                    trade.profit = (trade.take_profit - trade.entry_price) * trade.quantity
+                    trade.closed_at = datetime.now(timezone.utc)
+                    status_changed = True
+                    message = "Take Profit triggered"
+            
+            else:  # SELL trade
+                # For SELL trades, stop loss is triggered when price rises above stop loss level
+                if trade.stop_loss and current_price >= trade.stop_loss:
+                    trade.status = 'closed'
+                    trade.closing_price = trade.stop_loss
+                    trade.profit = (trade.entry_price - trade.stop_loss) * trade.quantity
+                    trade.closed_at = datetime.now(timezone.utc)
+                    status_changed = True
+                    message = "Stop Loss triggered"
+                
+                # For SELL trades, take profit is triggered when price falls below take profit level
+                elif trade.take_profit and current_price <= trade.take_profit:
+                    trade.status = 'closed'
+                    trade.closing_price = trade.take_profit
+                    trade.profit = (trade.entry_price - trade.take_profit) * trade.quantity
+                    trade.closed_at = datetime.now(timezone.utc)
+                    status_changed = True
+                    message = "Take Profit triggered"
+            
+            # Save trade if status changed
+            if status_changed:
+                # Saving the trade with 'closed' status and profit will make it appear in history
+                trade.save()
+                return JsonResponse({
+                    'success': True,
+                    'status_changed': True,
+                    'message': message,
+                    'trade_id': trade.id,
+                    'profit': float(trade.profit)
+                })
+            
+            return JsonResponse({
+                'success': True,
+                'status_changed': False,
+                'trade_id': trade.id
+            })
+                
+        except Trade.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'Trade not found or not active'
             })
         
     except Exception as e:

@@ -14,6 +14,8 @@ class Trade(models.Model):
     take_profit = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
     profit = models.DecimalField(max_digits=20, decimal_places=8, default=0)
     commission = models.DecimalField(max_digits=20, decimal_places=8, default=0)
+    closing_price = models.DecimalField(max_digits=20, decimal_places=8, null=True, blank=True)
+    closed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
         ordering = ['-created_at']

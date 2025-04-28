@@ -327,12 +327,19 @@
         z-index: 2000;
         animation: fadeInOut 4s ease-in-out;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         gap: 10px;
+        max-width: 300px;
+        line-height: 1.4;
     }
     
     .success-message i {
         font-size: 18px;
+        margin-top: 2px;
+    }
+    
+    .success-message a:hover {
+        color: #e0e0e0;
     }
     
     @keyframes fadeInOut {
@@ -340,6 +347,10 @@
         15% { opacity: 1; transform: translateY(0); }
         85% { opacity: 1; transform: translateY(0); }
         100% { opacity: 0; transform: translateY(-20px); }
+    }
+
+    .edit-button {
+        background-color: #3385ff;
     }
 </style>
 {% endblock %}
@@ -414,6 +425,9 @@
                     <td class="profit">0.0</td>
                     <td>
                         <div class="trade-actions">
+                            <button class="action-button edit-button" onclick="showEditSLTPModal('{{ trade.symbol }}', {{ trade.entry_price }}, {{ trade.id }}, {% if trade.stop_loss %}{{ trade.stop_loss }}{% else %}null{% endif %}, {% if trade.take_profit %}{{ trade.take_profit }}{% else %}null{% endif %})">
+                                <i class="fas fa-edit"></i><span>Edit</span>
+                            </button>
                             <button class="action-button sell-button" onclick="showTradeModal('{{ trade.symbol }}', {{ trade.entry_price }}, 'SELL', {{ trade.id }})">
                                 <i class="fas fa-arrow-down"></i><span>Sell</span>
                             </button>
@@ -466,26 +480,110 @@
         </div>
     </div>
 </div>
+
+<!-- Add SL/TP edit modal -->
+<div id="sltpModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Edit Stop Loss & Take Profit</h2>
+        <div class="trade-details">
+            <div class="detail-row">
+                <span class="detail-label">Symbol</span>
+                <span class="detail-value" id="sltpModalSymbol">BTC/USDT</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Current Price</span>
+                <span class="detail-value" id="sltpModalPrice">0.00</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Stop Loss</span>
+                <div class="quantity-wrapper">
+                    <input type="number" id="modalStopLoss" class="quantity-input" step="0.01" placeholder="Set stop loss">
+                </div>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Take Profit</span>
+                <div class="quantity-wrapper">
+                    <input type="number" id="modalTakeProfit" class="quantity-input" step="0.01" placeholder="Set take profit">
+                </div>
+            </div>
+        </div>
+        <div class="confirmation-buttons">
+            <button class="cancel-btn" onclick="closeSLTPModal()">Cancel</button>
+            <button class="proceed-btn" onclick="updateSLTP()">Update</button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // WebSocket connection for real-time price updates
+    // Optimized WebSocket connection for real-time price updates with minimal delay
     const ws = new WebSocket('wss://stream.binance.com:9443/ws');
     
-    // Subscribe to price streams for all active trades
+    // Cache DOM elements to reduce DOM queries
+    const tradeRows = new Map();
+    
+    // Set up price stream with optimized parameters
     const subscribeToPriceStreams = () => {
-        const symbols = Array.from(document.querySelectorAll('#tradesBody tr')).map(tr => {
-            const symbol = tr.querySelector('td:nth-child(3)').textContent;
-            return `${symbol.toLowerCase()}@trade`;
+        // Cache all trade rows and organize by symbol for faster lookups
+        document.querySelectorAll('#tradesBody tr').forEach(tr => {
+            const tradeId = tr.dataset.tradeId;
+            if (!tradeId) return;
+            
+            const symbolElement = tr.querySelector('td:nth-child(3)');
+            if (!symbolElement) return;
+            
+            const symbol = symbolElement.textContent;
+            
+            // Get SL and TP values
+            const slElement = tr.querySelector('td:nth-child(8)');
+            const tpElement = tr.querySelector('td:nth-child(9)');
+            
+            const sl = slElement.textContent !== '-' ? parseFloat(slElement.textContent) : null;
+            const tp = tpElement.textContent !== '-' ? parseFloat(tpElement.textContent) : null;
+            
+            // Cache DOM elements and values for this trade
+            tradeRows.set(tradeId, {
+                row: tr,
+                symbol: symbol,
+                ltpElement: tr.querySelector('.ltp'),
+                profitElement: tr.querySelector('.profit'),
+                entryPrice: parseFloat(tr.querySelector('td:nth-child(6)').textContent),
+                quantity: parseFloat(tr.querySelector('td:nth-child(5)').textContent),
+                type: tr.querySelector('td:nth-child(4)').textContent.toLowerCase(),
+                sl: sl,
+                tp: tp,
+                actions: tr.querySelector('.trade-actions'),
+                tradeId: tradeId
+            });
+            
+            // Create a map of symbols to trade IDs for fast lookup
+            if (!window.symbolToTrades) window.symbolToTrades = {};
+            if (!window.symbolToTrades[symbol]) window.symbolToTrades[symbol] = [];
+            window.symbolToTrades[symbol].push(tradeId);
         });
         
-        if (symbols.length > 0) {
+        // Get unique symbols
+        const symbols = [...new Set(Array.from(tradeRows.values()).map(trade => trade.symbol))];
+        const streamParams = symbols.map(symbol => `${symbol.toLowerCase()}@trade`);
+        
+        if (streamParams.length > 0) {
+            // Use binary form of WebSocket for better performance
+            ws.binaryType = "arraybuffer";
+            
+            // Subscribe to all price feeds in a single message
             ws.send(JSON.stringify({
                 method: "SUBSCRIBE",
-                params: symbols,
+                params: streamParams,
                 id: 1
             }));
+            
+            // Set high priority for WebSocket connection
+            if (navigator.scheduling && navigator.scheduling.isInputPending) {
+                // Use the prioritized tasks API if available (Chrome)
+                window.prioritizedUpdates = true;
+            }
         }
     };
 
@@ -494,36 +592,206 @@
         subscribeToPriceStreams();
     };
 
+    // Optimized message handler with debouncing
+    let lastUpdateTime = {};
+    const UPDATE_THROTTLE = 50; // ms - minimum time between updates for the same symbol
+    
+    // Track trades pending close to avoid duplicate close requests
+    const pendingCloses = new Set();
+    
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
         if (data.e === 'trade') {
             const symbol = data.s;
             const price = parseFloat(data.p);
+            const now = performance.now();
             
-            // Update LTP and profit for all trades of this symbol
-            document.querySelectorAll('#tradesBody tr').forEach(tr => {
-                if (tr.querySelector('td:nth-child(3)').textContent === symbol) {
-                    const entryPrice = parseFloat(tr.querySelector('td:nth-child(6)').textContent);
-                    const quantity = parseFloat(tr.querySelector('td:nth-child(5)').textContent);
-                    const type = tr.querySelector('td:nth-child(4)').textContent.toLowerCase();
+            // Throttle updates for the same symbol
+            if (lastUpdateTime[symbol] && (now - lastUpdateTime[symbol] < UPDATE_THROTTLE)) {
+                return;
+            }
+            
+            lastUpdateTime[symbol] = now;
+            
+            // Use the optimized lookup
+            const tradeIds = window.symbolToTrades?.[symbol] || [];
+            
+            // Use requestAnimationFrame for visual updates to sync with screen refresh
+            requestAnimationFrame(() => {
+                tradeIds.forEach(tradeId => {
+                    const trade = tradeRows.get(tradeId);
+                    if (!trade) return;
                     
                     // Update LTP
-                    tr.querySelector('.ltp').textContent = price.toFixed(1);
+                    trade.ltpElement.textContent = price.toFixed(1);
                     
                     // Calculate and update profit
                     let profit = 0;
-                    if (type === 'buy') {
-                        profit = (price - entryPrice) * quantity;
+                    if (trade.type === 'buy') {
+                        profit = (price - trade.entryPrice) * trade.quantity;
                     } else {
-                        profit = (entryPrice - price) * quantity;
+                        profit = (trade.entryPrice - price) * trade.quantity;
                     }
                     
-                    const profitCell = tr.querySelector('.profit');
-                    profitCell.textContent = profit.toFixed(1);
-                    profitCell.className = `profit ${profit >= 0 ? 'positive' : 'negative'}`;
-                }
+                    trade.profitElement.textContent = profit.toFixed(1);
+                    trade.profitElement.className = `profit ${profit >= 0 ? 'positive' : 'negative'}`;
+                    
+                    // Check for SL/TP hit
+                    let slTpHit = false;
+                    let hitType = '';
+                    
+                    // Avoid checking trades already being closed
+                    if (pendingCloses.has(tradeId)) return;
+                    
+                    if (trade.type === 'buy') {
+                        // For Buy trades: price <= SL is a stop loss hit
+                        if (trade.sl && price <= trade.sl) {
+                            slTpHit = true;
+                            hitType = 'Stop Loss';
+                        }
+                        // For Buy trades: price >= TP is a take profit hit
+                        else if (trade.tp && price >= trade.tp) {
+                            slTpHit = true;
+                            hitType = 'Take Profit';
+                        }
+                    } else { // Sell trade
+                        // For Sell trades: price >= SL is a stop loss hit
+                        if (trade.sl && price >= trade.sl) {
+                            slTpHit = true;
+                            hitType = 'Stop Loss';
+                        }
+                        // For Sell trades: price <= TP is a take profit hit
+                        else if (trade.tp && price <= trade.tp) {
+                            slTpHit = true;
+                            hitType = 'Take Profit';
+                        }
+                    }
+                    
+                    // If SL/TP hit, close the trade automatically
+                    if (slTpHit) {
+                        console.log(`${hitType} hit for trade ${tradeId} at price ${price}`);
+                        
+                        // Mark this trade as pending close to avoid duplicate requests
+                        pendingCloses.add(tradeId);
+                        
+                        // Show indicator that the trade is being closed
+                        trade.row.style.backgroundColor = hitType === 'Stop Loss' ? 'rgba(244, 67, 54, 0.2)' : 'rgba(76, 175, 80, 0.2)';
+                        
+                        // Disable action buttons during close
+                        if (trade.actions) {
+                            const buttons = trade.actions.querySelectorAll('button');
+                            buttons.forEach(btn => {
+                                btn.disabled = true;
+                                btn.style.opacity = '0.5';
+                            });
+                        }
+                        
+                        // Close the trade via API
+                        closeTradeAutomatically(trade.tradeId, price, hitType);
+                    }
+                });
             });
         }
+    };
+    
+    // Function to automatically close a trade when SL/TP is hit
+    async function closeTradeAutomatically(tradeId, closingPrice, hitType) {
+        try {
+            console.log(`Automatically closing trade ${tradeId} at ${closingPrice} due to ${hitType}`);
+            
+            const response = await fetch('/api/close_trade/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    trade_id: tradeId,
+                    closing_price: closingPrice
+                })
+            });
+            
+            const data = await response.json();
+            console.log('Close trade response:', data);
+            
+            if (data.success) {
+                const trade = tradeRows.get(tradeId);
+                if (trade) {
+                    // Show success message with hit type
+                    showSuccessMessage(`${trade.symbol} closed automatically - ${hitType} triggered at ${closingPrice.toFixed(1)}`);
+                    
+                    // This trade is now closed and will appear in the history page
+                    
+                    // Animate row fadeout
+                    trade.row.style.transition = "opacity 0.5s, transform 0.5s";
+                    trade.row.style.opacity = "0";
+                    trade.row.style.transform = "translateY(-10px)";
+                    
+                    // Remove after animation
+                    setTimeout(() => {
+                        trade.row.remove();
+                        
+                        // Check if there are any trades left
+                        const remainingTrades = document.querySelectorAll('#tradesBody tr:not(.no-orders)');
+                        if (remainingTrades.length === 0) {
+                            // Add the "No orders found" row
+                            const noOrdersRow = document.createElement('tr');
+                            noOrdersRow.innerHTML = '<td colspan="13" class="no-orders">No Order(s) Found</td>';
+                            document.getElementById('tradesBody').appendChild(noOrdersRow);
+                        }
+                    }, 500);
+                }
+            } else {
+                // Log error and remove from pending closes to allow retry
+                console.error('Failed to close trade:', data.error || data.message);
+                pendingCloses.delete(tradeId);
+                
+                // Return the row to normal state
+                const trade = tradeRows.get(tradeId);
+                if (trade) {
+                    trade.row.style.backgroundColor = '';
+                    if (trade.actions) {
+                        const buttons = trade.actions.querySelectorAll('button');
+                        buttons.forEach(btn => {
+                            btn.disabled = false;
+                            btn.style.opacity = '1';
+                        });
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error closing trade automatically:', error);
+            pendingCloses.delete(tradeId);
+            
+            // Return the row to normal state
+            const trade = tradeRows.get(tradeId);
+            if (trade) {
+                trade.row.style.backgroundColor = '';
+                if (trade.actions) {
+                    const buttons = trade.actions.querySelectorAll('button');
+                    buttons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                    });
+                }
+            }
+        }
+    }
+
+    // Add connection reliability
+    ws.onclose = () => {
+        console.log("WebSocket closed, reconnecting...");
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
+    };
+
+    ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+        // Try to reconnect on error
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
     };
 
     // Action button functions
@@ -766,6 +1034,8 @@
                 // Show success message
                 showSuccessMessage(`${symbol} sold successfully at ${price.toFixed(1)}`);
                 
+                // This trade is now closed and will appear in the history page
+                
                 // Remove the trade row if it was successfully sold
                 const tradeRow = document.querySelector(`tr[data-trade-id="${tradeId}"]`);
                 if (tradeRow) {
@@ -809,7 +1079,20 @@
         // Create success message element
         const successMessage = document.createElement('div');
         successMessage.className = 'success-message';
-        successMessage.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+        
+        // Check if this is a trade closing message
+        if (message.includes('closed automatically') || message.includes('sold successfully')) {
+            // Add a link to the history page
+            successMessage.innerHTML = `
+                <i class="fas fa-check-circle"></i> 
+                ${message}<br>
+                <span style="font-size: 12px; margin-top: 5px; display: block;">
+                    Trade added to <a href="/history/" style="color: white; text-decoration: underline;">trade history</a>
+                </span>
+            `;
+        } else {
+            successMessage.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+        }
         
         // Add to document
         document.body.appendChild(successMessage);
@@ -823,13 +1106,132 @@
     // Close modal when clicking outside
     window.onclick = function(event) {
         const modal = document.getElementById('tradeModal');
+        const sltpModal = document.getElementById('sltpModal');
         if (event.target === modal) {
             closeTradeModal();
+        } else if (event.target === sltpModal) {
+            closeSLTPModal();
         }
     }
 
-    // Close modal when clicking the close button
-    document.querySelector('.close').addEventListener('click', closeTradeModal);
+    // Close modals when clicking the close buttons
+    document.querySelectorAll('.close').forEach(closeBtn => {
+        closeBtn.addEventListener('click', function() {
+            const modal = this.closest('.modal');
+            if (modal.id === 'tradeModal') {
+                closeTradeModal();
+            } else if (modal.id === 'sltpModal') {
+                closeSLTPModal();
+            }
+        });
+    });
+
+    // SLTP modal functions
+    function showEditSLTPModal(symbol, price, tradeId, stopLoss, takeProfit) {
+        const modal = document.getElementById('sltpModal');
+        const modalSymbol = document.getElementById('sltpModalSymbol');
+        const modalPrice = document.getElementById('sltpModalPrice');
+        const modalStopLoss = document.getElementById('modalStopLoss');
+        const modalTakeProfit = document.getElementById('modalTakeProfit');
+        
+        // Store trade ID in modal for later use
+        modal.dataset.tradeId = tradeId;
+
+        // Set modal values
+        modalSymbol.textContent = symbol;
+        modalPrice.textContent = price.toFixed(1);
+        
+        // Set existing SL/TP values if they exist
+        if (stopLoss !== null) {
+            modalStopLoss.value = stopLoss;
+        } else {
+            modalStopLoss.value = '';
+        }
+        
+        if (takeProfit !== null) {
+            modalTakeProfit.value = takeProfit;
+        } else {
+            modalTakeProfit.value = '';
+        }
+
+        // Display modal
+        document.body.style.overflow = 'hidden'; // Prevent scrolling of background
+        modal.style.display = 'block';
+    }
+
+    function closeSLTPModal() {
+        const modal = document.getElementById('sltpModal');
+        modal.style.display = 'none';
+        document.body.style.overflow = ''; // Restore scrolling
+    }
+
+    async function updateSLTP() {
+        const modal = document.getElementById('sltpModal');
+        const tradeId = modal.dataset.tradeId;
+        const stopLoss = document.getElementById('modalStopLoss').value;
+        const takeProfit = document.getElementById('modalTakeProfit').value;
+
+        try {
+            // Log the request for debugging
+            console.log('Sending update SLTP request:', {
+                trade_id: tradeId,
+                stop_loss: stopLoss || null,
+                take_profit: takeProfit || null
+            });
+
+            // Update the SL/TP values
+            const response = await fetch('/api/update_sltp/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    trade_id: tradeId,
+                    stop_loss: stopLoss || null,
+                    take_profit: takeProfit || null
+                })
+            });
+            
+            // Log the response status
+            console.log('Response status:', response.status);
+            
+            const data = await response.json();
+            console.log('Response data:', data);
+            
+            if (data.success) {
+                // Close the modal first
+                closeSLTPModal();
+                
+                // Show success message
+                showSuccessMessage('Stop Loss and Take Profit updated successfully');
+                
+                // Update the values in the table
+                const tradeRow = document.querySelector(`tr[data-trade-id="${tradeId}"]`);
+                if (tradeRow) {
+                    // Update SL cell
+                    const slCell = tradeRow.querySelector('td:nth-child(8)'); // 8th column is SL
+                    slCell.textContent = stopLoss ? parseFloat(stopLoss).toFixed(1) : '-';
+                    
+                    // Update TP cell
+                    const tpCell = tradeRow.querySelector('td:nth-child(9)'); // 9th column is TP
+                    tpCell.textContent = takeProfit ? parseFloat(takeProfit).toFixed(1) : '-';
+                }
+            } else {
+                // Show detailed error message
+                let errorMessage = 'Failed to update Stop Loss and Take Profit';
+                if (data.error) {
+                    errorMessage += ': ' + data.error;
+                } else if (data.message) {
+                    errorMessage += ': ' + data.message;
+                }
+                alert(errorMessage);
+            }
+        } catch (error) {
+            console.error('Error updating SLTP:', error);
+            alert('Failed to update Stop Loss and Take Profit. Please check the console for details.');
+        }
+    }
 </script>
 {% endblock %}
 
