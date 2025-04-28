@@ -102,6 +102,245 @@
     .trade-type.sell {
         color: #f44336;
     }
+
+    /* New styles for Buy/Sell buttons */
+    .trade-actions {
+        display: flex;
+        gap: 8px;
+        white-space: nowrap;
+        justify-content: center;
+    }
+
+    .action-button {
+        padding: 6px 10px;
+        border: none;
+        border-radius: 4px;
+        color: white;
+        cursor: pointer;
+        font-size: 11px;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        width: auto;
+        min-width: 60px;
+        max-width: 90px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        justify-content: center;
+    }
+
+    .action-button i {
+        font-size: 10px;
+    }
+    
+    .action-button span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .buy-button {
+        background: #4CAF50;
+    }
+
+    .sell-button {
+        background: #f44336;
+    }
+
+    .action-button:hover {
+        opacity: 0.9;
+        transform: scale(1.05);
+    }
+
+    .trades-table td:last-child {
+        min-width: 80px;
+        max-width: 100px;
+        width: 100px;
+        text-align: center;
+    }
+
+    /* Additional modal styles */
+    .modal {
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        overflow: auto;
+    }
+
+    .modal-content {
+        background: #1a1c25;
+        padding: 25px;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 500px;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        animation: modalFadeIn 0.3s;
+    }
+
+    @keyframes modalFadeIn {
+        from { opacity: 0; transform: translate(-50%, -55%); }
+        to { opacity: 1; transform: translate(-50%, -50%); }
+    }
+
+    .close {
+        position: absolute;
+        right: 20px;
+        top: 20px;
+        color: #666;
+        font-size: 20px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .close:hover {
+        color: #fff;
+    }
+
+    .modal h2 {
+        color: #fff;
+        font-size: 20px;
+        margin: 0 0 20px 0;
+        font-weight: 500;
+    }
+
+    .trade-details {
+        background-color: #12151c;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 15px 0;
+        border: 1px solid #1f2330;
+    }
+
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid #1f2330;
+    }
+
+    .detail-row:last-child {
+        border-bottom: none;
+    }
+
+    .detail-label {
+        color: #888;
+        font-size: 14px;
+    }
+
+    .detail-value {
+        color: #fff;
+        font-size: 15px;
+        font-weight: 500;
+    }
+
+    .quantity-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .quantity-input {
+        background: #1f2330;
+        border: 1px solid #2a2d3e;
+        border-radius: 5px;
+        padding: 8px 12px;
+        color: #fff;
+        width: 80px;
+    }
+
+    .currency-symbol {
+        color: #888;
+    }
+
+    .total-amount {
+        margin-top: 5px;
+        padding-top: 15px;
+        border-top: 1px solid #1f2330;
+        background-color: rgba(51, 133, 255, 0.05);
+        border-radius: 0 0 8px 8px;
+        padding: 15px;
+        margin: 5px -20px -20px -20px;
+    }
+
+    .total-amount .detail-value {
+        color: #3385ff;
+        font-weight: 700;
+        font-size: 18px;
+    }
+
+    .confirmation-buttons {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+    }
+
+    .cancel-btn, .proceed-btn {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .cancel-btn {
+        background-color: #1f2330;
+        color: #fff;
+        border: 1px solid #2a2d3e;
+    }
+
+    .proceed-btn {
+        background-color: #3385ff;
+        color: #fff;
+    }
+
+    .cancel-btn:hover {
+        background-color: #252836;
+    }
+
+    .proceed-btn:hover {
+        background-color: #2a75e8;
+    }
+
+    /* Success message styles */
+    .success-message {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background-color: #4CAF50;
+        color: white;
+        padding: 15px 20px;
+        border-radius: 4px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        z-index: 2000;
+        animation: fadeInOut 4s ease-in-out;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .success-message i {
+        font-size: 18px;
+    }
+    
+    @keyframes fadeInOut {
+        0% { opacity: 0; transform: translateY(-20px); }
+        15% { opacity: 1; transform: translateY(0); }
+        85% { opacity: 1; transform: translateY(0); }
+        100% { opacity: 0; transform: translateY(-20px); }
+    }
 </style>
 {% endblock %}
 
@@ -154,6 +393,7 @@
                 <th>SWAP</th>
                 <th>LTP</th>
                 <th>PROFIT</th>
+                <th>ACTIONS</th>
             </tr>
         </thead>
         <tbody id="tradesBody">
@@ -164,23 +404,67 @@
                     <td>{{ trade.created_at|date:"d M Y" }}<br>{{ trade.created_at|time:"H:i:s" }}</td>
                     <td>{{ trade.symbol }}</td>
                     <td class="trade-type {{ trade.type|lower }}">{{ trade.type }}</td>
-                    <td>{{ trade.quantity }}</td>
-                    <td>{{ trade.entry_price }}</td>
+                    <td>{{ trade.quantity|floatformat:2 }}</td>
+                    <td>{{ trade.entry_price|floatformat:1 }}</td>
                     <td>-</td>
-                    <td>{{ trade.stop_loss|default:"-" }}</td>
-                    <td>{{ trade.take_profit|default:"-" }}</td>
-                    <td>{{ trade.commission }}</td>
-                    <td class="ltp">{{ trade.entry_price }}</td>
-                    <td class="profit">0.00</td>
+                    <td>{% if trade.stop_loss %}{{ trade.stop_loss|floatformat:1 }}{% else %}-{% endif %}</td>
+                    <td>{% if trade.take_profit %}{{ trade.take_profit|floatformat:1 }}{% else %}-{% endif %}</td>
+                    <td>{% if trade.commission %}{{ trade.commission|floatformat:1 }}{% else %}0.0{% endif %}</td>
+                    <td class="ltp">{{ trade.entry_price|floatformat:1 }}</td>
+                    <td class="profit">0.0</td>
+                    <td>
+                        <div class="trade-actions">
+                            <button class="action-button sell-button" onclick="showTradeModal('{{ trade.symbol }}', {{ trade.entry_price }}, 'SELL', {{ trade.id }})">
+                                <i class="fas fa-arrow-down"></i><span>Sell</span>
+                            </button>
+                        </div>
+                    </td>
                 </tr>
                 {% endfor %}
             {% else %}
                 <tr>
-                    <td colspan="12" class="no-orders">No Order(s) Found</td>
+                    <td colspan="13" class="no-orders">No Order(s) Found</td>
                 </tr>
             {% endif %}
         </tbody>
     </table>
+</div>
+
+<!-- Add trade modal -->
+<div id="tradeModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Confirm Order</h2>
+        <div class="trade-details">
+            <div class="detail-row">
+                <span class="detail-label">Symbol</span>
+                <span class="detail-value" id="modalSymbol">BTC/USDT</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Order Type</span>
+                <span class="detail-value" id="modalOrderType">BUY</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Quantity</span>
+                <div class="quantity-wrapper">
+                    <input type="number" id="modalQuantity" class="quantity-input" min="0.01" step="0.01" value="0.10">
+                    <span class="currency-symbol" id="modalCurrencySymbol">BTC</span>
+                </div>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Price</span>
+                <span class="detail-value" id="modalPrice">0.00</span>
+            </div>
+            <div class="detail-row total-amount">
+                <span class="detail-label">Total Amount</span>
+                <span class="detail-value" id="modalTotal">0.00</span>
+            </div>
+        </div>
+        <div class="confirmation-buttons">
+            <button class="cancel-btn" onclick="closeTradeModal()">Cancel</button>
+            <button class="proceed-btn" onclick="submitOrder()">Confirm Order</button>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -224,7 +508,7 @@
                     const type = tr.querySelector('td:nth-child(4)').textContent.toLowerCase();
                     
                     // Update LTP
-                    tr.querySelector('.ltp').textContent = price.toFixed(2);
+                    tr.querySelector('.ltp').textContent = price.toFixed(1);
                     
                     // Calculate and update profit
                     let profit = 0;
@@ -235,7 +519,7 @@
                     }
                     
                     const profitCell = tr.querySelector('.profit');
-                    profitCell.textContent = profit.toFixed(2);
+                    profitCell.textContent = profit.toFixed(1);
                     profitCell.className = `profit ${profit >= 0 ? 'positive' : 'negative'}`;
                 }
             });
@@ -384,6 +668,169 @@
         }
         return cookieValue;
     }
+
+    // Trade modal functions
+    function showTradeModal(symbol, price, orderType, tradeId) {
+        const modal = document.getElementById('tradeModal');
+        const modalSymbol = document.getElementById('modalSymbol');
+        const modalOrderType = document.getElementById('modalOrderType');
+        const modalPrice = document.getElementById('modalPrice');
+        const modalQuantity = document.getElementById('modalQuantity');
+        const modalCurrencySymbol = document.getElementById('modalCurrencySymbol');
+        const modalTotal = document.getElementById('modalTotal');
+        
+        // Store trade ID in modal for later use
+        modal.dataset.tradeId = tradeId;
+
+        // Set modal values
+        modalSymbol.textContent = symbol;
+        modalOrderType.textContent = orderType;
+        modalOrderType.style.color = orderType === 'BUY' ? '#4CAF50' : '#f44336';
+        modalPrice.textContent = price.toFixed(1);
+        
+        // Get quantity from the trade data dynamically
+        const tradeRow = document.querySelector(`tr[data-trade-id="${tradeId}"]`);
+        if (tradeRow) {
+            const tradeQuantity = parseFloat(tradeRow.querySelector('td:nth-child(5)').textContent);
+            modalQuantity.value = tradeQuantity.toFixed(2);
+        } else {
+            // Default quantity if trade row not found
+            modalQuantity.value = "0.10";
+        }
+        
+        // Set currency symbol (first part of the trading pair)
+        const currencySymbol = symbol.split('/')[0] || symbol.substring(0, 3);
+        modalCurrencySymbol.textContent = currencySymbol;
+
+        // Calculate total
+        calculateTotal();
+
+        // Add event listener for quantity changes
+        modalQuantity.addEventListener('input', calculateTotal);
+
+        // Center and display modal
+        document.body.style.overflow = 'hidden'; // Prevent scrolling of background
+        modal.style.display = 'block';
+
+        function calculateTotal() {
+            const quantity = parseFloat(modalQuantity.value) || 0;
+            const total = quantity * price;
+            modalTotal.textContent = total.toFixed(2); // Display 2 decimal places for total
+        }
+    }
+
+    function closeTradeModal() {
+        const modal = document.getElementById('tradeModal');
+        modal.style.display = 'none';
+        document.body.style.overflow = ''; // Restore scrolling
+    }
+
+    async function submitOrder() {
+        const modal = document.getElementById('tradeModal');
+        const symbol = document.getElementById('modalSymbol').textContent;
+        const orderType = document.getElementById('modalOrderType').textContent;
+        const price = parseFloat(document.getElementById('modalPrice').textContent);
+        const quantity = parseFloat(document.getElementById('modalQuantity').value).toFixed(2);
+        const tradeId = modal.dataset.tradeId;
+
+        try {
+            // Log the request for debugging
+            console.log('Sending close trade request:', {
+                trade_id: tradeId,
+                closing_price: price
+            });
+
+            // We're selling/closing an existing trade, so use a different endpoint
+            const response = await fetch('/api/close_trade/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({
+                    trade_id: tradeId,
+                    closing_price: price
+                })
+            });
+            
+            // Log the response status
+            console.log('Response status:', response.status);
+            
+            const data = await response.json();
+            console.log('Response data:', data);
+            
+            if (data.success) {
+                // Close the modal first
+                closeTradeModal();
+                
+                // Show success message
+                showSuccessMessage(`${symbol} sold successfully at ${price.toFixed(1)}`);
+                
+                // Remove the trade row if it was successfully sold
+                const tradeRow = document.querySelector(`tr[data-trade-id="${tradeId}"]`);
+                if (tradeRow) {
+                    // Animate fadeout
+                    tradeRow.style.transition = "opacity 0.5s, transform 0.5s";
+                    tradeRow.style.opacity = "0";
+                    tradeRow.style.transform = "translateY(-10px)";
+                    
+                    // Remove after animation
+                    setTimeout(() => {
+                        tradeRow.remove();
+                        
+                        // Check if there are any trades left
+                        const remainingTrades = document.querySelectorAll('#tradesBody tr:not(.no-orders)');
+                        if (remainingTrades.length === 0) {
+                            // Add the "No orders found" row
+                            const noOrdersRow = document.createElement('tr');
+                            noOrdersRow.innerHTML = '<td colspan="13" class="no-orders">No Order(s) Found</td>';
+                            document.getElementById('tradesBody').appendChild(noOrdersRow);
+                        }
+                    }, 500);
+                }
+            } else {
+                // Show detailed error message
+                let errorMessage = 'Failed to close trade';
+                if (data.error) {
+                    errorMessage += ': ' + data.error;
+                } else if (data.message) {
+                    errorMessage += ': ' + data.message;
+                }
+                alert(errorMessage);
+            }
+        } catch (error) {
+            console.error('Error closing trade:', error);
+            alert('Failed to close trade. Please check the console for details.');
+        }
+    }
+
+    // Function to show success message
+    function showSuccessMessage(message) {
+        // Create success message element
+        const successMessage = document.createElement('div');
+        successMessage.className = 'success-message';
+        successMessage.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+        
+        // Add to document
+        document.body.appendChild(successMessage);
+        
+        // Remove after animation completes
+        setTimeout(() => {
+            successMessage.remove();
+        }, 4000); // Match the animation duration
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('tradeModal');
+        if (event.target === modal) {
+            closeTradeModal();
+        }
+    }
+
+    // Close modal when clicking the close button
+    document.querySelector('.close').addEventListener('click', closeTradeModal);
 </script>
 {% endblock %}
+
 

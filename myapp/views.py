@@ -232,8 +232,8 @@ def remove_from_wishlist(request):
 
 @login_required
 def trades(request):
-    # Get all trades for the current user, ordered by creation date (newest first)
-    trades = Trade.objects.filter(user=request.user).order_by('-created_at')[:50]  # Limit to 50 trades
+    # Get active trades for the current user, ordered by creation date (newest first)
+    trades = Trade.objects.filter(user=request.user, status='active').order_by('-created_at')[:50]  # Limit to 50 trades
 
     # Initialize prices and profits
     for trade in trades:
@@ -606,4 +606,53 @@ def update_wishlist_price(request):
         return JsonResponse({
             'success': False,
             'message': 'Failed to update price'
+        })
+
+@login_required
+@require_http_methods(["POST"])
+def close_trade(request):
+    try:
+        data = json.loads(request.body)
+        trade_id = data.get('trade_id')
+        closing_price = data.get('closing_price')
+
+        if not trade_id:
+            return JsonResponse({
+                'success': False,
+                'error': 'Trade ID is required'
+            })
+
+        try:
+            # Get the trade
+            trade = Trade.objects.get(id=trade_id, user=request.user)
+            
+            # Calculate profit
+            if trade.type == 'BUY':
+                profit = (Decimal(str(closing_price)) - trade.entry_price) * trade.quantity
+            else:  # SELL
+                profit = (trade.entry_price - Decimal(str(closing_price))) * trade.quantity
+            
+            # Update trade
+            trade.closing_price = Decimal(str(closing_price))
+            trade.profit = profit
+            trade.status = 'closed'  # Mark as closed
+            trade.closed_at = datetime.now(timezone.utc)
+            trade.save()
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Trade closed successfully',
+                'trade_id': trade.id,
+                'profit': float(profit)
+            })
+        except Trade.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'Trade not found'
+            })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
         })

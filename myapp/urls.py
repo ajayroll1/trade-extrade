@@ -17,6 +17,7 @@ urlpatterns = [
     path('verify-reset-code/', views.verify_reset_code, name='verify-reset-code'),
     path('update-password/', views.update_password, name='update-password'),
     path('api/execute_trade/', views.execute_trade, name='execute_trade'),
+    path('api/close_trade/', views.close_trade, name='close_trade'),
     path('api/get_live_profit/', views.get_live_profit, name='get_live_profit'),
     path('api/add_to_wishlist/', views.add_to_wishlist, name='add_to_wishlist'),
     path('api/remove_from_wishlist/', views.remove_from_wishlist, name='remove_from_wishlist'),
