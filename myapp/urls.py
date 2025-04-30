@@ -26,6 +26,8 @@ urlpatterns = [
     path('api/update_sltp/', views.update_sltp, name='update_sltp'),
     path('remove_from_wishlist/', views.remove_from_wishlist, name='remove_from_wishlist'),
     path('admin-dashboard/', views.admin_dashboard, name='admin_dashboard'),
+    path('admin-traders/', views.admin_traders, name='admin_traders'),
+    path('admin-trades/', views.admin_trades, name='admin_trades'),
 ]
 
 

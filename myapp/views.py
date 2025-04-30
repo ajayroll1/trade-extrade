@@ -793,3 +793,11 @@ def update_trade_status(request):
 @staff_member_required
 def admin_dashboard(request):
     return render(request, 'admin_dashboard.html')
+
+@staff_member_required
+def admin_traders(request):
+    return render(request, 'admin_traders.html')
+
+@staff_member_required
+def admin_trades(request):
+    return render(request, 'admin_trades.html')

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Panel{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Include Chart.js for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Include Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Include Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    {% block extra_css %}{% endblock %}
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --info-color: #3b82f6;
+            --bg-color: #f8fafc;
+            --text-color: #334155;
+            --sidebar-width: 280px;
+            --card-border-radius: 12px;
+            --transition-speed: 0.3s;
+        }
+
+        body {
+            display: flex;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+            padding: 20px;
+            color: white;
+            position: fixed;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            z-index: 10;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header h2 {
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-header i {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+        }
+
+        .sidebar-menu li {
+            padding: 14px 18px;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .sidebar-menu li:hover {
+            background-color: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+        }
+
+        .sidebar-menu li.active {
+            background-color: rgba(255,255,255,0.2);
+            font-weight: 500;
+        }
+
+        .sidebar-menu i {
+            margin-right: 12px;
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .sidebar-menu a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 30px;
+            width: calc(100% - var(--sidebar-width));
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-chart-line"></i>
+            <h2>Trade Admin</h2>
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="{% url 'admin_dashboard' %}"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="{% url 'admin_traders' %}"><i class="fas fa-users"></i> Traders</a></li>
+            <li><a href="{% url 'admin_trades' %}"><i class="fas fa-exchange-alt"></i> Trades</a></li>
+            <li><a href="#"><i class="fas fa-globe"></i> Markets</a></li>
+            <li><a href="#"><i class="fas fa-chart-bar"></i> Analytics</a></li>
+            <li><a href="#"><i class="fas fa-wallet"></i> Assets</a></li>
+            <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
+            <li><a href="#"><i class="fas fa-headset"></i> Support</a></li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 
