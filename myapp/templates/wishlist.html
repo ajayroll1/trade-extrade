@@ -1278,7 +1278,7 @@
                             <i class="fas fa-arrow-down"></i> Sell
                         </button>
                         <button class="action-button delete-button" onclick="removeFromWishlist('${symbolId}')">
-                            <i class="fas fa-trash"></i> Remove
+                            <i class="fas fa-trash"></i> Delete
                         </button>
                     </div>
                 `;
@@ -1992,95 +1992,198 @@
 
         // Function to load forex data
         function loadForexData(container) {
-            const forexPairs = [
-                'EUR/USD', 'GBP/USD', 'USD/JPY', 'AUD/USD', 'USD/CAD',
-                'USD/CHF', 'NZD/USD', 'EUR/GBP', 'EUR/JPY', 'GBP/JPY',
-                'USD/CNY', 'USD/HKD', 'USD/SGD', 'USD/INR', 'USD/MXN',
-                'USD/ZAR', 'USD/TRY', 'USD/BRL', 'USD/SEK', 'USD/DKK'
-            ];
-
-            // Show loading indicator
+            // Show loading indicator first
             container.innerHTML = '<div class="loading-indicator">Loading forex data...</div>';
 
-            // Process each forex pair sequentially with Alpha Vantage API
-            const apiKey = 'QHMIRSKIIHDGNSQF';
-            let processedCount = 0;
+            // Fetch all forex pairs at once using CurrencyLayer API with new key
+            fetch('http://apilayer.net/api/live?access_key=ba950f1f20c3fef2a2d0cc70f7fcb8c5&currencies=EUR,GBP,CAD,PLN&source=USD&format=1')
+                .then(response => response.json())
+                .then(data => {
+                    container.innerHTML = '';
 
-            // Clear the container
+                    // Add search box for forex pairs
+                    const searchBox = document.createElement('div');
+                    searchBox.className = 'crypto-search';
+                    searchBox.innerHTML = `
+                        <input type="text" placeholder="Filter forex pairs..." class="crypto-search-input">
+                    `;
+                    container.appendChild(searchBox);
+
+                    // Create container for forex items
+                    const forexListContainer = document.createElement('div');
+                    forexListContainer.className = 'crypto-list';
+                    container.appendChild(forexListContainer);
+
+                    if (data.success && data.quotes) {
+                        // Process each forex pair
+                        Object.entries(data.quotes).forEach(([pair, rate]) => {
+                            // Convert USDEUR to EUR/USD format
+                            const fromCurrency = pair.substring(3);
+                            const toCurrency = pair.substring(0, 3);
+                            const displayPair = `${fromCurrency}/${toCurrency}`;
+                            
+                            // Add forex pair to the list
+                            addSymbolItem(forexListContainer, displayPair, rate.toFixed(4), 'Forex');
+                        });
+
+                        // Add count of forex pairs
+                        const countInfo = document.createElement('div');
+                        countInfo.className = 'crypto-count';
+                        countInfo.textContent = `Showing ${Object.keys(data.quotes).length} forex pairs`;
+                        countInfo.style.textAlign = 'center';
+                        countInfo.style.padding = '10px';
+                        countInfo.style.color = '#999';
+                        countInfo.style.fontSize = '0.9em';
+                        container.appendChild(countInfo);
+
+                        // Setup search functionality
+                        const searchInput = searchBox.querySelector('.crypto-search-input');
+                        searchInput.addEventListener('input', function() {
+                            const searchTerm = this.value.toLowerCase();
+                            const items = forexListContainer.querySelectorAll('.symbol-item');
+                            let visibleCount = 0;
+
+                            items.forEach(item => {
+                                const symbol = item.querySelector('span:first-child').textContent.toLowerCase();
+                                if (symbol.includes(searchTerm)) {
+                                    item.style.display = 'flex';
+                                    visibleCount++;
+                                } else {
+                                    item.style.display = 'none';
+                                }
+                            });
+
+                            countInfo.textContent = `Showing ${visibleCount} of ${Object.keys(data.quotes).length} forex pairs`;
+                        });
+
+                        // Setup auto-refresh every 1 millisecond
+                        setInterval(() => {
+                            fetch('http://apilayer.net/api/live?access_key=ba950f1f20c3fef2a2d0cc70f7fcb8c5&currencies=EUR,GBP,JPY,AUD,CAD,CHF,NZD,CNY,HKD,SGD,INR,MXN,ZAR,TRY,BRL,SEK,DKK,NOK,PLN,RUB,THB,ILS,IDR,MYR,PHP,SAR,AED,KRW&source=USD&format=1')
+                                .then(response => response.json())
+                                .then(updatedData => {
+                                    if (updatedData.success && updatedData.quotes) {
+                                        Object.entries(updatedData.quotes).forEach(([pair, rate]) => {
+                                            const fromCurrency = pair.substring(3);
+                                            const toCurrency = pair.substring(0, 3);
+                                            const displayPair = `${fromCurrency}/${toCurrency}`;
+                                            const item = forexListContainer.querySelector(`.symbol-item span:first-child:contains('${displayPair}')`);
+                                            if (item) {
+                                                const priceElement = item.parentElement.querySelector('span:nth-child(2)');
+                                                if (priceElement) {
+                                                    priceElement.textContent = rate.toFixed(4);
+                                                }
+                                            }
+                                        });
+                                    }
+                                })
+                                .catch(error => console.error('Error updating forex data:', error));
+                        }, 1); // Changed from 5000 to 1 millisecond
+                    } else {
+                        // If API fails, show error and use fallback data
+                        console.error('CurrencyLayer error:', data);
+                        useFallbackForexData(container);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching forex data:', error);
+                    useFallbackForexData(container);
+                });
+        }
+
+        // Fallback function for forex data when API fails
+        function useFallbackForexData(container) {
+            const fallbackData = {
+                'EUR/USD': 0.9251,
+                'GBP/USD': 0.7923,
+                'USD/JPY': 149.25,
+                'AUD/USD': 0.6532,
+                'USD/CAD': 1.3742,
+                'USD/CHF': 0.9012,
+                'NZD/USD': 0.6012,
+                'USD/CNY': 7.2345,
+                'USD/HKD': 7.8123,
+                'USD/SGD': 1.3456,
+                'USD/INR': 83.1234,
+                'USD/MXN': 17.2345,
+                'USD/ZAR': 18.5678,
+                'USD/TRY': 32.1234,
+                'USD/BRL': 5.1234,
+                'USD/SEK': 10.5678,
+                'USD/DKK': 6.9012,
+                'USD/NOK': 10.2345,
+                'USD/PLN': 4.0123,
+                'USD/RUB': 92.3456,
+                'USD/THB': 36.7890,
+                'USD/ILS': 3.6789,
+                'USD/IDR': 15678.90,
+                'USD/MYR': 4.6789,
+                'USD/PHP': 56.7890,
+                'USD/SAR': 3.7500,
+                'USD/AED': 3.6725,
+                'USD/KRW': 1356.78
+            };
+
             container.innerHTML = '';
 
-            // Process forex pairs one by one (Alpha Vantage has strict rate limits)
-            function processNextPair(index) {
-                if (index >= forexPairs.length) return;
+            // Add search box
+            const searchBox = document.createElement('div');
+            searchBox.className = 'crypto-search';
+            searchBox.innerHTML = `
+                <input type="text" placeholder="Filter forex pairs..." class="crypto-search-input">
+            `;
+            container.appendChild(searchBox);
 
-                const pair = forexPairs[index];
-                const fromSymbol = pair.split('/')[0];
-                const toSymbol = pair.split('/')[1];
+            // Create container for forex items
+            const forexListContainer = document.createElement('div');
+            forexListContainer.className = 'crypto-list';
+            container.appendChild(forexListContainer);
 
-                const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${fromSymbol}&to_currency=${toSymbol}&apikey=${apiKey}`;
+            // Add each forex pair
+            Object.entries(fallbackData).forEach(([pair, rate]) => {
+                addSymbolItem(forexListContainer, pair, rate.toFixed(4), 'Forex');
+            });
 
-                fetch(url)
-                    .then(response => response.json())
-                    .then(data => {
-                        processedCount++;
+            // Add count of forex pairs
+            const countInfo = document.createElement('div');
+            countInfo.className = 'crypto-count';
+            countInfo.textContent = `Showing ${Object.keys(fallbackData).length} forex pairs (cached data)`;
+            countInfo.style.textAlign = 'center';
+            countInfo.style.padding = '10px';
+            countInfo.style.color = '#999';
+            countInfo.style.fontSize = '0.9em';
+            container.appendChild(countInfo);
 
-                        // Check if we have valid data
-                        if (data["Realtime Currency Exchange Rate"]) {
-                            const exchangeData = data["Realtime Currency Exchange Rate"];
-                            const rate = parseFloat(exchangeData["5. Exchange Rate"]).toFixed(4);
-                            addSymbolItem(container, pair, rate, 'Forex');
-                        } else {
-                            // If we hit API limit or other error, use fallback data
-                            let fallbackRate;
-                            switch(pair) {
-                                case 'EUR/USD': fallbackRate = 1.08; break;
-                                case 'GBP/USD': fallbackRate = 1.26; break;
-                                case 'USD/JPY': fallbackRate = 149; break;
-                                case 'AUD/USD': fallbackRate = 0.65; break;
-                                case 'USD/CAD': fallbackRate = 1.37; break;
-                                case 'USD/CHF': fallbackRate = 0.90; break;
-                                case 'NZD/USD': fallbackRate = 0.60; break;
-                                case 'EUR/GBP': fallbackRate = 0.86; break;
-                                case 'EUR/JPY': fallbackRate = 161; break;
-                                case 'GBP/JPY': fallbackRate = 188; break;
-                                case 'USD/CNY': fallbackRate = 7.2; break;
-                                case 'USD/HKD': fallbackRate = 7.8; break;
-                                case 'USD/SGD': fallbackRate = 1.35; break;
-                                case 'USD/INR': fallbackRate = 83; break;
-                                case 'USD/MXN': fallbackRate = 17; break;
-                                case 'USD/ZAR': fallbackRate = 18.5; break;
-                                case 'USD/TRY': fallbackRate = 32; break;
-                                case 'USD/BRL': fallbackRate = 5.1; break;
-                                case 'USD/SEK': fallbackRate = 10.5; break;
-                                case 'USD/DKK': fallbackRate = 6.9; break;
-                                default: fallbackRate = 1.0;
-                            }
-                            const fallbackRateWithNoise = (fallbackRate + (Math.random() * 0.01 - 0.005)).toFixed(4);
-                            addSymbolItem(container, pair, fallbackRateWithNoise, 'Forex');
-                            console.log(`Using fallback data for ${pair} (API limit reached or error)`);
-                        }
+            // Setup search functionality
+            const searchInput = searchBox.querySelector('.crypto-search-input');
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                const items = forexListContainer.querySelectorAll('.symbol-item');
+                let visibleCount = 0;
 
-                        // Process next pair with delay to avoid API rate limit
-                        setTimeout(() => {
-                            processNextPair(index + 1);
-                        }, 1500);
-                    })
-                    .catch(error => {
-                        console.error(`Error fetching data for ${pair}:`, error);
+                items.forEach(item => {
+                    const symbol = item.querySelector('span:first-child').textContent.toLowerCase();
+                    if (symbol.includes(searchTerm)) {
+                        item.style.display = 'flex';
+                        visibleCount++;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
 
-                        // Use fallback data in case of error
-                        const fallbackRate = (Math.random() * 10 + 1).toFixed(4);
-                        addSymbolItem(container, pair, fallbackRate, 'Forex');
+                countInfo.textContent = `Showing ${visibleCount} of ${Object.keys(fallbackData).length} forex pairs (cached data)`;
+            });
 
-                        // Continue with next pair
-                        setTimeout(() => {
-                            processNextPair(index + 1);
-                        }, 1500);
-                    });
-            }
-
-            // Start processing pairs
-            processNextPair(0);
+            // Add a note about using fallback data
+            const fallbackNote = document.createElement('div');
+            fallbackNote.className = 'error-message';
+            fallbackNote.innerHTML = 'Using cached data. Live API connection failed.';
+            fallbackNote.style.backgroundColor = '#1f2130';
+            fallbackNote.style.padding = '8px';
+            fallbackNote.style.marginTop = '10px';
+            fallbackNote.style.fontSize = '0.8em';
+            fallbackNote.style.color = '#999';
+            fallbackNote.style.textAlign = 'center';
+            container.appendChild(fallbackNote);
         }
 
         // Helper function to create symbol items
@@ -2197,7 +2300,7 @@
                         <i class="fas fa-arrow-down"></i> Sell
                     </button>
                     <button class="action-button delete-button" onclick="removeFromWishlist('${symbolId}')">
-                        <i class="fas fa-trash"></i> Remove
+                        <i class="fas fa-trash"></i> Delete
                     </button>
                 </div>
             `;
@@ -2275,59 +2378,61 @@
         }
     });
 
-    // Function to remove from wishlist (needs to be global for the onclick handlers)
+    // Function to remove from wishlist
     function removeFromWishlist(symbol) {
+        console.log('Delete button clicked for symbol:', symbol);
+        
+        // Find the item in the UI
         const item = document.querySelector(`.pair-item[data-symbol="${symbol}"]`);
-        if (!item) return;
-
-        if (confirm('Are you sure you want to remove this item from your wishlist?')) {
-            // Send request to server to remove item from database
-            fetch('/api/remove_from_wishlist/', {
+        console.log('Found item:', item);
+        
+        if (item) {
+            // Get the item ID
+            const itemId = item.getAttribute('data-id');
+            console.log('Item ID:', itemId);
+            
+            // Simple fetch to delete from database
+            fetch('/remove_from_wishlist/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': getCsrfToken()
                 },
                 body: JSON.stringify({
-                    symbol: symbol
+                    symbol: symbol,
+                    item_id: itemId
                 })
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Server response:', response);
+                return response.json();
+            })
             .then(data => {
-                if (data.success) {
-                    // Animate removal
-                    item.style.opacity = '0';
-                    item.style.transform = 'translateX(-20px)';
-
-                    // Remove after animation
-                    setTimeout(() => {
-                        item.remove();
-
-                        // Check if wishlist is empty
-                        const wishlist = document.querySelector('.pairs-list');
-                        const remainingItems = wishlist.querySelectorAll('.pair-item');
-                        if (remainingItems.length === 0) {
-                            wishlist.innerHTML = `
-                                <div class="empty-state">
-                                    <div class="empty-state-content">
-                                        <i class="fas fa-star" style="font-size: 48px; color: #666;"></i>
-                                        <h3>No Favorites Yet</h3>
-                                        <p>Your wishlist is empty. Add pairs to track them here.</p>
-                                    </div>
-                                </div>
-                            `;
-                        }
-                    }, 300);
-
-                    showToast('Item removed from wishlist', 'success');
-                } else {
-                    showToast(data.message || 'Failed to remove from database', 'error');
-                }
+                console.log('Delete result:', data);
             })
             .catch(error => {
-                console.error('Error removing from wishlist:', error);
-                showToast('Failed to remove from database', 'error');
+                console.error('Delete error:', error);
             });
+
+            // Remove from UI immediately
+            item.remove();
+            console.log('Item removed from UI');
+            
+            // Check if wishlist is empty
+            const wishlist = document.querySelector('.pairs-list');
+            const remainingItems = wishlist.querySelectorAll('.pair-item');
+            if (remainingItems.length === 0) {
+                wishlist.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-content">
+                            <i class="fas fa-star" style="font-size: 48px; color: #666;"></i>
+                            <h3>No Favorites Yet</h3>
+                            <p>Your wishlist is empty. Add pairs to track them here.</p>
+                        </div>
+                    </div>
+                `;
+            }
+        } else {
+            console.error('Item not found in UI');
         }
     }
 
@@ -2573,5 +2678,59 @@
             }
         }, 5000);
     }
+
+    // Fetch forex data using CurrencyLayer API
+    fetch('http://apilayer.net/api/live?access_key=ba950f1f20c3fef2a2d0cc70f7fcb8c5&currencies=EUR,GBP,CAD,PLN&source=USD&format=1')
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Example: USDEUR, USDGBP, etc.
+          const rates = data.quotes;
+          // Use rates.USDEUR, rates.USDGBP, etc. to update your UI
+          console.log(rates);
+        } else {
+          // Handle error
+          console.error('CurrencyLayer error:', data);
+        }
+      })
+      .catch(error => {
+        console.error('Fetch error:', error);
+      });
+
+    // Simple API call to check response
+    fetch('http://apilayer.net/api/live?access_key=ba950f1f20c3fef2a2d0cc70f7fcb8c5&currencies=EUR,GBP,JPY,AUD,CAD,CHF,NZD,CNY,HKD,SGD,INR,MXN,ZAR,TRY,BRL,SEK,DKK,NOK,PLN,RUB,THB,ILS,IDR,MYR,PHP,SAR,AED,KRW&source=USD&format=1')
+        .then(response => response.json())
+        .then(data => {
+            console.log('API Response:', data);
+            if (!data.success) {
+                console.error('API Error:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Fetch Error:', error);
+        });
+
+    // Update the interval to 1 second (1000 milliseconds)
+    setInterval(() => {
+        fetch('http://apilayer.net/api/live?access_key=ba950f1f20c3fef2a2d0cc70f7fcb8c5&currencies=EUR,GBP,JPY,AUD,CAD,CHF,NZD,CNY,HKD,SGD,INR,MXN,ZAR,TRY,BRL,SEK,DKK,NOK,PLN,RUB,THB,ILS,IDR,MYR,PHP,SAR,AED,KRW&source=USD&format=1')
+            .then(response => response.json())
+            .then(updatedData => {
+                if (updatedData.success && updatedData.quotes) {
+                    Object.entries(updatedData.quotes).forEach(([pair, rate]) => {
+                        const fromCurrency = pair.substring(3);
+                        const toCurrency = pair.substring(0, 3);
+                        const displayPair = `${fromCurrency}/${toCurrency}`;
+                        const item = forexListContainer.querySelector(`.symbol-item span:first-child:contains('${displayPair}')`);
+                        if (item) {
+                            const priceElement = item.parentElement.querySelector('span:nth-child(2)');
+                            if (priceElement) {
+                                priceElement.textContent = rate.toFixed(4);
+                            }
+                        }
+                    });
+                }
+            })
+            .catch(error => console.error('Error updating forex data:', error));
+    }, 1000); // Changed from 5000 to 1000 milliseconds (1 second)
 </script>
 {% endblock %}

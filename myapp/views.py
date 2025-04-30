@@ -16,6 +16,7 @@ from django.views.decorators.http import require_http_methods
 from decimal import Decimal
 import logging
 from django.db.models import Count, Sum
+from django.views.decorators.csrf import csrf_exempt
 
 from .forms import CustomUserCreationForm
 from .models import Trade, WishlistItem
@@ -195,40 +196,22 @@ def add_to_wishlist(request):
             'message': 'Failed to add item to wishlist'
         })
 
-@login_required
-@require_http_methods(["POST"])
+@csrf_exempt
 def remove_from_wishlist(request):
-    try:
-        data = json.loads(request.body)
-        symbol = data.get('symbol')
-
-        if not symbol:
-            return JsonResponse({
-                'success': False,
-                'message': 'Symbol is required'
-            })
-
-        # Try to find and delete the item
+    if request.method == 'POST':
         try:
-            wishlist_item = WishlistItem.objects.get(user=request.user, symbol=symbol)
-            wishlist_item.delete()
-
-            return JsonResponse({
-                'success': True,
-                'message': 'Removed from wishlist'
-            })
-        except WishlistItem.DoesNotExist:
-            return JsonResponse({
-                'success': False,
-                'message': 'Item not found in wishlist'
-            })
-
-    except Exception as e:
-        print(f"Error removing from wishlist: {e}")
-        return JsonResponse({
-            'success': False,
-            'message': 'Failed to remove item from wishlist'
-        })
+            data = json.loads(request.body)
+            item_id = data.get('item_id')
+            print(f"Deleting item with ID: {item_id}")  # Debug print
+            
+            # Delete the item from database
+            WishlistItem.objects.filter(id=item_id).delete()
+            
+            return JsonResponse({'success': True})
+        except Exception as e:
+            print(f"Error deleting item: {str(e)}")  # Debug print
+            return JsonResponse({'success': False, 'error': str(e)})
+    return JsonResponse({'success': False})
 
 @login_required
 def trades(request):
@@ -803,3 +786,12 @@ def update_trade_status(request):
             'success': False,
             'error': str(e)
         })
+
+@login_required
+def admin_dashboard(request):
+    # Check if user is superuser
+    if not request.user.is_superuser:
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('dashboard')
+    
+    return render(request, 'admin-dashboard.html')

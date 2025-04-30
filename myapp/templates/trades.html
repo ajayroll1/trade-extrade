@@ -398,7 +398,6 @@
                 <th>ORDER</th>
                 <th>LOT</th>
                 <th>PRICE</th>
-                <th>PARTIAL</th>
                 <th>SL</th>
                 <th>TP</th>
                 <th>SWAP</th>
@@ -417,7 +416,6 @@
                     <td class="trade-type {{ trade.type|lower }}">{{ trade.type }}</td>
                     <td>{{ trade.quantity|floatformat:2 }}</td>
                     <td>{{ trade.entry_price|floatformat:1 }}</td>
-                    <td>-</td>
                     <td>{% if trade.stop_loss %}{{ trade.stop_loss|floatformat:1 }}{% else %}-{% endif %}</td>
                     <td>{% if trade.take_profit %}{{ trade.take_profit|floatformat:1 }}{% else %}-{% endif %}</td>
                     <td>{% if trade.commission %}{{ trade.commission|floatformat:1 }}{% else %}0.0{% endif %}</td>

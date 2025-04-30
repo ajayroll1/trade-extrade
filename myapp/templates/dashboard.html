@@ -544,6 +544,195 @@
         </div>
     </div>
 </div>
+
+<!-- Amount Input Modal -->
+<div id="amountInputModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h2>Enter Amount</h2>
+            <span class="close" onclick="closeAmountModal()">&times;</span>
+        </div>
+        <form id="amountForm" onsubmit="handleAmountSubmit(event)" style="padding: 20px 0;">
+            <div style="margin-bottom: 20px;">
+                <label for="amount" style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Amount to Add</label>
+                <div style="position: relative;">
+                    <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #666;">$</span>
+                    <input 
+                        type="number" 
+                        id="amount" 
+                        min="10" 
+                        step="0.01" 
+                        required 
+                        style="width: 100%; 
+                        padding: 12px 15px 12px 30px; 
+                        border: 2px solid #e0e0e0; 
+                        border-radius: 8px; 
+                        font-size: 16px; 
+                        outline: none; 
+                        transition: border-color 0.3s ease;"
+                        placeholder="Enter amount (min. $10)"
+                    >
+                </div>
+                <div id="amountError" style="color: #dc3545; font-size: 0.875rem; margin-top: 5px; display: none;">
+                    Please enter a valid amount (minimum $10)
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button 
+                    type="button" 
+                    onclick="closeAmountModal()" 
+                    style="flex: 1; 
+                    padding: 12px; 
+                    border: 1px solid #e0e0e0; 
+                    border-radius: 8px; 
+                    background: #fff; 
+                    color: #333; 
+                    cursor: pointer; 
+                    transition: all 0.3s ease;"
+                >
+                    Cancel
+                </button>
+                <button 
+                    type="submit" 
+                    style="flex: 1; 
+                    padding: 12px; 
+                    border: none; 
+                    border-radius: 8px; 
+                    background: #00c7ff; 
+                    color: #fff; 
+                    cursor: pointer; 
+                    transition: all 0.3s ease;"
+                >
+                    Proceed
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Bank Details Modal -->
+<div id="bankDetailsModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 500px; margin: auto; max-height: 80vh; overflow-y: auto;">
+        <div class="modal-header" style="text-align: center; position: sticky; top: 0; background: white; z-index: 1; padding: 15px; border-bottom: 1px solid #eee;">
+            <h2 style="width: 100%; font-size: 20px;">Bank Transfer Details</h2>
+            <span class="close" onclick="closeBankModal()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);">&times;</span>
+        </div>
+        <div class="bank-details-content" style="padding: 20px; display: flex; flex-direction: column; align-items: center;">
+            <!-- Bank Information -->
+            <div class="bank-info" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; width: 100%; max-width: 500px;">
+                <h3 style="margin-bottom: 15px; color: #333; text-align: center;">Bank Account Details</h3>
+                <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
+                    <span style="font-weight: 500; color: #666;">Bank Name:</span>
+                    <span>State Bank of India</span>
+                </div>
+                <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
+                    <span style="font-weight: 500; color: #666;">Account Name:</span>
+                    <span>TradePro Solutions Pvt Ltd</span>
+                </div>
+                <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
+                    <span style="font-weight: 500; color: #666;">Account Number:</span>
+                    <span>3164 2957 1825 9164</span>
+                </div>
+                <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
+                    <span style="font-weight: 500; color: #666;">IFSC Code:</span>
+                    <span>SBIN0021548</span>
+                </div>
+                <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
+                    <span style="font-weight: 500; color: #666;">Branch Name:</span>
+                    <span>Cyber City Branch</span>
+                </div>
+                <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
+                    <span style="font-weight: 500; color: #666;">Branch Address:</span>
+                    <span>Plot No. 123, Cyber City, Sector 15, Gurugram, Haryana</span>
+                </div>
+                <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
+                    <span style="font-weight: 500; color: #666;">Pin Code:</span>
+                    <span>122002</span>
+                </div>
+            </div>
+
+            <!-- Upload Receipt Form -->
+            <form id="receiptUploadForm" onsubmit="handleReceiptSubmit(event)" style="width: 100%; max-width: 500px;">
+                <div style="margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 15px; color: #333; text-align: center;">Upload Payment Receipt</h3>
+                    <div class="upload-section" style="border: 2px dashed #ddd; padding: 20px; border-radius: 8px; text-align: center;">
+                        <input type="file" 
+                               id="receiptFile" 
+                               accept="image/*,.pdf" 
+                               required 
+                               style="display: none;"
+                               onchange="updateFileName(this)">
+                        <label for="receiptFile" 
+                               style="display: block; 
+                               cursor: pointer; 
+                               padding: 15px; 
+                               background: #f8f9fa; 
+                               border-radius: 8px;">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 24px; color: #00c7ff; margin-bottom: 10px;"></i>
+                            <div id="fileName">Click to upload payment receipt</div>
+                            <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                                Supported formats: JPG, PNG, PDF (Max size: 5MB)
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Transaction Reference -->
+                <div style="margin-bottom: 20px;">
+                    <label for="transactionRef" style="display: block; margin-bottom: 8px; color: #333; text-align: center;">
+                        Transaction Reference Number
+                    </label>
+                    <input type="text" 
+                           id="transactionRef" 
+                           required 
+                           style="width: 100%; 
+                           padding: 12px; 
+                           border: 2px solid #e0e0e0; 
+                           border-radius: 8px; 
+                           font-size: 16px;"
+                           placeholder="Enter bank transaction reference">
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" 
+                        style="width: 100%; 
+                        padding: 15px; 
+                        background: #00c7ff; 
+                        color: white; 
+                        border: none; 
+                        border-radius: 8px; 
+                        font-size: 16px; 
+                        cursor: pointer; 
+                        transition: all 0.3s ease;">
+                    Submit Payment Proof
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div id="successModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 400px; text-align: center; padding: 30px;">
+        <div style="color: #28a745; font-size: 50px; margin-bottom: 20px;">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h2 style="color: #333; margin-bottom: 15px;">Payment Submitted Successfully!</h2>
+        <p style="color: #666; margin-bottom: 20px;">
+            Your payment proof has been submitted successfully. We will verify and update your balance shortly.
+        </p>
+        <button onclick="closeSuccessModal()" 
+                style="padding: 12px 30px; 
+                background: #00c7ff; 
+                color: white; 
+                border: none; 
+                border-radius: 8px; 
+                cursor: pointer;">
+            Close
+        </button>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -573,14 +762,75 @@
         }
     });
 
-    // Handle payment method selection
+    let currentPaymentMethod = '';
+
     function selectPaymentMethod(method) {
-        // You can customize this function based on your needs
-        let amount = prompt("Enter the amount you want to add:");
-        if (amount && !isNaN(amount)) {
-            alert(`Processing ${method} payment for $${amount}`);
-            modal.style.display = "none";
-            document.body.style.overflow = 'auto'; // Restore scrolling
+        currentPaymentMethod = method;
+        document.getElementById('fundModal').style.display = 'none';
+        document.getElementById('amountInputModal').style.display = 'block';
+        document.getElementById('amount').focus();
+    }
+
+    function closeAmountModal() {
+        document.getElementById('amountInputModal').style.display = 'none';
+        document.getElementById('amount').value = '';
+        document.getElementById('amountError').style.display = 'none';
+    }
+
+    function handleAmountSubmit(event) {
+        event.preventDefault();
+        const amountInput = document.getElementById('amount');
+        const amount = parseFloat(amountInput.value);
+        const errorDiv = document.getElementById('amountError');
+
+        if (isNaN(amount) || amount < 10) {
+            errorDiv.style.display = 'block';
+            return;
+        }
+
+        errorDiv.style.display = 'none';
+
+        // Handle different payment methods
+        switch(currentPaymentMethod) {
+            case 'bank':
+                closeAmountModal();
+                showBankDetails();
+                break;
+            case 'card':
+                alert(`Processing card payment for $${amount}`);
+                closeAmountModal();
+                break;
+            case 'crypto':
+                alert(`Processing crypto payment for $${amount}`);
+                closeAmountModal();
+                break;
+            case 'ewallet':
+                alert(`Processing e-wallet payment for $${amount}`);
+                closeAmountModal();
+                break;
+        }
+    }
+
+    // Add input validation
+    document.getElementById('amount').addEventListener('input', function(e) {
+        const errorDiv = document.getElementById('amountError');
+        const amount = parseFloat(e.target.value);
+        
+        if (isNaN(amount) || amount < 10) {
+            errorDiv.style.display = 'block';
+        } else {
+            errorDiv.style.display = 'none';
+        }
+    });
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const amountModal = document.getElementById('amountInputModal');
+        const bankModal = document.getElementById('bankDetailsModal');
+        if (event.target == amountModal) {
+            closeAmountModal();
+        } else if (event.target == bankModal) {
+            bankModal.style.display = 'none';
         }
     }
 
@@ -618,6 +868,48 @@
     function shareOnFacebook() {
         const url = `https://tradepro.com/ref/{{ user.username }}`;
         window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`);
+    }
+
+    function showBankDetails() {
+        document.getElementById('bankDetailsModal').style.display = 'block';
+    }
+
+    function closeBankModal() {
+        document.getElementById('bankDetailsModal').style.display = 'none';
+    }
+
+    function updateFileName(input) {
+        const fileName = input.files[0]?.name || 'Click to upload payment receipt';
+        document.getElementById('fileName').textContent = fileName;
+    }
+
+    function closeSuccessModal() {
+        document.getElementById('successModal').style.display = 'none';
+        window.location.reload(); // Refresh the page to update balance
+    }
+
+    function handleReceiptSubmit(event) {
+        event.preventDefault();
+        
+        // Here you would typically send the data to your server
+        // For now, we'll just show the success message
+        document.getElementById('bankDetailsModal').style.display = 'none';
+        document.getElementById('successModal').style.display = 'block';
+        
+        // Reset form
+        event.target.reset();
+        document.getElementById('fileName').textContent = 'Click to upload payment receipt';
+    }
+
+    // Close modals when clicking outside
+    window.onclick = function(event) {
+        const bankModal = document.getElementById('bankDetailsModal');
+        const successModal = document.getElementById('successModal');
+        if (event.target == bankModal) {
+            closeBankModal();
+        } else if (event.target == successModal) {
+            closeSuccessModal();
+        }
     }
 </script>
 {% endblock %}
@@ -667,7 +959,44 @@
         visibility: visible;
         top: 120%;
     }
+
+    .upload-section:hover {
+        border-color: #00c7ff;
+    }
+
+    #transactionRef:focus {
+        border-color: #00c7ff;
+        outline: none;
+    }
+
+    .modal-content button:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    @keyframes successModalIn {
+        from {
+            transform: scale(0.8);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    #successModal .modal-content {
+        animation: successModalIn 0.3s ease-out;
+    }
 </style>
+
+
+
+
+
+
+
+
 
 
 

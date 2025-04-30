@@ -197,6 +197,7 @@
                 <th>Type</th>
                 <th>Quantity</th>
                 <th>Entry Price</th>
+                <th>Exit Price</th>
                 <th>Total Amount</th>
                 <th>Stop Loss</th>
                 <th>Take Profit</th>
@@ -219,6 +220,7 @@
                     <td class="trade-type {{ trade.type|lower }}">{{ trade.type }}</td>
                     <td>{{ trade.quantity|floatformat:1 }}</td>
                     <td>{{ trade.entry_price|floatformat:2 }}</td>
+                    <td>{{ trade.closing_price|floatformat:2|default:"-" }}</td>
                     <td>{{ trade.total_amount|floatformat:2 }}</td>
                     <td>{{ trade.stop_loss|floatformat:2|default:"-" }}</td>
                     <td>{{ trade.take_profit|floatformat:2|default:"-" }}</td>
@@ -229,7 +231,7 @@
                 {% endfor %}
             {% else %}
                 <tr>
-                    <td colspan="9" class="no-trades">No trades found</td>
+                    <td colspan="10" class="no-trades">No trades found</td>
                 </tr>
             {% endif %}
         </tbody>
