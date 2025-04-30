@@ -17,6 +17,7 @@ from decimal import Decimal
 import logging
 from django.db.models import Count, Sum
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.admin.views.decorators import staff_member_required
 
 from .forms import CustomUserCreationForm
 from .models import Trade, WishlistItem
@@ -101,8 +102,10 @@ def login_view(request):
 
         if user is not None:
             login(request, user)
-            # messages.success(request, 'Login successful!')
-            return redirect('dashboard')
+            if user.is_staff:  # Check if user is admin
+                return redirect('admin_dashboard')  # Redirect to admin panel dashboard
+            else:
+                return redirect('dashboard')  # Redirect to regular dashboard
         else:
             messages.error(request, 'Invalid username or password.')
 
@@ -787,11 +790,6 @@ def update_trade_status(request):
             'error': str(e)
         })
 
-@login_required
+@staff_member_required
 def admin_dashboard(request):
-    # Check if user is superuser
-    if not request.user.is_superuser:
-        messages.error(request, 'You do not have permission to access this page.')
-        return redirect('dashboard')
-    
-    return render(request, 'admin-dashboard.html')
+    return render(request, 'admin_dashboard.html')
