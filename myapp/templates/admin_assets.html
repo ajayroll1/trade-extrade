@@ -1,0 +1,753 @@
+{% extends 'admin_base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="text-primary fw-bold mb-4 fs-4">Assets Management Dashboard</h2>
+            
+            <!-- Summary Cards -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 120px;">
+                            <button class="btn btn-light btn-lg" data-bs-toggle="modal" data-bs-target="#paymentOptionsModal">
+                                <i class="fas fa-money-bill-wave me-2"></i> Payment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-success text-white">
+                        <div class="card-body">
+                            <h6 class="card-title">Active Investments</h6>
+                            <h3 class="mb-0">$1,850,000</h3>
+                            <small class="text-white-50">+8.3% from last month</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-info text-white">
+                        <div class="card-body">
+                            <h6 class="card-title">Pending Transactions</h6>
+                            <h3 class="mb-0">$325,000</h3>
+                            <small class="text-white-50">15 transactions pending</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-warning text-white">
+                        <div class="card-body">
+                            <h6 class="card-title">Total Revenue</h6>
+                            <h3 class="mb-0">$125,000</h3>
+                            <small class="text-white-50">+5.2% from last month</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assets Management Table -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark py-3">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+                        <h5 class="text-white mb-0 fs-6">Assets Management</h5>
+                        <div class="d-flex gap-2">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-filter me-1"></i> Filter
+                                </button>
+                                <div class="dropdown-menu p-3 dropdown-menu-end" style="min-width: 260px;">
+                                    <h6 class="dropdown-header px-0 fw-bold">Filter Options</h6>
+                                    <div class="mb-3">
+                                        <label class="form-label small">Asset Type</label>
+                                        <select class="form-select form-select-sm">
+                                            <option value="">All Types</option>
+                                            <option value="crypto">Cryptocurrency</option>
+                                            <option value="stocks">Stocks</option>
+                                            <option value="forex">Forex</option>
+                                            <option value="commodities">Commodities</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small">Status</label>
+                                        <select class="form-select form-select-sm">
+                                            <option value="">All Status</option>
+                                            <option value="active">Active</option>
+                                            <option value="pending">Pending</option>
+                                            <option value="completed">Completed</option>
+                                        </select>
+                                    </div>
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <button class="btn btn-secondary btn-sm" onclick="clearFilter()">Clear</button>
+                                        <button class="btn btn-primary btn-sm" onclick="applyFilter()">Apply</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-outline-light btn-sm">
+                                <i class="fas fa-download me-1"></i> Export
+                            </button>
+                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addAssetModal">
+                                <i class="fas fa-plus me-1"></i> Add Asset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-uppercase px-4">Asset Name</th>
+                                    <th class="text-uppercase">Type</th>
+                                    <th class="text-uppercase">Current Value</th>
+                                    <th class="text-uppercase">Invested Amount</th>
+                                    <th class="text-uppercase">Returns</th>
+                                    <th class="text-uppercase">Status</th>
+                                    <th class="text-uppercase text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="px-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                <i class="fab fa-bitcoin"></i>
+                                            </div>
+                                            <span class="fw-semibold">Bitcoin (BTC)</span>
+                                        </div>
+                                    </td>
+                                    <td>Crypto</td>
+                                    <td>$45,250.00</td>
+                                    <td>$40,000.00</td>
+                                    <td>
+                                        <span class="text-success">+13.1%</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success rounded-pill px-3">Active</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Asset">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove Asset">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                <i class="fab fa-ethereum"></i>
+                                            </div>
+                                            <span class="fw-semibold">Ethereum (ETH)</span>
+                                        </div>
+                                    </td>
+                                    <td>Crypto</td>
+                                    <td>$32,500.00</td>
+                                    <td>$30,000.00</td>
+                                    <td>
+                                        <span class="text-success">+8.3%</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success rounded-pill px-3">Active</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Asset">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove Asset">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4">
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-chart-line"></i>
+                                            </div>
+                                            <span class="fw-semibold">Apple Inc. (AAPL)</span>
+                                        </div>
+                                    </td>
+                                    <td>Stocks</td>
+                                    <td>$75,000.00</td>
+                                    <td>$70,000.00</td>
+                                    <td>
+                                        <span class="text-success">+7.1%</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success rounded-pill px-3">Active</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Asset">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove Asset">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-dark py-3">
+                    <h5 class="text-white mb-0 fs-6">Recent Transactions</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-uppercase px-4">Transaction ID</th>
+                                    <th class="text-uppercase">Type</th>
+                                    <th class="text-uppercase">Amount</th>
+                                    <th class="text-uppercase">Date</th>
+                                    <th class="text-uppercase">Status</th>
+                                    <th class="text-uppercase text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="px-4">#TX123456</td>
+                                    <td>Deposit</td>
+                                    <td>$10,000.00</td>
+                                    <td>2024-03-15</td>
+                                    <td>
+                                        <span class="badge bg-success rounded-pill px-3">Completed</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Download Receipt">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4">#TX123457</td>
+                                    <td>Withdrawal</td>
+                                    <td>$5,000.00</td>
+                                    <td>2024-03-14</td>
+                                    <td>
+                                        <span class="badge bg-warning rounded-pill px-3">Pending</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Download Receipt">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Asset Modal -->
+<div class="modal fade" id="addAssetModal" tabindex="-1" aria-labelledby="addAssetModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addAssetModalLabel">Add New Asset</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">Asset Name</label>
+                        <input type="text" class="form-control" placeholder="Enter asset name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Asset Type</label>
+                        <select class="form-select">
+                            <option value="crypto">Cryptocurrency</option>
+                            <option value="stocks">Stocks</option>
+                            <option value="forex">Forex</option>
+                            <option value="commodities">Commodities</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Initial Investment</label>
+                        <input type="number" class="form-control" placeholder="Enter amount">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Current Value</label>
+                        <input type="number" class="form-control" placeholder="Enter current value">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary">Add Asset</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Options Modal -->
+<div class="modal fade" id="paymentOptionsModal" tabindex="-1" aria-labelledby="paymentOptionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="paymentOptionsModalLabel">Select Payment Method</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Payment Options Grid -->
+                <div class="row g-3" id="paymentOptionsGrid">
+                    <div class="col-md-6">
+                        <div class="card h-100 payment-option-card" onclick="showBankTransferForm()">
+                            <div class="card-body text-center">
+                                <i class="fas fa-university fa-2x mb-3 text-primary"></i>
+                                <h6 class="card-title">Bank Transfer</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100 payment-option-card" onclick="showCreditCardForm()">
+                            <div class="card-body text-center">
+                                <i class="fas fa-credit-card fa-2x mb-3 text-primary"></i>
+                                <h6 class="card-title">Credit Card</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100 payment-option-card" onclick="showUPIForm()">
+                            <div class="card-body text-center">
+                                <i class="fas fa-wallet fa-2x mb-3 text-primary"></i>
+                                <h6 class="card-title">UPI Payment</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100 payment-option-card" onclick="showCryptoForm()">
+                            <div class="card-body text-center">
+                                <i class="fab fa-bitcoin fa-2x mb-3 text-primary"></i>
+                                <h6 class="card-title">Cryptocurrency</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bank Transfer Form -->
+                <div id="bankTransferForm" style="display: none;">
+                    <form id="bankDetailsForm">
+                        <div class="mb-3">
+                            <label class="form-label">Account Holder Name</label>
+                            <input type="text" class="form-control" placeholder="Enter account holder name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Bank Name</label>
+                            <select class="form-select" required>
+                                <option value="">Select Bank</option>
+                                <option value="hdfc">HDFC Bank</option>
+                                <option value="icici">ICICI Bank</option>
+                                <option value="sbi">State Bank of India</option>
+                                <option value="axis">Axis Bank</option>
+                                <option value="kotak">Kotak Mahindra Bank</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Account Number</label>
+                            <input type="text" class="form-control" placeholder="Enter account number" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">IFSC Code</label>
+                            <input type="text" class="form-control" placeholder="Enter IFSC code" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Amount to Transfer</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" placeholder="Enter amount" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Upload Receipt</label>
+                            <input type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required>
+                            <small class="text-muted">Accepted formats: PDF, JPG, JPEG, PNG</small>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="termsCheck" required>
+                            <label class="form-check-label" for="termsCheck">I agree to the terms and conditions</label>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="showPaymentOptions()">Back</button>
+                <button type="button" class="btn btn-primary" onclick="saveBankDetails()">Save Details</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Credit Card Modal -->
+<div class="modal fade" id="creditCardModal" tabindex="-1" aria-labelledby="creditCardModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="creditCardModalLabel">Credit Card Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="creditCardForm">
+                    <div class="mb-3">
+                        <label class="form-label">Card Number</label>
+                        <input type="text" class="form-control" placeholder="Enter card number" required>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Expiry Date</label>
+                            <input type="text" class="form-control" placeholder="MM/YY" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">CVV</label>
+                            <input type="text" class="form-control" placeholder="CVV" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Card Holder Name</label>
+                        <input type="text" class="form-control" placeholder="Enter card holder name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Amount</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" placeholder="Enter amount" required>
+                        </div>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="creditCardTerms" required>
+                        <label class="form-check-label" for="creditCardTerms">I agree to the terms and conditions</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveCreditCardDetails()">Save Details</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- UPI Modal -->
+<div class="modal fade" id="upiModal" tabindex="-1" aria-labelledby="upiModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="upiModalLabel">UPI Payment Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="upiForm">
+                    <div class="mb-3">
+                        <label class="form-label">UPI ID</label>
+                        <input type="text" class="form-control" placeholder="Enter UPI ID" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Amount</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" placeholder="Enter amount" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Purpose</label>
+                        <textarea class="form-control" rows="2" placeholder="Enter purpose of payment"></textarea>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="upiTerms" required>
+                        <label class="form-check-label" for="upiTerms">I agree to the terms and conditions</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveUPIDetails()">Save Details</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Cryptocurrency Modal -->
+<div class="modal fade" id="cryptoModal" tabindex="-1" aria-labelledby="cryptoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cryptoModalLabel">Cryptocurrency Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="cryptoForm">
+                    <div class="mb-3">
+                        <label class="form-label">Select Cryptocurrency</label>
+                        <select class="form-select" required>
+                            <option value="">Choose cryptocurrency</option>
+                            <option value="btc">Bitcoin (BTC)</option>
+                            <option value="eth">Ethereum (ETH)</option>
+                            <option value="usdt">Tether (USDT)</option>
+                            <option value="bnb">Binance Coin (BNB)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Wallet Address</label>
+                        <input type="text" class="form-control" placeholder="Enter wallet address" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Amount (USD)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" placeholder="Enter amount" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Network</label>
+                        <select class="form-select" required>
+                            <option value="">Select network</option>
+                            <option value="btc">Bitcoin Network</option>
+                            <option value="eth">Ethereum Network</option>
+                            <option value="bsc">Binance Smart Chain</option>
+                        </select>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="cryptoTerms" required>
+                        <label class="form-check-label" for="cryptoTerms">I agree to the terms and conditions</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveCryptoDetails()">Save Details</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
+
+    .table th {
+        font-size: 12px;
+        font-weight: 600;
+        color: #6c757d;
+        white-space: nowrap;
+    }
+
+    .table td {
+        font-size: 14px;
+        color: #2c3e50;
+        min-width: 100px;
+    }
+
+    .card {
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .card-header {
+        border-bottom: none;
+    }
+
+    .shadow-sm {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+    }
+
+    .badge {
+        font-weight: 500;
+        font-size: 12px;
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .table-responsive {
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+
+    .table-responsive::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    .table-responsive::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 3px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    @media (max-width: 768px) {
+        .table {
+            display: block;
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .card-header {
+            padding: 1rem;
+        }
+
+        .dropdown-menu {
+            position: fixed !important;
+            top: 50% !important;
+            left: 50% !important;
+            transform: translate(-50%, -50%) !important;
+            width: 90% !important;
+            max-width: 320px;
+        }
+    }
+
+    .payment-option-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 1px solid #dee2e6;
+    }
+    
+    .payment-option-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .payment-option-card .card-body {
+        padding: 1.5rem;
+    }
+</style>
+
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<!-- Bootstrap JS and dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
+<script>
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    });
+
+    function clearFilter() {
+        document.querySelectorAll('.form-select').forEach(select => {
+            select.value = '';
+        });
+    }
+
+    function applyFilter() {
+        const assetType = document.querySelector('select[placeholder="Asset Type"]').value;
+        const status = document.querySelector('select[placeholder="Status"]').value;
+        // Add your filter logic here
+        console.log('Filtering by:', { assetType, status });
+    }
+
+    function selectPaymentMethod(method) {
+        // Handle payment method selection
+        console.log('Selected payment method:', method);
+        // You can add your payment processing logic here
+    }
+
+    function showBankTransferForm() {
+        document.getElementById('paymentOptionsGrid').style.display = 'none';
+        document.getElementById('bankTransferForm').style.display = 'block';
+        document.getElementById('paymentOptionsModalLabel').textContent = 'Bank Transfer Details';
+    }
+
+    function showPaymentOptions() {
+        document.getElementById('paymentOptionsGrid').style.display = 'block';
+        document.getElementById('bankTransferForm').style.display = 'none';
+        document.getElementById('paymentOptionsModalLabel').textContent = 'Select Payment Method';
+    }
+
+    function saveBankDetails() {
+        const form = document.getElementById('bankDetailsForm');
+        if (form.checkValidity()) {
+            alert('Bank details saved successfully!');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('paymentOptionsModal'));
+            modal.hide();
+        } else {
+            form.reportValidity();
+        }
+    }
+
+    function saveCreditCardDetails() {
+        const form = document.getElementById('creditCardForm');
+        if (form.checkValidity()) {
+            alert('Credit card details saved successfully!');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('creditCardModal'));
+            modal.hide();
+        } else {
+            form.reportValidity();
+        }
+    }
+
+    function saveUPIDetails() {
+        const form = document.getElementById('upiForm');
+        if (form.checkValidity()) {
+            alert('UPI details saved successfully!');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('upiModal'));
+            modal.hide();
+        } else {
+            form.reportValidity();
+        }
+    }
+
+    function saveCryptoDetails() {
+        const form = document.getElementById('cryptoForm');
+        if (form.checkValidity()) {
+            alert('Cryptocurrency details saved successfully!');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('cryptoModal'));
+            modal.hide();
+        } else {
+            form.reportValidity();
+        }
+    }
+</script>
+{% endblock %} 
