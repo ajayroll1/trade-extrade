@@ -796,7 +796,8 @@ def admin_dashboard(request):
 
 @staff_member_required
 def admin_traders(request):
-    return render(request, 'admin_traders.html')
+    users = User.objects.all().order_by('-date_joined')
+    return render(request, 'admin_traders.html', {'users': users})
 
 @staff_member_required
 def admin_trades(request):
