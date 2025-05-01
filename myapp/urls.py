@@ -29,6 +29,9 @@ urlpatterns = [
     path('admin-traders/', views.admin_traders, name='admin_traders'),
     path('admin-trades/', views.admin_trades, name='admin_trades'),
     path('admin-assets/', views.admin_assets, name='admin_assets'),
+    path('admin-finance/', views.admin_finance, name='admin_finance'),
+    
+
 ]
 
 

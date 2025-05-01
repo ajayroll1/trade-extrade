@@ -813,3 +813,8 @@ def admin_trades(request):
 @staff_member_required
 def admin_assets(request):
     return render(request, 'admin_assets.html')
+
+@staff_member_required
+def admin_finance(request):
+    return render(request, 'admin_finance.html')
+    
