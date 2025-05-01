@@ -792,7 +792,12 @@ def update_trade_status(request):
 
 @staff_member_required
 def admin_dashboard(request):
-    return render(request, 'admin_dashboard.html')
+    total_traders = User.objects.count()
+    active_trades = Trade.objects.filter(status='active').count()
+    return render(request, 'admin_dashboard.html', {
+        'total_traders': total_traders,
+        'active_trades': active_trades
+    })
 
 @staff_member_required
 def admin_traders(request):
@@ -801,7 +806,9 @@ def admin_traders(request):
 
 @staff_member_required
 def admin_trades(request):
-    return render(request, 'admin_trades.html')
+    # Get all trades ordered by creation date (newest first)
+    trades = Trade.objects.all().order_by('-created_at')
+    return render(request, 'admin_trades.html', {'trades': trades})
 
 @staff_member_required
 def admin_assets(request):

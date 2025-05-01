@@ -9,7 +9,7 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-dark py-3">
                     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
-                        <h5 class="text-white mb-0 fs-6">Active Trades</h5>
+                        <h5 class="text-white mb-0 fs-6">All Trades</h5>
                         <div class="d-flex gap-2">
                             <div class="dropdown">
                                 <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -22,7 +22,7 @@
                                         <select class="form-select form-select-sm" id="statusFilter">
                                             <option value="">All Status</option>
                                             <option value="active">Active</option>
-                                            <option value="completed">Completed</option>
+                                            <option value="closed">Closed</option>
                                             <option value="cancelled">Cancelled</option>
                                             <option value="pending">Pending</option>
                                         </select>
@@ -61,91 +61,56 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td class="px-4">
-                                        <span class="fw-semibold">#TRD001</span>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                                                <span class="small">JS</span>
+                                {% if trades %}
+                                    {% for trade in trades %}
+                                    <tr>
+                                        <td class="px-4">
+                                            <span class="fw-semibold">#{{ trade.id }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                    <span class="small">{{ trade.user.username|slice:":2"|upper }}</span>
+                                                </div>
+                                                <span>{{ trade.user.username }}</span>
                                             </div>
-                                            <span>John Smith</span>
-                                        </div>
-                                    </td>
-                                    <td>BTC/USDT</td>
-                                    <td>
-                                        <span class="badge bg-success">Buy</span>
-                                    </td>
-                                    <td>
-                                        <span class="fw-semibold">0.5 BTC</span>
-                                    </td>
-                                    <td>
-                                        <span class="text-primary">$45,000.00</span>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-success rounded-pill px-3">Active</span>
-                                    </td>
-                                    <td>
-                                        <span class="text-muted">2024-03-15 14:30</span>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex justify-content-center gap-2">
-                                            <button class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="View Details">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Trade">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Cancel Trade">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="px-4">
-                                        <span class="fw-semibold">#TRD002</span>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
-                                                <span class="small">SJ</span>
+                                        </td>
+                                        <td>{{ trade.symbol }}</td>
+                                        <td>
+                                            <span class="badge {% if trade.type == 'BUY' %}bg-success{% else %}bg-danger{% endif %}">{{ trade.type }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="fw-semibold">{{ trade.quantity|floatformat:8 }} {{ trade.symbol|slice:":3" }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="text-primary">${{ trade.entry_price|floatformat:2 }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if trade.status == 'active' %}bg-success{% elif trade.status == 'closed' %}bg-secondary{% else %}bg-warning{% endif %} rounded-pill px-3">{{ trade.status|title }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted">{{ trade.created_at|date:"Y-m-d H:i" }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex justify-content-center gap-2">
+                                                <button class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="View Details">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                                <button class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Trade">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Cancel Trade">
+                                                    <i class="fas fa-times"></i>
+                                                </button>
                                             </div>
-                                            <span>Sarah Johnson</span>
-                                        </div>
-                                    </td>
-                                    <td>ETH/USDT</td>
-                                    <td>
-                                        <span class="badge bg-danger">Sell</span>
-                                    </td>
-                                    <td>
-                                        <span class="fw-semibold">2.5 ETH</span>
-                                    </td>
-                                    <td>
-                                        <span class="text-primary">$8,750.00</span>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-success rounded-pill px-3">Active</span>
-                                    </td>
-                                    <td>
-                                        <span class="text-muted">2024-03-15 15:45</span>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex justify-content-center gap-2">
-                                            <button class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="View Details">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="btn btn-warning btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Trade">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Cancel Trade">
-                                                <i class="fas fa-times"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <!-- Add more trade rows as needed -->
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="9" class="text-center py-4">No trades found</td>
+                                    </tr>
+                                {% endif %}
                             </tbody>
                         </table>
                     </div>
@@ -290,8 +255,47 @@
         const status = document.getElementById('statusFilter').value;
         const fromDate = document.getElementById('fromDate').value;
         const toDate = document.getElementById('toDate').value;
-        // Add your filter logic here
-        console.log('Filtering with status:', status, 'from:', fromDate, 'to:', toDate);
+        
+        // Get all table rows
+        const rows = document.querySelectorAll('tbody tr');
+        
+        rows.forEach(row => {
+            let showRow = true;
+            
+            // Get the status and date from the row
+            const rowStatus = row.querySelector('td:nth-child(7) .badge').textContent.trim().toLowerCase();
+            const rowDate = new Date(row.querySelector('td:nth-child(8)').textContent.trim());
+            
+            // Apply status filter
+            if (status && rowStatus !== status) {
+                showRow = false;
+            }
+            
+            // Apply date range filter
+            if (fromDate) {
+                const fromDateObj = new Date(fromDate);
+                if (rowDate < fromDateObj) {
+                    showRow = false;
+                }
+            }
+            
+            if (toDate) {
+                const toDateObj = new Date(toDate);
+                toDateObj.setHours(23, 59, 59, 999); // Set to end of day
+                if (rowDate > toDateObj) {
+                    showRow = false;
+                }
+            }
+            
+            // Show/hide row based on filters
+            row.style.display = showRow ? '' : 'none';
+        });
+        
+        // Close the dropdown
+        const dropdownInstance = bootstrap.Dropdown.getInstance(document.getElementById('filterDropdown'));
+        if (dropdownInstance) {
+            dropdownInstance.hide();
+        }
     }
 </script>
 {% endblock %} 
