@@ -113,6 +113,26 @@
             width: 100%;
         }
 
+        /* Logout Button Styles */
+        .logout-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            padding: 0 20px;
+        }
+
+        .logout-btn li {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            transition: all var(--transition-speed);
+        }
+
+        .logout-btn li:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+
         /* Main Content Styles */
         .main-content {
             margin-left: var(--sidebar-width);
@@ -137,6 +157,9 @@
             <li><a href="{% url 'admin_assets'%}"><i class="fas fa-wallet"></i> Assets</a></li>
             {% comment %} <li><a href="#"><i class="fas fa-cog"></i> Settings</a></li>
             <li><a href="#"><i class="fas fa-headset"></i> Support</a></li> {% endcomment %}
+        </ul>
+        <ul class="sidebar-menu logout-btn">
+            <li><a href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
         </ul>
     </div>
 
