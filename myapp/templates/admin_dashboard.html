@@ -56,7 +56,7 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <h6 class="text-muted mb-2">Total Volume</h6>
-                                    <h3 class="mb-0">$2.5M</h3>
+                                    <h3 class="mb-0">${{ volume_in_millions|floatformat:2 }}M</h3>
                                 </div>
                                 <div class="bg-info bg-opacity-10 rounded-circle p-3">
                                     <i class="fas fa-chart-line text-info"></i>
@@ -373,38 +373,62 @@
     // Volume Chart
     const volumeCtx = document.getElementById('volumeChart').getContext('2d');
     const volumeChart = new Chart(volumeCtx, {
-                type: 'line',
-                data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                    datasets: [{
-                label: 'Trading Volume',
-                data: [1200000, 1900000, 1500000, 2500000, 2200000, 3000000],
-                        borderColor: '#2563eb',
+        type: 'line',
+        data: {
+            labels: {{ volume_data.labels|safe }},
+            datasets: [{
+                label: 'Trading Volume (Millions)',
+                data: {{ volume_data.volumes|safe }},
+                borderColor: '#2563eb',
                 backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                        tension: 0.4,
+                tension: 0.4,
                 fill: true
-                    }]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                                display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                            return '$' + (value / 1000000) + 'M';
-                        }
-                            }
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return '$' + context.parsed.y.toFixed(2) + 'M';
                         }
                     }
                 }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value + 'M';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    // Auto-refresh the chart data every minute
+    setInterval(function() {
+        fetch('/admin-dashboard/')
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newData = {
+                    labels: {{ volume_data.labels|safe }},
+                    volumes: {{ volume_data.volumes|safe }}
+                };
+                volumeChart.data.labels = newData.labels;
+                volumeChart.data.datasets[0].data = newData.volumes;
+                volumeChart.update();
             });
+    }, 60000); // Update every minute
 
     // Distribution Chart
     const distributionCtx = document.getElementById('distributionChart').getContext('2d');

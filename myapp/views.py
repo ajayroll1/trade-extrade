@@ -18,6 +18,7 @@ import logging
 from django.db.models import Count, Sum
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
+from django.db.models.functions import TruncMonth
 
 from .forms import CustomUserCreationForm
 from .models import Trade, WishlistItem
@@ -123,18 +124,18 @@ def dashboard(request):
 @login_required
 def wishlist(request):
     # Get all wishlist items for the current user
-    wishlist_items = WishlistItem.objects.filter(user=request.user)
-
-    # Debug logging
-    print(f"Found {wishlist_items.count()} wishlist items for user {request.user.username}")
-    for item in wishlist_items:
-        print(f"Item: {item.id} - {item.symbol} - {item.category} - {item.last_price}")
-
-    # Pass them to the template context
+    wishlist_items = WishlistItem.objects.filter(user=request.user).order_by('-added_at')
+    
+    # Get OANDA credentials from environment variables
+    oanda_api_key = os.getenv('FOREX_API_KEY')
+    oanda_account_id = os.getenv('OANDA_ACCOUNT_ID')
+    
     context = {
-        'wishlist_items': wishlist_items
+        'wishlist_items': wishlist_items,
+        'FOREX_API_KEY': oanda_api_key,
+        'OANDA_ACCOUNT_ID': oanda_account_id
     }
-
+    
     return render(request, 'wishlist.html', context)
 
 @login_required
@@ -794,9 +795,38 @@ def update_trade_status(request):
 def admin_dashboard(request):
     total_traders = User.objects.count()
     active_trades = Trade.objects.filter(status='active').count()
+    
+    # Calculate total trading volume
+    total_volume = Trade.objects.filter(status='closed').aggregate(total=Sum('total_amount'))['total'] or 0
+    volume_in_millions = total_volume / 1000000
+
+    # Get last 6 months of trading volume data
+    six_months_ago = datetime.now() - timedelta(days=180)
+    monthly_volumes = Trade.objects.filter(
+        created_at__gte=six_months_ago,
+        status='closed'
+    ).annotate(
+        month=TruncMonth('created_at')
+    ).values('month').annotate(
+        volume=Sum('total_amount')
+    ).order_by('month')
+
+    # Format data for the chart
+    volume_data = {
+        'labels': [],
+        'volumes': []
+    }
+    
+    for entry in monthly_volumes:
+        volume_data['labels'].append(entry['month'].strftime('%b %Y'))
+        volume_data['volumes'].append(float(entry['volume']) / 1000000)  # Convert to millions
+
     return render(request, 'admin_dashboard.html', {
         'total_traders': total_traders,
-        'active_trades': active_trades
+        'active_trades': active_trades,
+        'total_volume': total_volume,
+        'volume_in_millions': volume_in_millions,
+        'volume_data': volume_data
     })
 
 @staff_member_required

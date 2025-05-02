@@ -219,12 +219,35 @@
         position: relative;
     }
 
-    .add-funds-btn:hover {
+    .withdraw-funds-btn {
+        display: inline-block;
+        margin-left: 5px;
+        color: #dc3545;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .add-funds-btn:hover, .withdraw-funds-btn:hover {
         transform: scale(1.1);
     }
 
     .add-funds-btn:hover::after {
         content: 'Add Funds';
+        position: absolute;
+        background: #333;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 14px;
+        top: -30px;
+        left: 50%;
+        transform: translateX(-50%);
+        white-space: nowrap;
+    }
+
+    .withdraw-funds-btn:hover::after {
+        content: 'Withdraw Funds';
         position: absolute;
         background: #333;
         color: white;
@@ -304,6 +327,7 @@
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
         gap: 15px;
+        margin-top: 20px;
     }
 
     .payment-option {
@@ -314,6 +338,7 @@
         border-radius: 10px;
         cursor: pointer;
         transition: all 0.3s ease;
+        background: white;
     }
 
     .payment-option:hover {
@@ -361,6 +386,258 @@
             grid-template-columns: 1fr;
         }
     }
+
+    /* Withdrawal Modal Styles */
+    .withdrawal-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        backdrop-filter: blur(5px);
+    }
+
+    .withdrawal-modal-content {
+        position: relative;
+        background: white;
+        margin: 50px auto;
+        padding: 30px;
+        width: 90%;
+        max-width: 500px;
+        max-height: 80vh;
+        border-radius: 20px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        animation: modalSlideIn 0.3s ease-out;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .withdrawal-modal-header {
+        text-align: center;
+        margin-bottom: 20px;
+        position: relative;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
+        flex-shrink: 0;
+    }
+
+    .withdrawal-modal-header h2 {
+        color: #2a2d3e;
+        font-size: 24px;
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .withdrawal-modal-header .close {
+        position: absolute;
+        right: -10px;
+        top: -10px;
+        font-size: 24px;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .withdrawal-modal-header .close:hover {
+        background: #f8f9fa;
+        color: #333;
+        transform: rotate(90deg);
+    }
+
+    .withdrawal-form {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+        overflow-y: auto;
+        padding-right: 10px;
+        margin-right: -10px;
+    }
+
+    .withdrawal-form::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .withdrawal-form::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+
+    .withdrawal-form::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 3px;
+    }
+
+    .withdrawal-form::-webkit-scrollbar-thumb:hover {
+        background: #999;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        position: relative;
+    }
+
+    .form-group label {
+        color: #2a2d3e;
+        font-weight: 500;
+        font-size: 14px;
+        margin-left: 15px;
+    }
+
+    .form-group input, .form-group select {
+        padding: 16px;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        font-size: 16px;
+        outline: none;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+        width: 100%;
+    }
+
+    .form-group input:focus, .form-group select:focus {
+        border-color: #00c7ff;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(0, 199, 255, 0.1);
+    }
+
+    .form-group input::placeholder {
+        color: #aaa;
+    }
+
+    .amount-input-container {
+        position: relative;
+        width: 100%;
+    }
+
+    .amount-input-container input {
+        width: 100%;
+        padding: 16px;
+        font-size: 18px;
+        font-weight: 500;
+    }
+
+    .form-group .error-message {
+        color: #dc3545;
+        font-size: 12px;
+        margin-top: 4px;
+        display: none;
+        margin-left: 15px;
+    }
+
+    .form-group.error input {
+        border-color: #dc3545;
+        background: #fff5f5;
+    }
+
+    .form-group.error .error-message {
+        display: block;
+    }
+
+    .withdrawal-buttons {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+        flex-shrink: 0;
+    }
+
+    .withdrawal-buttons button {
+        flex: 1;
+        padding: 16px;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .cancel-btn {
+        background: #f8f9fa;
+        color: #666;
+    }
+
+    .submit-btn {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        box-shadow: 0 4px 6px rgba(220, 53, 69, 0.2);
+    }
+
+    .cancel-btn:hover {
+        background: #e9ecef;
+        transform: translateY(-1px);
+    }
+
+    .submit-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 8px rgba(220, 53, 69, 0.3);
+    }
+
+    .submit-btn:active {
+        transform: translateY(0);
+    }
+
+    /* Form Section Styling */
+    .form-section {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    .form-section-title {
+        color: #2a2d3e;
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-section-title i {
+        color: #00c7ff;
+    }
+
+    /* Input Icons */
+    .input-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+        font-size: 18px;
+    }
+
+    .input-with-icon {
+        padding-left: 45px !important;
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    .shake {
+        animation: shake 0.3s ease-in-out;
+    }
 </style>
 {% endblock %}
 
@@ -402,6 +679,9 @@
             $250,000.00
             <span class="add-funds-btn" title="Add Funds">
                 <i class="fas fa-plus-circle"></i>
+            </span>
+            <span class="withdraw-funds-btn" title="Withdraw Funds">
+                <i class="fas fa-minus-circle"></i>
             </span>
         </div>
         <div class="card-subtitle">+2.5% this month</div>
@@ -733,6 +1013,85 @@
         </button>
     </div>
 </div>
+
+<!-- Withdrawal Modal -->
+<div id="withdrawalModal" class="withdrawal-modal">
+    <div class="withdrawal-modal-content">
+        <div class="withdrawal-modal-header">
+            <span class="close" onclick="closeWithdrawalModal()">&times;</span>
+            <h2>Withdraw Funds</h2>
+        </div>
+        <form id="withdrawalForm" class="withdrawal-form" onsubmit="handleWithdrawalSubmit(event)">
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-money-bill-wave"></i>
+                    Withdrawal Amount
+                </div>
+                <div class="form-group">
+                    <label for="withdrawalAmount">Enter Amount</label>
+                    <div class="amount-input-container">
+                        <i class="fas fa-dollar-sign input-icon"></i>
+                        <input type="number" id="withdrawalAmount" min="10" step="0.01" required placeholder="Enter amount (min. $10)" class="input-with-icon">
+                    </div>
+                    <div class="error-message">Please enter a valid amount (minimum $10)</div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <div class="form-section-title">
+                    <i class="fas fa-university"></i>
+                    Bank Details
+                </div>
+                <div class="form-group">
+                    <label for="bankName">Bank Name</label>
+                    <div class="amount-input-container">
+                        <i class="fas fa-building input-icon"></i>
+                        <input type="text" id="bankName" required placeholder="Enter bank name" class="input-with-icon">
+                    </div>
+                    <div class="error-message">Please enter bank name</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="accountNumber">Account Number</label>
+                    <div class="amount-input-container">
+                        <i class="fas fa-credit-card input-icon"></i>
+                        <input type="text" id="accountNumber" required placeholder="Enter account number" class="input-with-icon">
+                    </div>
+                    <div class="error-message">Please enter account number</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="accountHolder">Account Holder Name</label>
+                    <div class="amount-input-container">
+                        <i class="fas fa-user input-icon"></i>
+                        <input type="text" id="accountHolder" required placeholder="Enter account holder name" class="input-with-icon">
+                    </div>
+                    <div class="error-message">Please enter account holder name</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="ifscCode">IFSC Code</label>
+                    <div class="amount-input-container">
+                        <i class="fas fa-hashtag input-icon"></i>
+                        <input type="text" id="ifscCode" required placeholder="Enter IFSC code" class="input-with-icon">
+                    </div>
+                    <div class="error-message">Please enter IFSC code</div>
+                </div>
+            </div>
+
+            <div class="withdrawal-buttons">
+                <button type="button" class="cancel-btn" onclick="closeWithdrawalModal()">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </button>
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-paper-plane"></i>
+                    Submit Request
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -911,6 +1270,110 @@
             closeSuccessModal();
         }
     }
+
+    // Withdrawal Modal functionality
+    const withdrawalModal = document.getElementById('withdrawalModal');
+    const withdrawFundsBtn = document.querySelector('.withdraw-funds-btn');
+
+    // Show withdrawal modal when clicking withdraw button
+    withdrawFundsBtn.addEventListener('click', function() {
+        withdrawalModal.style.display = "block";
+        document.body.style.overflow = 'hidden';
+    });
+
+    function closeWithdrawalModal() {
+        withdrawalModal.style.display = "none";
+        document.body.style.overflow = 'auto';
+        document.getElementById('withdrawalForm').reset();
+    }
+
+    function validateWithdrawalForm() {
+        let isValid = true;
+        const form = document.getElementById('withdrawalForm');
+        const inputs = form.querySelectorAll('input[required]');
+        
+        inputs.forEach(input => {
+            const formGroup = input.closest('.form-group');
+            if (!input.value) {
+                formGroup.classList.add('error');
+                isValid = false;
+            } else {
+                formGroup.classList.remove('error');
+            }
+        });
+
+        // Validate amount
+        const amountInput = document.getElementById('withdrawalAmount');
+        const amount = parseFloat(amountInput.value);
+        const amountGroup = amountInput.closest('.form-group');
+        
+        if (isNaN(amount) || amount < 10) {
+            amountGroup.classList.add('error');
+            isValid = false;
+        } else {
+            amountGroup.classList.remove('error');
+        }
+
+        return isValid;
+    }
+
+    function handleWithdrawalSubmit(event) {
+        event.preventDefault();
+        
+        if (!validateWithdrawalForm()) {
+            document.getElementById('withdrawalForm').classList.add('shake');
+            setTimeout(() => {
+                document.getElementById('withdrawalForm').classList.remove('shake');
+            }, 300);
+            return;
+        }
+        
+        // Get form values
+        const amount = document.getElementById('withdrawalAmount').value;
+        const bankName = document.getElementById('bankName').value;
+        const accountNumber = document.getElementById('accountNumber').value;
+        const accountHolder = document.getElementById('accountHolder').value;
+        const ifscCode = document.getElementById('ifscCode').value;
+
+        // Show success message
+        const successMessage = `
+            <div style="text-align: center; padding: 20px;">
+                <div style="color: #28a745; font-size: 50px; margin-bottom: 20px;">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h2 style="color: #2a2d3e; margin-bottom: 15px;">Withdrawal Request Submitted!</h2>
+                <p style="color: #666; margin-bottom: 20px;">
+                    Your withdrawal request has been submitted successfully.<br>
+                    Amount: $${amount}<br>
+                    Bank: ${bankName}<br>
+                    Account: ${accountNumber}
+                </p>
+                <button onclick="closeWithdrawalModal()" 
+                        style="padding: 12px 30px; 
+                               background: #00c7ff; 
+                               color: white; 
+                               border: none; 
+                               border-radius: 8px; 
+                               cursor: pointer;">
+                    Close
+                </button>
+            </div>
+        `;
+
+        document.querySelector('.withdrawal-modal-content').innerHTML = successMessage;
+    }
+
+    // Add input validation on blur
+    document.querySelectorAll('#withdrawalForm input').forEach(input => {
+        input.addEventListener('blur', function() {
+            const formGroup = this.closest('.form-group');
+            if (!this.value) {
+                formGroup.classList.add('error');
+            } else {
+                formGroup.classList.remove('error');
+            }
+        });
+    });
 </script>
 {% endblock %}
 

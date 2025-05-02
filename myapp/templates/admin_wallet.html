@@ -102,36 +102,26 @@
                                 <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="transactionFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="fas fa-filter me-1"></i> Filter
                                 </button>
-                                <div class="dropdown-menu p-3 dropdown-menu-end" style="min-width: 260px;">
-                                    <h6 class="dropdown-header px-0 fw-bold">Filter Options</h6>
-                                    <div class="mb-3">
-                                        <label class="form-label small">Transaction Type</label>
-                                        <select class="form-select form-select-sm" id="transactionTypeFilter">
-                                            <option value="">All Types</option>
-                                            <option value="deposit">Deposit</option>
-                                            <option value="withdrawal">Withdrawal</option>
-                                        </select>
+                                <div class="dropdown-menu p-3 dropdown-menu-end" style="min-width: 200px;">
+                                    <h6 class="dropdown-header px-0 fw-bold">Transaction Type</h6>
+                                    <div class="mb-2">
+                                        <button class="dropdown-item" onclick="filterByType('deposit')">Deposit</button>
+                                        <button class="dropdown-item" onclick="filterByType('withdrawal')">Withdrawal</button>
+                                        <button class="dropdown-item" onclick="filterByType('all')">All Types</button>
                                     </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small">Status</label>
-                                        <select class="form-select form-select-sm" id="transactionStatusFilter">
-                                            <option value="">All Status</option>
-                                            <option value="completed">Completed</option>
-                                            <option value="pending">Pending</option>
-                                            <option value="failed">Failed</option>
-                                        </select>
+                                    <div class="dropdown-divider"></div>
+                                    <h6 class="dropdown-header px-0 fw-bold">Amount Range</h6>
+                                    <div class="mb-2">
+                                        <button class="dropdown-item" onclick="filterByAmount('high')">High (>$5,000)</button>
+                                        <button class="dropdown-item" onclick="filterByAmount('medium')">Medium ($1,000-$5,000)</button>
+                                        <button class="dropdown-item" onclick="filterByAmount('low')">Low (<$1,000)</button>
                                     </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small">From Date</label>
-                                        <input type="date" class="form-control form-control-sm" id="fromDate">
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small">To Date</label>
-                                        <input type="date" class="form-control form-control-sm" id="toDate">
-                                    </div>
-                                    <div class="d-flex justify-content-end gap-2">
-                                        <button class="btn btn-secondary btn-sm" onclick="clearTransactionFilter()">Clear</button>
-                                        <button class="btn btn-primary btn-sm" onclick="applyTransactionFilter()">Apply</button>
+                                    <div class="dropdown-divider"></div>
+                                    <h6 class="dropdown-header px-0 fw-bold">Status</h6>
+                                    <div class="mb-2">
+                                        <button class="dropdown-item" onclick="filterByStatus('completed')">Completed</button>
+                                        <button class="dropdown-item" onclick="filterByStatus('pending')">Pending</button>
+                                        <button class="dropdown-item" onclick="filterByStatus('all')">All Status</button>
                                     </div>
                                 </div>
                             </div>
@@ -179,6 +169,158 @@
                                     <td>Withdrawal</td>
                                     <td>$5,000.00</td>
                                     <td>2024-03-14</td>
+                                    <td>
+                                        <span class="badge bg-warning rounded-pill px-3">Pending</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Download Receipt">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4">#TX123458</td>
+                                    <td>Deposit</td>
+                                    <td>$15,500.00</td>
+                                    <td>2024-03-13</td>
+                                    <td>
+                                        <span class="badge bg-success rounded-pill px-3">Completed</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Download Receipt">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4">#TX123459</td>
+                                    <td>Withdrawal</td>
+                                    <td>$2,500.00</td>
+                                    <td>2024-03-12</td>
+                                    <td>
+                                        <span class="badge bg-success rounded-pill px-3">Completed</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Download Receipt">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4">#TX123460</td>
+                                    <td>Deposit</td>
+                                    <td>$7,800.00</td>
+                                    <td>2024-03-11</td>
+                                    <td>
+                                        <span class="badge bg-warning rounded-pill px-3">Pending</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Download Receipt">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4">#TX123461</td>
+                                    <td>Withdrawal</td>
+                                    <td>$12,000.00</td>
+                                    <td>2024-03-10</td>
+                                    <td>
+                                        <span class="badge bg-success rounded-pill px-3">Completed</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Download Receipt">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4">#TX123462</td>
+                                    <td>Deposit</td>
+                                    <td>$3,200.00</td>
+                                    <td>2024-03-09</td>
+                                    <td>
+                                        <span class="badge bg-warning rounded-pill px-3">Pending</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Download Receipt">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4">#TX123463</td>
+                                    <td>Withdrawal</td>
+                                    <td>$8,500.00</td>
+                                    <td>2024-03-08</td>
+                                    <td>
+                                        <span class="badge bg-success rounded-pill px-3">Completed</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Download Receipt">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4">#TX123464</td>
+                                    <td>Deposit</td>
+                                    <td>$6,700.00</td>
+                                    <td>2024-03-07</td>
+                                    <td>
+                                        <span class="badge bg-success rounded-pill px-3">Completed</span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-2">
+                                            <button class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Download Receipt">
+                                                <i class="fas fa-download"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4">#TX123465</td>
+                                    <td>Withdrawal</td>
+                                    <td>$4,200.00</td>
+                                    <td>2024-03-06</td>
                                     <td>
                                         <span class="badge bg-warning rounded-pill px-3">Pending</span>
                                     </td>
@@ -332,152 +474,109 @@
                         </div>
                     </form>
                 </div>
+
+                <!-- Credit Card Form -->
+                <div id="creditCardForm" style="display: none;">
+                    <form id="creditCardDetailsForm">
+                        <div class="mb-3">
+                            <label class="form-label">Card Number</label>
+                            <input type="text" class="form-control" placeholder="Enter card number" required>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Expiry Date</label>
+                                <input type="text" class="form-control" placeholder="MM/YY" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">CVV</label>
+                                <input type="text" class="form-control" placeholder="CVV" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Card Holder Name</label>
+                            <input type="text" class="form-control" placeholder="Enter card holder name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Amount</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" placeholder="Enter amount" required>
+                            </div>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="creditCardTerms" required>
+                            <label class="form-check-label" for="creditCardTerms">I agree to the terms and conditions</label>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- UPI Form -->
+                <div id="upiForm" style="display: none;">
+                    <form id="upiDetailsForm">
+                        <div class="mb-3">
+                            <label class="form-label">UPI ID</label>
+                            <input type="text" class="form-control" placeholder="Enter UPI ID" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Amount</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" placeholder="Enter amount" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Purpose</label>
+                            <textarea class="form-control" rows="2" placeholder="Enter purpose of payment"></textarea>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="upiTerms" required>
+                            <label class="form-check-label" for="upiTerms">I agree to the terms and conditions</label>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Crypto Form -->
+                <div id="cryptoForm" style="display: none;">
+                    <form id="cryptoDetailsForm">
+                        <div class="mb-3">
+                            <label class="form-label">Select Cryptocurrency</label>
+                            <select class="form-select" required>
+                                <option value="">Choose cryptocurrency</option>
+                                <option value="btc">Bitcoin (BTC)</option>
+                                <option value="eth">Ethereum (ETH)</option>
+                                <option value="usdt">Tether (USDT)</option>
+                                <option value="bnb">Binance Coin (BNB)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Wallet Address</label>
+                            <input type="text" class="form-control" placeholder="Enter wallet address" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Amount (USD)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" class="form-control" placeholder="Enter amount" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Network</label>
+                            <select class="form-select" required>
+                                <option value="">Select network</option>
+                                <option value="btc">Bitcoin Network</option>
+                                <option value="eth">Ethereum Network</option>
+                                <option value="bsc">Binance Smart Chain</option>
+                            </select>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="cryptoTerms" required>
+                            <label class="form-check-label" for="cryptoTerms">I agree to the terms and conditions</label>
+                        </div>
+                    </form>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="showPaymentOptions()">Back</button>
                 <button type="button" class="btn btn-primary" onclick="saveBankDetails()">Save Details</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Credit Card Modal -->
-<div class="modal fade" id="creditCardModal" tabindex="-1" aria-labelledby="creditCardModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="creditCardModalLabel">Credit Card Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="creditCardForm">
-                    <div class="mb-3">
-                        <label class="form-label">Card Number</label>
-                        <input type="text" class="form-control" placeholder="Enter card number" required>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Expiry Date</label>
-                            <input type="text" class="form-control" placeholder="MM/YY" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">CVV</label>
-                            <input type="text" class="form-control" placeholder="CVV" required>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Card Holder Name</label>
-                        <input type="text" class="form-control" placeholder="Enter card holder name" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Amount</label>
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input type="number" class="form-control" placeholder="Enter amount" required>
-                        </div>
-                    </div>
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="creditCardTerms" required>
-                        <label class="form-check-label" for="creditCardTerms">I agree to the terms and conditions</label>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="saveCreditCardDetails()">Save Details</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- UPI Modal -->
-<div class="modal fade" id="upiModal" tabindex="-1" aria-labelledby="upiModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="upiModalLabel">UPI Payment Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="upiForm">
-                    <div class="mb-3">
-                        <label class="form-label">UPI ID</label>
-                        <input type="text" class="form-control" placeholder="Enter UPI ID" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Amount</label>
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input type="number" class="form-control" placeholder="Enter amount" required>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Purpose</label>
-                        <textarea class="form-control" rows="2" placeholder="Enter purpose of payment"></textarea>
-                    </div>
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="upiTerms" required>
-                        <label class="form-check-label" for="upiTerms">I agree to the terms and conditions</label>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="saveUPIDetails()">Save Details</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Cryptocurrency Modal -->
-<div class="modal fade" id="cryptoModal" tabindex="-1" aria-labelledby="cryptoModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="cryptoModalLabel">Cryptocurrency Payment</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="cryptoForm">
-                    <div class="mb-3">
-                        <label class="form-label">Select Cryptocurrency</label>
-                        <select class="form-select" required>
-                            <option value="">Choose cryptocurrency</option>
-                            <option value="btc">Bitcoin (BTC)</option>
-                            <option value="eth">Ethereum (ETH)</option>
-                            <option value="usdt">Tether (USDT)</option>
-                            <option value="bnb">Binance Coin (BNB)</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Wallet Address</label>
-                        <input type="text" class="form-control" placeholder="Enter wallet address" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Amount (USD)</label>
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input type="number" class="form-control" placeholder="Enter amount" required>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Network</label>
-                        <select class="form-select" required>
-                            <option value="">Select network</option>
-                            <option value="btc">Bitcoin Network</option>
-                            <option value="eth">Ethereum Network</option>
-                            <option value="bsc">Binance Smart Chain</option>
-                        </select>
-                    </div>
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="cryptoTerms" required>
-                        <label class="form-check-label" for="cryptoTerms">I agree to the terms and conditions</label>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="saveCryptoDetails()">Save Details</button>
             </div>
         </div>
     </div>
@@ -583,6 +682,27 @@
     .payment-option-card .card-body {
         padding: 1.5rem;
     }
+
+    .dropdown-menu {
+        display: none;
+        position: absolute;
+        background-color: white;
+        min-width: 200px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 1000;
+    }
+    
+    .dropdown.show .dropdown-menu {
+        display: block;
+    }
+    
+    .dropdown-item {
+        cursor: pointer;
+    }
+    
+    .dropdown-item:hover {
+        background-color: #f8f9fa;
+    }
 </style>
 
 <!-- Bootstrap CSS -->
@@ -590,8 +710,9 @@
 <!-- Font Awesome -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 <!-- Bootstrap JS and dependencies -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <script>
     // Initialize tooltips and dropdowns
@@ -605,71 +726,86 @@
         // Initialize dropdowns
         var dropdownTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="dropdown"]'))
         var dropdownList = dropdownTriggerList.map(function (dropdownTriggerEl) {
-            return new bootstrap.Dropdown(dropdownTriggerEl)
+            return new bootstrap.Dropdown(dropdownTriggerEl, {
+                autoClose: true
+            })
         });
 
-        // Set default dates
-        const today = new Date();
-        const thirtyDaysAgo = new Date(today);
-        thirtyDaysAgo.setDate(today.getDate() - 30);
-        
-        document.getElementById('fromDate').valueAsDate = thirtyDaysAgo;
-        document.getElementById('toDate').valueAsDate = today;
+        // Add click event to filter button
+        const filterButton = document.getElementById('transactionFilterDropdown');
+        if (filterButton) {
+            filterButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const dropdown = bootstrap.Dropdown.getInstance(this);
+                if (dropdown) {
+                    dropdown.toggle();
+                }
+            });
+        }
     });
 
-    function clearTransactionFilter() {
-        document.getElementById('transactionTypeFilter').value = '';
-        document.getElementById('transactionStatusFilter').value = '';
-        document.getElementById('fromDate').value = '';
-        document.getElementById('toDate').value = '';
-    }
-
-    function applyTransactionFilter() {
-        const type = document.getElementById('transactionTypeFilter').value;
-        const status = document.getElementById('transactionStatusFilter').value;
-        const fromDate = document.getElementById('fromDate').value;
-        const toDate = document.getElementById('toDate').value;
-        
-        // Get all table rows
+    function filterByType(type) {
         const rows = document.querySelectorAll('.table tbody tr');
         
         rows.forEach(row => {
             const rowType = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-            const rowStatus = row.querySelector('td:nth-child(5) .badge').textContent.toLowerCase();
-            const rowDate = new Date(row.querySelector('td:nth-child(4)').textContent.trim());
-            
             let showRow = true;
             
-            // Apply type filter
-            if (type && rowType !== type) {
-                showRow = false;
-            }
-            
-            // Apply status filter
-            if (status && !rowStatus.includes(status)) {
-                showRow = false;
-            }
-            
-            // Apply date range filter
-            if (fromDate) {
-                const fromDateObj = new Date(fromDate);
-                if (rowDate < fromDateObj) {
-                    showRow = false;
-                }
-            }
-            
-            if (toDate) {
-                const toDateObj = new Date(toDate);
-                toDateObj.setHours(23, 59, 59, 999); // Set to end of day
-                if (rowDate > toDateObj) {
-                    showRow = false;
-                }
+            if (type !== 'all') {
+                showRow = rowType.includes(type);
             }
             
             row.style.display = showRow ? '' : 'none';
         });
         
-        // Close the dropdown
+        closeDropdown();
+    }
+
+    function filterByAmount(amountRange) {
+        const rows = document.querySelectorAll('.table tbody tr');
+        
+        rows.forEach(row => {
+            const amountText = row.querySelector('td:nth-child(3)').textContent;
+            const amount = parseFloat(amountText.replace('$', '').replace(',', ''));
+            let showRow = true;
+            
+            switch(amountRange) {
+                case 'high':
+                    showRow = amount > 5000;
+                    break;
+                case 'medium':
+                    showRow = amount >= 1000 && amount <= 5000;
+                    break;
+                case 'low':
+                    showRow = amount < 1000;
+                    break;
+            }
+            
+            row.style.display = showRow ? '' : 'none';
+        });
+        
+        closeDropdown();
+    }
+
+    function filterByStatus(status) {
+        const rows = document.querySelectorAll('.table tbody tr');
+        
+        rows.forEach(row => {
+            const rowStatus = row.querySelector('td:nth-child(5) .badge').textContent.toLowerCase();
+            let showRow = true;
+            
+            if (status !== 'all') {
+                showRow = rowStatus.includes(status);
+            }
+            
+            row.style.display = showRow ? '' : 'none';
+        });
+        
+        closeDropdown();
+    }
+
+    function closeDropdown() {
         const dropdownInstance = bootstrap.Dropdown.getInstance(document.getElementById('transactionFilterDropdown'));
         if (dropdownInstance) {
             dropdownInstance.hide();
@@ -682,16 +818,49 @@
         // You can add your payment processing logic here
     }
 
-    function showBankTransferForm() {
-        document.getElementById('paymentOptionsGrid').style.display = 'none';
-        document.getElementById('bankTransferForm').style.display = 'block';
-        document.getElementById('paymentOptionsModalLabel').textContent = 'Bank Transfer Details';
-    }
-
     function showPaymentOptions() {
         document.getElementById('paymentOptionsGrid').style.display = 'block';
         document.getElementById('bankTransferForm').style.display = 'none';
+        document.getElementById('creditCardForm').style.display = 'none';
+        document.getElementById('upiForm').style.display = 'none';
+        document.getElementById('cryptoForm').style.display = 'none';
         document.getElementById('paymentOptionsModalLabel').textContent = 'Select Payment Method';
+    }
+
+    function showBankTransferForm() {
+        document.getElementById('paymentOptionsGrid').style.display = 'none';
+        document.getElementById('bankTransferForm').style.display = 'block';
+        document.getElementById('creditCardForm').style.display = 'none';
+        document.getElementById('upiForm').style.display = 'none';
+        document.getElementById('cryptoForm').style.display = 'none';
+        document.getElementById('paymentOptionsModalLabel').textContent = 'Bank Transfer Details';
+    }
+
+    function showCreditCardForm() {
+        document.getElementById('paymentOptionsGrid').style.display = 'none';
+        document.getElementById('bankTransferForm').style.display = 'none';
+        document.getElementById('creditCardForm').style.display = 'block';
+        document.getElementById('upiForm').style.display = 'none';
+        document.getElementById('cryptoForm').style.display = 'none';
+        document.getElementById('paymentOptionsModalLabel').textContent = 'Credit Card Details';
+    }
+
+    function showUPIForm() {
+        document.getElementById('paymentOptionsGrid').style.display = 'none';
+        document.getElementById('bankTransferForm').style.display = 'none';
+        document.getElementById('creditCardForm').style.display = 'none';
+        document.getElementById('upiForm').style.display = 'block';
+        document.getElementById('cryptoForm').style.display = 'none';
+        document.getElementById('paymentOptionsModalLabel').textContent = 'UPI Payment Details';
+    }
+
+    function showCryptoForm() {
+        document.getElementById('paymentOptionsGrid').style.display = 'none';
+        document.getElementById('bankTransferForm').style.display = 'none';
+        document.getElementById('creditCardForm').style.display = 'none';
+        document.getElementById('upiForm').style.display = 'none';
+        document.getElementById('cryptoForm').style.display = 'block';
+        document.getElementById('paymentOptionsModalLabel').textContent = 'Cryptocurrency Payment';
     }
 
     function saveBankDetails() {
@@ -706,7 +875,7 @@
     }
 
     function saveCreditCardDetails() {
-        const form = document.getElementById('creditCardForm');
+        const form = document.getElementById('creditCardDetailsForm');
         if (form.checkValidity()) {
             alert('Credit card details saved successfully!');
             const modal = bootstrap.Modal.getInstance(document.getElementById('creditCardModal'));
@@ -717,7 +886,7 @@
     }
 
     function saveUPIDetails() {
-        const form = document.getElementById('upiForm');
+        const form = document.getElementById('upiDetailsForm');
         if (form.checkValidity()) {
             alert('UPI details saved successfully!');
             const modal = bootstrap.Modal.getInstance(document.getElementById('upiModal'));
@@ -728,7 +897,7 @@
     }
 
     function saveCryptoDetails() {
-        const form = document.getElementById('cryptoForm');
+        const form = document.getElementById('cryptoDetailsForm');
         if (form.checkValidity()) {
             alert('Cryptocurrency details saved successfully!');
             const modal = bootstrap.Modal.getInstance(document.getElementById('cryptoModal'));
