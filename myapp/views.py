@@ -811,8 +811,8 @@ def admin_trades(request):
     return render(request, 'admin_trades.html', {'trades': trades})
 
 @staff_member_required
-def admin_assets(request):
-    return render(request, 'admin_assets.html')
+def admin_wallet(request):
+    return render(request, 'admin_wallet.html')
 
 @staff_member_required
 def admin_finance(request):

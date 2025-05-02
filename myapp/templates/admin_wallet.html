@@ -4,7 +4,7 @@
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12">
-            <h2 class="text-primary fw-bold mb-4 fs-4">Assets Management Dashboard</h2>
+            <h2 class="text-primary fw-bold mb-4 fs-4">Wallet Management</h2>
             
             <!-- Summary Cards -->
             <div class="row mb-4">
@@ -46,165 +46,48 @@
                 </div>
             </div>
 
-            <!-- Assets Management Table -->
-            <div class="card shadow-sm">
-                <div class="card-header bg-dark py-3">
-                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
-                        <h5 class="text-white mb-0 fs-6">Assets Management</h5>
-                        <div class="d-flex gap-2">
-                            <div class="dropdown">
-                                <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-filter me-1"></i> Filter
-                                </button>
-                                <div class="dropdown-menu p-3 dropdown-menu-end" style="min-width: 260px;">
-                                    <h6 class="dropdown-header px-0 fw-bold">Filter Options</h6>
-                                    <div class="mb-3">
-                                        <label class="form-label small">Asset Type</label>
-                                        <select class="form-select form-select-sm">
-                                            <option value="">All Types</option>
-                                            <option value="crypto">Cryptocurrency</option>
-                                            <option value="stocks">Stocks</option>
-                                            <option value="forex">Forex</option>
-                                            <option value="commodities">Commodities</option>
-                                        </select>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label small">Status</label>
-                                        <select class="form-select form-select-sm">
-                                            <option value="">All Status</option>
-                                            <option value="active">Active</option>
-                                            <option value="pending">Pending</option>
-                                            <option value="completed">Completed</option>
-                                        </select>
-                                    </div>
-                                    <div class="d-flex justify-content-end gap-2">
-                                        <button class="btn btn-secondary btn-sm" onclick="clearFilter()">Clear</button>
-                                        <button class="btn btn-primary btn-sm" onclick="applyFilter()">Apply</button>
-                                    </div>
+            <!-- Deposit and Withdrawal Cards -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card bg-primary text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title mb-1">Total Deposits</h6>
+                                    <h3 class="mb-0">$850,000</h3>
+                                    <small class="text-white-50">+12.5% from last month</small>
+                                </div>
+                                <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                                    <i class="fas fa-arrow-down fa-2x"></i>
                                 </div>
                             </div>
-                            <button class="btn btn-outline-light btn-sm">
-                                <i class="fas fa-download me-1"></i> Export
-                            </button>
-                            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addAssetModal">
-                                <i class="fas fa-plus me-1"></i> Add Asset
-                            </button>
+                            <div class="mt-3">
+                                <div class="progress" style="height: 5px;">
+                                    <div class="progress-bar bg-white" style="width: 75%"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th class="text-uppercase px-4">Asset Name</th>
-                                    <th class="text-uppercase">Type</th>
-                                    <th class="text-uppercase">Current Value</th>
-                                    <th class="text-uppercase">Invested Amount</th>
-                                    <th class="text-uppercase">Returns</th>
-                                    <th class="text-uppercase">Status</th>
-                                    <th class="text-uppercase text-center">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="px-4">
-                                        <div class="d-flex align-items-center">
-                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                                                <i class="fab fa-bitcoin"></i>
-                                            </div>
-                                            <span class="fw-semibold">Bitcoin (BTC)</span>
-                                        </div>
-                                    </td>
-                                    <td>Crypto</td>
-                                    <td>$45,250.00</td>
-                                    <td>$40,000.00</td>
-                                    <td>
-                                        <span class="text-success">+13.1%</span>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-success rounded-pill px-3">Active</span>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex justify-content-center gap-2">
-                                            <button class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="View Details">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Asset">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove Asset">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="px-4">
-                                        <div class="d-flex align-items-center">
-                                            <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                                                <i class="fab fa-ethereum"></i>
-                                            </div>
-                                            <span class="fw-semibold">Ethereum (ETH)</span>
-                                        </div>
-                                    </td>
-                                    <td>Crypto</td>
-                                    <td>$32,500.00</td>
-                                    <td>$30,000.00</td>
-                                    <td>
-                                        <span class="text-success">+8.3%</span>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-success rounded-pill px-3">Active</span>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex justify-content-center gap-2">
-                                            <button class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="View Details">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Asset">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove Asset">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="px-4">
-                                        <div class="d-flex align-items-center">
-                                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                                                <i class="fas fa-chart-line"></i>
-                                            </div>
-                                            <span class="fw-semibold">Apple Inc. (AAPL)</span>
-                                        </div>
-                                    </td>
-                                    <td>Stocks</td>
-                                    <td>$75,000.00</td>
-                                    <td>$70,000.00</td>
-                                    <td>
-                                        <span class="text-success">+7.1%</span>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-success rounded-pill px-3">Active</span>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex justify-content-center gap-2">
-                                            <button class="btn btn-primary btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="View Details">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit Asset">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Remove Asset">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <div class="col-md-6">
+                    <div class="card bg-danger text-white">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title mb-1">Total Withdrawals</h6>
+                                    <h3 class="mb-0">$450,000</h3>
+                                    <small class="text-white-50">+8.2% from last month</small>
+                                </div>
+                                <div class="bg-white bg-opacity-25 rounded-circle p-3">
+                                    <i class="fas fa-arrow-up fa-2x"></i>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <div class="progress" style="height: 5px;">
+                                    <div class="progress-bar bg-white" style="width: 45%"></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -212,7 +95,51 @@
             <!-- Recent Transactions -->
             <div class="card shadow-sm mt-4">
                 <div class="card-header bg-dark py-3">
-                    <h5 class="text-white mb-0 fs-6">Recent Transactions</h5>
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
+                        <h5 class="text-white mb-0 fs-6">Recent Transactions</h5>
+                        <div class="d-flex gap-2">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="transactionFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-filter me-1"></i> Filter
+                                </button>
+                                <div class="dropdown-menu p-3 dropdown-menu-end" style="min-width: 260px;">
+                                    <h6 class="dropdown-header px-0 fw-bold">Filter Options</h6>
+                                    <div class="mb-3">
+                                        <label class="form-label small">Transaction Type</label>
+                                        <select class="form-select form-select-sm" id="transactionTypeFilter">
+                                            <option value="">All Types</option>
+                                            <option value="deposit">Deposit</option>
+                                            <option value="withdrawal">Withdrawal</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small">Status</label>
+                                        <select class="form-select form-select-sm" id="transactionStatusFilter">
+                                            <option value="">All Status</option>
+                                            <option value="completed">Completed</option>
+                                            <option value="pending">Pending</option>
+                                            <option value="failed">Failed</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small">From Date</label>
+                                        <input type="date" class="form-control form-control-sm" id="fromDate">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label small">To Date</label>
+                                        <input type="date" class="form-control form-control-sm" id="toDate">
+                                    </div>
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <button class="btn btn-secondary btn-sm" onclick="clearTransactionFilter()">Clear</button>
+                                        <button class="btn btn-primary btn-sm" onclick="applyTransactionFilter()">Apply</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-outline-light btn-sm">
+                                <i class="fas fa-download me-1"></i> Export
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -673,19 +600,73 @@
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl)
         });
+
+        // Set default dates
+        const today = new Date();
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(today.getDate() - 30);
+        
+        document.getElementById('fromDate').valueAsDate = thirtyDaysAgo;
+        document.getElementById('toDate').valueAsDate = today;
     });
 
-    function clearFilter() {
-        document.querySelectorAll('.form-select').forEach(select => {
-            select.value = '';
-        });
+    function clearTransactionFilter() {
+        document.getElementById('transactionTypeFilter').value = '';
+        document.getElementById('transactionStatusFilter').value = '';
+        document.getElementById('fromDate').value = '';
+        document.getElementById('toDate').value = '';
     }
 
-    function applyFilter() {
-        const assetType = document.querySelector('select[placeholder="Asset Type"]').value;
-        const status = document.querySelector('select[placeholder="Status"]').value;
-        // Add your filter logic here
-        console.log('Filtering by:', { assetType, status });
+    function applyTransactionFilter() {
+        const type = document.getElementById('transactionTypeFilter').value;
+        const status = document.getElementById('transactionStatusFilter').value;
+        const fromDate = document.getElementById('fromDate').value;
+        const toDate = document.getElementById('toDate').value;
+        
+        // Get all table rows
+        const rows = document.querySelectorAll('.table tbody tr');
+        
+        rows.forEach(row => {
+            const rowType = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            const rowStatus = row.querySelector('td:nth-child(5) .badge').textContent.toLowerCase();
+            const rowDate = new Date(row.querySelector('td:nth-child(4)').textContent.trim());
+            
+            let showRow = true;
+            
+            // Apply type filter
+            if (type && rowType !== type) {
+                showRow = false;
+            }
+            
+            // Apply status filter
+            if (status && !rowStatus.includes(status)) {
+                showRow = false;
+            }
+            
+            // Apply date range filter
+            if (fromDate) {
+                const fromDateObj = new Date(fromDate);
+                if (rowDate < fromDateObj) {
+                    showRow = false;
+                }
+            }
+            
+            if (toDate) {
+                const toDateObj = new Date(toDate);
+                toDateObj.setHours(23, 59, 59, 999); // Set to end of day
+                if (rowDate > toDateObj) {
+                    showRow = false;
+                }
+            }
+            
+            row.style.display = showRow ? '' : 'none';
+        });
+        
+        // Close the dropdown
+        const dropdownInstance = bootstrap.Dropdown.getInstance(document.getElementById('transactionFilterDropdown'));
+        if (dropdownInstance) {
+            dropdownInstance.hide();
+        }
     }
 
     function selectPaymentMethod(method) {
