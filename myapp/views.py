@@ -99,6 +99,17 @@ def login_view(request):
         # Print for debugging
         print(f"Login attempt - Username: {username}")
 
+        # First check if user exists and is active
+        try:
+            user = User.objects.get(username=username)
+            if not user.is_active:
+                messages.error(request, 'Your account is inactive. Please contact support for assistance.')
+                return render(request, 'login.html')
+        except User.DoesNotExist:
+            # Don't reveal that the user doesn't exist
+            pass
+
+        # Authenticate user
         user = authenticate(request, username=username, password=password)
 
         if user is not None:
@@ -847,4 +858,150 @@ def admin_wallet(request):
 @staff_member_required
 def admin_finance(request):
     return render(request, 'admin_finance.html')
+
+@csrf_exempt
+def delete_user(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            user_id = data.get('user_id')
+            
+            # Get the user
+            user = User.objects.get(id=user_id)
+            
+            # Delete the user (this will cascade delete related objects if set up properly)
+            user.delete()
+            
+            return JsonResponse({'success': True})
+        except User.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'User not found'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
     
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+@csrf_exempt
+def update_trader(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            user_id = data.get('user_id')
+            field = data.get('field')
+            value = data.get('value')
+            
+            # Get the user
+            user = User.objects.get(id=user_id)
+            
+            # Update the appropriate field
+            if field == 'name':
+                # Split the name into first_name and last_name
+                name_parts = value.split(' ', 1)
+                user.first_name = name_parts[0]
+                user.last_name = name_parts[1] if len(name_parts) > 1 else ''
+            elif field == 'email':
+                # Validate email format
+                from django.core.validators import validate_email
+                validate_email(value)
+                user.email = value
+            elif field == 'username':
+                # Check if username is already taken
+                if User.objects.filter(username=value).exclude(id=user_id).exists():
+                    return JsonResponse({'success': False, 'error': 'Username already taken'})
+                user.username = value
+            elif field == 'balance':
+                # Update user's balance (assuming you have a UserProfile model with balance field)
+                try:
+                    # Remove currency symbol and convert to float
+                    clean_value = value.replace('$', '').strip()
+                    balance = float(clean_value)
+                    
+                    # Update balance in your user profile model
+                    profile = user.profile  # Adjust based on your actual model relationship
+                    profile.balance = balance
+                    profile.save()
+                except (ValueError, AttributeError):
+                    return JsonResponse({'success': False, 'error': 'Invalid balance format'})
+            else:
+                return JsonResponse({'success': False, 'error': 'Invalid field'})
+            
+            # Save the user
+            user.save()
+            
+            return JsonResponse({'success': True})
+        except User.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'User not found'})
+        except ValidationError as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+@csrf_exempt
+def toggle_user_status(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            user_id = data.get('user_id')
+            is_active = data.get('is_active')
+            
+            # Get the user
+            user = User.objects.get(id=user_id)
+            
+            # Update user status
+            user.is_active = is_active
+            user.save()
+            
+            return JsonResponse({'success': True})
+        except User.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'User not found'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+@csrf_exempt
+def reset_user_password(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            user_id = data.get('user_id')
+            new_password = data.get('new_password')
+            
+            if not new_password or len(new_password) < 8:
+                return JsonResponse({
+                    'success': False, 
+                    'error': 'Password must be at least 8 characters long'
+                })
+            
+            # Get the user
+            user = User.objects.get(id=user_id)
+            
+            # Set new password
+            user.set_password(new_password)
+            user.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Password reset successfully'
+            })
+        except User.DoesNotExist:
+            return JsonResponse({
+                'success': False, 
+                'error': 'User not found'
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False, 
+                'error': str(e)
+            })
+    
+    return JsonResponse({
+        'success': False, 
+        'error': 'Invalid request method'
+    })
+
+
+
+
+

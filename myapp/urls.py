@@ -30,9 +30,15 @@ urlpatterns = [
     path('admin-trades/', views.admin_trades, name='admin_trades'),
     path('admin-wallet/', views.admin_wallet, name='admin_wallet'),
     path('admin-finance/', views.admin_finance, name='admin_finance'),
-    
-
+    path('api/delete_user/', views.delete_user, name='delete_user'),
+    path('api/update_trader/', views.update_trader, name='update_trader'),
+    path('api/toggle_user_status/', views.toggle_user_status, name='toggle_user_status'),
+    path('api/reset_user_password/', views.reset_user_password, name='reset_user_password'),
 ]
+
+
+
+
 
 
 
