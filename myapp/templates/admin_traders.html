@@ -78,7 +78,11 @@
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-2 flex-wrap">
-                                            <button class="btn btn-info btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Reset Password">
+                                            <button class="btn btn-info btn-sm reset-password-btn" 
+                                                    data-bs-toggle="tooltip" 
+                                                    data-bs-placement="top" 
+                                                    title="Reset Password" 
+                                                    onclick="resetUserPassword(this, '{{ user.id }}', '{{ user.get_full_name }}'); return false;">
                                                 <i class="fas fa-key"></i>
                                             </button>
                                             <button class="btn btn-danger btn-sm" data-bs-toggle="tooltip" data-bs-placement="top" title="Delete Account">
@@ -761,6 +765,21 @@
     function resetUserPassword(button, userId, userName) {
         console.log('resetUserPassword called for user ID:', userId);
         
+        // If userName is not provided, try to get it from the DOM
+        if (!userName && button) {
+            const row = button.closest('tr');
+            if (row) {
+                const nameElement = row.querySelector('td:first-child .fw-semibold');
+                if (nameElement) {
+                    userName = nameElement.textContent;
+                } else {
+                    userName = 'User';
+                }
+            } else {
+                userName = 'User';
+            }
+        }
+        
         // Create modal HTML
         const modalHTML = `
         <div class="modal fade" id="passwordResetModal" tabindex="-1" aria-labelledby="passwordResetModalLabel" aria-hidden="true">
@@ -772,21 +791,19 @@
                     </div>
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label for="generatedPassword" class="form-label">Generated Password</label>
+                            <label for="newPassword" class="form-label">New Password</label>
                             <div class="input-group">
-                                <input type="text" class="form-control" id="generatedPassword" value="${generateRandomPassword()}" readonly>
-                                <button class="btn btn-outline-secondary" type="button" id="copyPasswordBtn" title="Copy to clipboard">
-                                    <i class="fas fa-copy"></i>
-                                </button>
-                                <button class="btn btn-outline-secondary" type="button" id="regeneratePasswordBtn" title="Generate new password">
-                                    <i class="fas fa-sync-alt"></i>
+                                <input type="password" class="form-control" id="newPassword" placeholder="Enter new password">
+                                <button class="btn btn-outline-secondary" type="button" id="togglePasswordBtn">
+                                    <i class="fas fa-eye"></i>
                                 </button>
                             </div>
-                            <div class="form-text">This is a randomly generated secure password.</div>
                         </div>
                         <div class="mb-3">
-                            <label for="customPassword" class="form-label">Or Enter Custom Password</label>
-                            <input type="password" class="form-control" id="customPassword" placeholder="Enter custom password">
+                            <label class="form-label">Password Preview</label>
+                            <div class="p-2 border rounded bg-light">
+                                <span id="passwordPreview" class="font-monospace">No password entered</span>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -810,6 +827,13 @@
         // Get the modal element
         const modalElement = document.getElementById('passwordResetModal');
         
+        // Check if Bootstrap is available
+        if (typeof bootstrap === 'undefined') {
+            console.error('Bootstrap is not loaded!');
+            alert('Error: Bootstrap is not loaded. Please refresh the page and try again.');
+            return;
+        }
+        
         // Initialize the modal
         const modal = new bootstrap.Modal(modalElement);
         
@@ -817,27 +841,36 @@
         modal.show();
         
         // Add event listeners
-        const copyBtn = document.getElementById('copyPasswordBtn');
-        const regenerateBtn = document.getElementById('regeneratePasswordBtn');
+        const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+        const newPasswordInput = document.getElementById('newPassword');
+        const passwordPreview = document.getElementById('passwordPreview');
         const confirmBtn = document.getElementById('confirmResetBtn');
-        const generatedPasswordInput = document.getElementById('generatedPassword');
-        const customPasswordInput = document.getElementById('customPassword');
         
-        // Copy password to clipboard
-        copyBtn.addEventListener('click', () => {
-            generatedPasswordInput.select();
-            document.execCommand('copy');
-            showToast('Password copied to clipboard');
+        // Toggle password visibility
+        togglePasswordBtn.addEventListener('click', () => {
+            const type = newPasswordInput.type === 'password' ? 'text' : 'password';
+            newPasswordInput.type = type;
+            togglePasswordBtn.innerHTML = type === 'password' ? '<i class="fas fa-eye"></i>' : '<i class="fas fa-eye-slash"></i>';
         });
         
-        // Regenerate password
-        regenerateBtn.addEventListener('click', () => {
-            generatedPasswordInput.value = generateRandomPassword();
+        // Update password preview as user types
+        newPasswordInput.addEventListener('input', () => {
+            const password = newPasswordInput.value.trim();
+            if (password) {
+                passwordPreview.textContent = password;
+            } else {
+                passwordPreview.textContent = 'No password entered';
+            }
         });
         
         // Confirm password reset
         confirmBtn.addEventListener('click', () => {
-            const password = customPasswordInput.value.trim() || generatedPasswordInput.value;
+            const password = newPasswordInput.value.trim();
+            
+            if (!password) {
+                showToast('Please enter a new password', 'error');
+                return;
+            }
             
             if (password.length < 8) {
                 showToast('Password must be at least 8 characters long', 'error');
@@ -845,8 +878,10 @@
             }
             
             // Show loading state
-            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            button.disabled = true;
+            if (button) {
+                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                button.disabled = true;
+            }
             
             // Send reset password request to server
             fetch('/api/reset_user_password/', {
@@ -865,8 +900,10 @@
                 console.log('Password reset response:', data);
                 
                 // Reset button state
-                button.innerHTML = '<i class="fas fa-key"></i>';
-                button.disabled = false;
+                if (button) {
+                    button.innerHTML = '<i class="fas fa-key"></i>';
+                    button.disabled = false;
+                }
                 
                 if (data.success) {
                     // Hide modal
@@ -883,8 +920,10 @@
                 console.error('Error resetting password:', error);
                 
                 // Reset button state
-                button.innerHTML = '<i class="fas fa-key"></i>';
-                button.disabled = false;
+                if (button) {
+                    button.innerHTML = '<i class="fas fa-key"></i>';
+                    button.disabled = false;
+                }
                 
                 // Show error toast
                 showToast('Failed to reset password', 'error');
@@ -895,20 +934,6 @@
         modalElement.addEventListener('hidden.bs.modal', function () {
             modalElement.remove();
         });
-    }
-
-    // Function to generate a random password
-    function generateRandomPassword() {
-        const length = 12;
-        const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+";
-        let password = "";
-        
-        for (let i = 0; i < length; i++) {
-            const randomIndex = Math.floor(Math.random() * charset.length);
-            password += charset[randomIndex];
-        }
-        
-        return password;
     }
 </script>
 {% endblock %}
@@ -929,13 +954,11 @@
 </script>
 {% endblock %}
 
-
-
-
-
-
-
-
+<!-- Add this at the bottom of your HTML, just before the closing body tag -->
+<script>
+    // Make resetUserPassword function globally available
+    window.resetUserPassword = resetUserPassword;
+</script>
 
 
 
