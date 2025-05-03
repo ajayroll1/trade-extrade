@@ -391,43 +391,34 @@
             plugins: {
                 legend: {
                     display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return '$' + context.parsed.y.toFixed(2) + 'M';
-                        }
-                    }
                 }
             },
             scales: {
                 y: {
                     beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return '$' + value + 'M';
-                        }
+                    grid: {
+                        drawBorder: false
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
                     }
                 }
             }
         }
     });
 
-    // Auto-refresh the chart data every minute
+    // Fix the auto-refresh function
     setInterval(function() {
-        fetch('/admin-dashboard/')
-            .then(response => response.text())
-            .then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const newData = {
-                    labels: {{ volume_data.labels|safe }},
-                    volumes: {{ volume_data.volumes|safe }}
-                };
-                volumeChart.data.labels = newData.labels;
-                volumeChart.data.datasets[0].data = newData.volumes;
+        fetch('/admin-dashboard/chart-data/')
+            .then(response => response.json())
+            .then(data => {
+                volumeChart.data.labels = data.labels;
+                volumeChart.data.datasets[0].data = data.volumes;
                 volumeChart.update();
-            });
+            })
+            .catch(error => console.error('Error updating chart:', error));
     }, 60000); // Update every minute
 
     // Distribution Chart
@@ -458,3 +449,4 @@
             });
     </script>
 {% endblock %} 
+

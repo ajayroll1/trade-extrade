@@ -1088,9 +1088,28 @@ def delete_trade(request):
     
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
+def admin_dashboard_chart_data(request):
+    # Get last 6 months of trading volume data
+    six_months_ago = datetime.now() - timedelta(days=180)
+    monthly_volumes = Trade.objects.filter(
+        created_at__gte=six_months_ago,
+        status='closed'
+    ).annotate(
+        month=TruncMonth('created_at')
+    ).values('month').annotate(
+        volume=Sum('total_amount')
+    ).order_by('month')
 
-
-
-
+    # Format data for the chart
+    volume_data = {
+        'labels': [],
+        'volumes': []
+    }
+    
+    for entry in monthly_volumes:
+        volume_data['labels'].append(entry['month'].strftime('%b %Y'))
+        volume_data['volumes'].append(round(entry['volume'] / 1000000, 2))  # Convert to millions
+        
+    return JsonResponse(volume_data)
 
 

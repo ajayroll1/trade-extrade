@@ -11,6 +11,11 @@
                     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
                         <h5 class="text-white mb-0 fs-6">Active Traders <span class="badge ms-2 px-3 py-2 fs-6">{{ users|length }}</span></h5>
                         <div class="d-flex gap-2">
+                            <!-- Add search bar -->
+                            <div class="position-relative">
+                                <input type="text" class="form-control form-control-sm" id="traderSearchInput" placeholder="Search by name" style="min-width: 200px;">
+                                <i class="fas fa-search position-absolute" style="right: 10px; top: 50%; transform: translateY(-50%); color: #6c757d;"></i>
+                            </div>
                             <div class="dropdown">
                                 <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="fas fa-filter me-1"></i> Filter
@@ -288,6 +293,45 @@
     .toast-container {
         z-index: 1050;
     }
+
+    #traderSearchInput {
+        padding-right: 30px;
+        border-radius: 4px;
+        border: 1px solid rgba(255,255,255,0.2);
+        background-color: rgba(255,255,255,0.1);
+        color: white;
+        transition: all 0.3s ease;
+    }
+    
+    #traderSearchInput::placeholder {
+        color: rgba(255,255,255,0.6);
+    }
+    
+    #traderSearchInput:focus {
+        background-color: rgba(255,255,255,0.2);
+        border-color: rgba(255,255,255,0.4);
+        box-shadow: none;
+    }
+    
+    .position-relative .fas {
+        transition: all 0.3s ease;
+    }
+    
+    #traderSearchInput:focus + .fas {
+        color: white !important;
+    }
+    
+    tr.no-results td {
+        color: #6c757d;
+        font-style: italic;
+    }
+    
+    /* Highlight matching text */
+    .highlight {
+        background-color: rgba(255, 193, 7, 0.3);
+        padding: 2px;
+        border-radius: 2px;
+    }
 </style>
 
 <!-- Bootstrap CSS -->
@@ -338,11 +382,35 @@
                 resetUserPassword(this, userId, userName);
             });
         });
+        
+        // Add search functionality
+        const searchInput = document.getElementById('traderSearchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                searchTraders(searchTerm);
+            });
+            
+            // Add clear search on Escape key
+            searchInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    this.value = '';
+                    searchTraders('');
+                }
+            });
+        }
     });
 
     function clearFilter() {
         document.getElementById('fromDate').value = '';
         document.getElementById('toDate').value = '';
+        
+        // Also clear search input
+        const searchInput = document.getElementById('traderSearchInput');
+        if (searchInput) {
+            searchInput.value = '';
+            searchTraders('');
+        }
     }
 
     function applyFilter() {
@@ -935,6 +1003,92 @@
             modalElement.remove();
         });
     }
+
+    // Function to search traders
+    function searchTraders(searchTerm) {
+        const tableRows = document.querySelectorAll('tbody tr');
+        let visibleCount = 0;
+        
+        tableRows.forEach(row => {
+            // Get trader name from the row (first column)
+            const nameCell = row.querySelector('td:first-child .fw-semibold');
+            if (!nameCell) return;
+            
+            const traderName = nameCell.textContent.toLowerCase();
+            const traderEmail = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+            const traderUsername = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+            
+            // Check if any of the fields contain the search term
+            if (traderName.includes(searchTerm) || 
+                traderEmail.includes(searchTerm) || 
+                traderUsername.includes(searchTerm)) {
+                row.style.display = '';
+                visibleCount++;
+                
+                // Highlight matching text if needed
+                // This is optional - you can remove if you don't want highlighting
+                if (searchTerm) {
+                    highlightText(nameCell, searchTerm);
+                    highlightText(row.querySelector('td:nth-child(2) span'), searchTerm);
+                    highlightText(row.querySelector('td:nth-child(3) span'), searchTerm);
+                } else {
+                    // Remove highlights
+                    removeHighlights(nameCell);
+                    removeHighlights(row.querySelector('td:nth-child(2) span'));
+                    removeHighlights(row.querySelector('td:nth-child(3) span'));
+                }
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        // Show "No traders found" message if no traders match the search
+        const noTradersRow = document.querySelector('tbody tr.no-results');
+        if (visibleCount === 0) {
+            if (!noTradersRow) {
+                const tbody = document.querySelector('tbody');
+                const newRow = document.createElement('tr');
+                newRow.className = 'no-results';
+                newRow.innerHTML = `<td colspan="6" class="text-center py-4">No traders found matching "${searchTerm}"</td>`;
+                tbody.appendChild(newRow);
+            } else {
+                noTradersRow.style.display = '';
+                noTradersRow.querySelector('td').textContent = `No traders found matching "${searchTerm}"`;
+            }
+        } else if (noTradersRow) {
+            noTradersRow.style.display = 'none';
+        }
+        
+        // Update the badge count
+        const badge = document.querySelector('.card-header .badge');
+        if (badge) {
+            badge.textContent = visibleCount;
+        }
+    }
+
+    // Helper function to highlight matching text
+    function highlightText(element, searchTerm) {
+        if (!element) return;
+        
+        const originalText = element.textContent;
+        if (!originalText.toLowerCase().includes(searchTerm)) return;
+        
+        // Store original text if not already stored
+        if (!element.dataset.originalText) {
+            element.dataset.originalText = originalText;
+        }
+        
+        const regex = new RegExp(`(${searchTerm})`, 'gi');
+        const newText = originalText.replace(regex, '<span class="highlight">$1</span>');
+        element.innerHTML = newText;
+    }
+
+    // Helper function to remove highlights
+    function removeHighlights(element) {
+        if (!element || !element.dataset.originalText) return;
+        element.textContent = element.dataset.originalText;
+        delete element.dataset.originalText;
+    }
 </script>
 {% endblock %}
 
@@ -959,6 +1113,7 @@
     // Make resetUserPassword function globally available
     window.resetUserPassword = resetUserPassword;
 </script>
+
 
 
 
