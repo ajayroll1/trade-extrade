@@ -9,15 +9,6 @@
             <!-- Summary Cards -->
             <div class="row mb-4">
                 <div class="col-md-3">
-                    <div class="card bg-primary text-white">
-                        <div class="card-body text-center d-flex flex-column justify-content-center" style="min-height: 120px;">
-                            <button class="btn btn-light btn-lg" data-bs-toggle="modal" data-bs-target="#paymentOptionsModal">
-                                <i class="fas fa-money-bill-wave me-2"></i> Payment
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3">
                     <div class="card bg-success text-white">
                         <div class="card-body">
                             <h6 class="card-title">Active Investments</h6>
@@ -41,6 +32,15 @@
                             <h6 class="card-title">Total Revenue</h6>
                             <h3 class="mb-0">$125,000</h3>
                             <small class="text-white-50">+5.2% from last month</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card bg-primary text-white" style="cursor: pointer;" onclick="openPaymentGatewayModal()">
+                        <div class="card-body">
+                            <h6 class="card-title">Payment Gateway</h6>
+                            <h3 class="mb-0">Active</h3>
+                            <small class="text-white-50">All systems operational</small>
                         </div>
                     </div>
                 </div>
@@ -385,198 +385,154 @@
     </div>
 </div>
 
-<!-- Payment Options Modal -->
-<div class="modal fade" id="paymentOptionsModal" tabindex="-1" aria-labelledby="paymentOptionsModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+<!-- Payment Gateway Modal -->
+<div class="modal fade" id="paymentGatewayModal" tabindex="-1" aria-labelledby="paymentGatewayModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="paymentOptionsModalLabel">Select Payment Method</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="paymentGatewayModalLabel">Payment Gateway Configuration</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <!-- Payment Options Grid -->
-                <div class="row g-3" id="paymentOptionsGrid">
-                    <div class="col-md-6">
-                        <div class="card h-100 payment-option-card" onclick="showBankTransferForm()">
-                            <div class="card-body text-center">
-                                <i class="fas fa-university fa-2x mb-3 text-primary"></i>
-                                <h6 class="card-title">Bank Transfer</h6>
+                <div class="row">
+                    <!-- Left Column - Existing Accounts -->
+                    <div class="col-md-6 border-end">
+                        <h6 class="fw-bold mb-3">Existing Payment Accounts</h6>
+                        <div class="list-group mb-3">
+                            <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-university me-2 text-primary"></i>
+                                    <span>Bank of America</span>
+                                </div>
+                                <span class="badge bg-success rounded-pill">Active</span>
+                            </div>
+                            <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fab fa-paypal me-2 text-primary"></i>
+                                    <span>PayPal Business</span>
+                                </div>
+                                <span class="badge bg-success rounded-pill">Active</span>
+                            </div>
+                            <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fab fa-bitcoin me-2 text-primary"></i>
+                                    <span>Bitcoin Wallet</span>
+                                </div>
+                                <span class="badge bg-warning rounded-pill">Pending</span>
+                            </div>
+                            <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-credit-card me-2 text-primary"></i>
+                                    <span>Stripe Account</span>
+                                </div>
+                                <span class="badge bg-success rounded-pill">Active</span>
                             </div>
                         </div>
+                        <button class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-cog me-1"></i> Manage Existing Accounts
+                        </button>
                     </div>
+                    
+                    <!-- Right Column - Add New Payment Method -->
                     <div class="col-md-6">
-                        <div class="card h-100 payment-option-card" onclick="showCreditCardForm()">
-                            <div class="card-body text-center">
-                                <i class="fas fa-credit-card fa-2x mb-3 text-primary"></i>
-                                <h6 class="card-title">Credit Card</h6>
-                            </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0">Add New Payment Method</h6>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="backToPaymentList">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
                         </div>
+                        <form>
+                            <div class="mb-3">
+                                <label class="form-label">Payment Type</label>
+                                <select class="form-select" id="paymentMethodSelect">
+                                    <option value="" selected disabled>Select payment method</option>
+                                    <option value="bank">Bank Account</option>
+                                    <option value="upi">UPI</option>
+                                    <option value="crypto">Cryptocurrency</option>
+                                    <option value="card">Credit/Debit Card</option>
+                                    <option value="paypal">PayPal</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Dynamic form fields based on selection -->
+                            <div id="bankFields" class="payment-fields d-none">
+                                <div class="mb-3">
+                                    <label class="form-label">Bank Name</label>
+                                    <input type="text" class="form-control" placeholder="Enter bank name">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Account Number</label>
+                                    <input type="text" class="form-control" placeholder="Enter account number">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">IFSC Code</label>
+                                    <input type="text" class="form-control" placeholder="Enter IFSC code">
+                                </div>
+                            </div>
+                            
+                            <div id="upiFields" class="payment-fields d-none">
+                                <div class="mb-3">
+                                    <label class="form-label">UPI ID</label>
+                                    <input type="text" class="form-control" placeholder="username@upi">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Display Name</label>
+                                    <input type="text" class="form-control" placeholder="Enter display name">
+                                </div>
+                            </div>
+                            
+                            <div id="cryptoFields" class="payment-fields d-none">
+                                <div class="mb-3">
+                                    <label class="form-label">Cryptocurrency</label>
+                                    <select class="form-select">
+                                        <option value="btc">Bitcoin (BTC)</option>
+                                        <option value="eth">Ethereum (ETH)</option>
+                                        <option value="usdt">Tether (USDT)</option>
+                                        <option value="bnb">Binance Coin (BNB)</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Wallet Address</label>
+                                    <input type="text" class="form-control" placeholder="Enter wallet address">
+                                </div>
+                            </div>
+                            
+                            <div id="cardFields" class="payment-fields d-none">
+                                <div class="mb-3">
+                                    <label class="form-label">Card Provider</label>
+                                    <select class="form-select">
+                                        <option value="visa">Visa</option>
+                                        <option value="mastercard">Mastercard</option>
+                                        <option value="amex">American Express</option>
+                                        <option value="discover">Discover</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">API Key</label>
+                                    <input type="text" class="form-control" placeholder="Enter API key">
+                                </div>
+                            </div>
+                            
+                            <div id="paypalFields" class="payment-fields d-none">
+                                <div class="mb-3">
+                                    <label class="form-label">PayPal Email</label>
+                                    <input type="email" class="form-control" placeholder="Enter PayPal email">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Client ID</label>
+                                    <input type="text" class="form-control" placeholder="Enter client ID">
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="defaultGateway">
+                                <label class="form-check-label" for="defaultGateway">Set as default payment gateway</label>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100">Add Payment Method</button>
+                        </form>
                     </div>
-                    <div class="col-md-6">
-                        <div class="card h-100 payment-option-card" onclick="showUPIForm()">
-                            <div class="card-body text-center">
-                                <i class="fas fa-wallet fa-2x mb-3 text-primary"></i>
-                                <h6 class="card-title">UPI Payment</h6>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card h-100 payment-option-card" onclick="showCryptoForm()">
-                            <div class="card-body text-center">
-                                <i class="fab fa-bitcoin fa-2x mb-3 text-primary"></i>
-                                <h6 class="card-title">Cryptocurrency</h6>
-                            </div>
-                        </div>
-                    </div>
                 </div>
-
-                <!-- Bank Transfer Form -->
-                <div id="bankTransferForm" style="display: none;">
-                    <form id="bankDetailsForm">
-                        <div class="mb-3">
-                            <label class="form-label">Account Holder Name</label>
-                            <input type="text" class="form-control" placeholder="Enter account holder name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Bank Name</label>
-                            <select class="form-select" required>
-                                <option value="">Select Bank</option>
-                                <option value="hdfc">HDFC Bank</option>
-                                <option value="icici">ICICI Bank</option>
-                                <option value="sbi">State Bank of India</option>
-                                <option value="axis">Axis Bank</option>
-                                <option value="kotak">Kotak Mahindra Bank</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Account Number</label>
-                            <input type="text" class="form-control" placeholder="Enter account number" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">IFSC Code</label>
-                            <input type="text" class="form-control" placeholder="Enter IFSC code" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Amount to Transfer</label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                <input type="number" class="form-control" placeholder="Enter amount" required>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Upload Receipt</label>
-                            <input type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required>
-                            <small class="text-muted">Accepted formats: PDF, JPG, JPEG, PNG</small>
-                        </div>
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="termsCheck" required>
-                            <label class="form-check-label" for="termsCheck">I agree to the terms and conditions</label>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Credit Card Form -->
-                <div id="creditCardForm" style="display: none;">
-                    <form id="creditCardDetailsForm">
-                        <div class="mb-3">
-                            <label class="form-label">Card Number</label>
-                            <input type="text" class="form-control" placeholder="Enter card number" required>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Expiry Date</label>
-                                <input type="text" class="form-control" placeholder="MM/YY" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label">CVV</label>
-                                <input type="text" class="form-control" placeholder="CVV" required>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Card Holder Name</label>
-                            <input type="text" class="form-control" placeholder="Enter card holder name" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Amount</label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                <input type="number" class="form-control" placeholder="Enter amount" required>
-                            </div>
-                        </div>
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="creditCardTerms" required>
-                            <label class="form-check-label" for="creditCardTerms">I agree to the terms and conditions</label>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- UPI Form -->
-                <div id="upiForm" style="display: none;">
-                    <form id="upiDetailsForm">
-                        <div class="mb-3">
-                            <label class="form-label">UPI ID</label>
-                            <input type="text" class="form-control" placeholder="Enter UPI ID" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Amount</label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                <input type="number" class="form-control" placeholder="Enter amount" required>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Purpose</label>
-                            <textarea class="form-control" rows="2" placeholder="Enter purpose of payment"></textarea>
-                        </div>
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="upiTerms" required>
-                            <label class="form-check-label" for="upiTerms">I agree to the terms and conditions</label>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Crypto Form -->
-                <div id="cryptoForm" style="display: none;">
-                    <form id="cryptoDetailsForm">
-                        <div class="mb-3">
-                            <label class="form-label">Select Cryptocurrency</label>
-                            <select class="form-select" required>
-                                <option value="">Choose cryptocurrency</option>
-                                <option value="btc">Bitcoin (BTC)</option>
-                                <option value="eth">Ethereum (ETH)</option>
-                                <option value="usdt">Tether (USDT)</option>
-                                <option value="bnb">Binance Coin (BNB)</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Wallet Address</label>
-                            <input type="text" class="form-control" placeholder="Enter wallet address" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Amount (USD)</label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                <input type="number" class="form-control" placeholder="Enter amount" required>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Network</label>
-                            <select class="form-select" required>
-                                <option value="">Select network</option>
-                                <option value="btc">Bitcoin Network</option>
-                                <option value="eth">Ethereum Network</option>
-                                <option value="bsc">Binance Smart Chain</option>
-                            </select>
-                        </div>
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="cryptoTerms" required>
-                            <label class="form-check-label" for="cryptoTerms">I agree to the terms and conditions</label>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" onclick="saveBankDetails()">Save Details</button>
             </div>
         </div>
     </div>
@@ -743,6 +699,15 @@
                 }
             });
         }
+        
+        // Add click event to payment button
+        const paymentButton = document.getElementById('paymentButton');
+        if (paymentButton) {
+            paymentButton.addEventListener('click', function() {
+                alert('Payment processing initiated!');
+                // Add your payment processing logic here
+            });
+        }
     });
 
     function filterByType(type) {
@@ -812,99 +777,74 @@
         }
     }
 
-    function selectPaymentMethod(method) {
-        // Handle payment method selection
-        console.log('Selected payment method:', method);
-        // You can add your payment processing logic here
+    function openPaymentGatewayModal() {
+        const modal = new bootstrap.Modal(document.getElementById('paymentGatewayModal'));
+        modal.show();
     }
-
-    function showPaymentOptions() {
-        document.getElementById('paymentOptionsGrid').style.display = 'block';
-        document.getElementById('bankTransferForm').style.display = 'none';
-        document.getElementById('creditCardForm').style.display = 'none';
-        document.getElementById('upiForm').style.display = 'none';
-        document.getElementById('cryptoForm').style.display = 'none';
-        document.getElementById('paymentOptionsModalLabel').textContent = 'Select Payment Method';
-    }
-
-    function showBankTransferForm() {
-        document.getElementById('paymentOptionsGrid').style.display = 'none';
-        document.getElementById('bankTransferForm').style.display = 'block';
-        document.getElementById('creditCardForm').style.display = 'none';
-        document.getElementById('upiForm').style.display = 'none';
-        document.getElementById('cryptoForm').style.display = 'none';
-        document.getElementById('paymentOptionsModalLabel').textContent = 'Bank Transfer Details';
-    }
-
-    function showCreditCardForm() {
-        document.getElementById('paymentOptionsGrid').style.display = 'none';
-        document.getElementById('bankTransferForm').style.display = 'none';
-        document.getElementById('creditCardForm').style.display = 'block';
-        document.getElementById('upiForm').style.display = 'none';
-        document.getElementById('cryptoForm').style.display = 'none';
-        document.getElementById('paymentOptionsModalLabel').textContent = 'Credit Card Details';
-    }
-
-    function showUPIForm() {
-        document.getElementById('paymentOptionsGrid').style.display = 'none';
-        document.getElementById('bankTransferForm').style.display = 'none';
-        document.getElementById('creditCardForm').style.display = 'none';
-        document.getElementById('upiForm').style.display = 'block';
-        document.getElementById('cryptoForm').style.display = 'none';
-        document.getElementById('paymentOptionsModalLabel').textContent = 'UPI Payment Details';
-    }
-
-    function showCryptoForm() {
-        document.getElementById('paymentOptionsGrid').style.display = 'none';
-        document.getElementById('bankTransferForm').style.display = 'none';
-        document.getElementById('creditCardForm').style.display = 'none';
-        document.getElementById('upiForm').style.display = 'none';
-        document.getElementById('cryptoForm').style.display = 'block';
-        document.getElementById('paymentOptionsModalLabel').textContent = 'Cryptocurrency Payment';
-    }
-
-    function saveBankDetails() {
-        const form = document.getElementById('bankDetailsForm');
-        if (form.checkValidity()) {
-            alert('Bank details saved successfully!');
-            const modal = bootstrap.Modal.getInstance(document.getElementById('paymentOptionsModal'));
-            modal.hide();
-        } else {
-            form.reportValidity();
+    
+    // Initialize payment method selection
+    document.addEventListener('DOMContentLoaded', function() {
+        const paymentMethodSelect = document.getElementById('paymentMethodSelect');
+        const backButton = document.getElementById('backToPaymentList');
+        
+        if (backButton) {
+            backButton.addEventListener('click', function() {
+                // Reset the form
+                if (paymentMethodSelect) {
+                    paymentMethodSelect.selectedIndex = 0;
+                }
+                
+                // Hide all payment fields
+                document.querySelectorAll('.payment-fields').forEach(field => {
+                    field.classList.add('d-none');
+                });
+            });
         }
-    }
-
-    function saveCreditCardDetails() {
-        const form = document.getElementById('creditCardDetailsForm');
-        if (form.checkValidity()) {
-            alert('Credit card details saved successfully!');
-            const modal = bootstrap.Modal.getInstance(document.getElementById('creditCardModal'));
-            modal.hide();
-        } else {
-            form.reportValidity();
+        
+        if (paymentMethodSelect) {
+            paymentMethodSelect.addEventListener('change', function() {
+                // Hide all payment fields first
+                document.querySelectorAll('.payment-fields').forEach(field => {
+                    field.classList.add('d-none');
+                });
+                
+                // Show the selected payment fields
+                const selectedValue = this.value;
+                if (selectedValue) {
+                    document.getElementById(selectedValue + 'Fields').classList.remove('d-none');
+                }
+            });
         }
-    }
-
-    function saveUPIDetails() {
-        const form = document.getElementById('upiDetailsForm');
-        if (form.checkValidity()) {
-            alert('UPI details saved successfully!');
-            const modal = bootstrap.Modal.getInstance(document.getElementById('upiModal'));
-            modal.hide();
-        } else {
-            form.reportValidity();
-        }
-    }
-
-    function saveCryptoDetails() {
-        const form = document.getElementById('cryptoDetailsForm');
-        if (form.checkValidity()) {
-            alert('Cryptocurrency details saved successfully!');
-            const modal = bootstrap.Modal.getInstance(document.getElementById('cryptoModal'));
-            modal.hide();
-        } else {
-            form.reportValidity();
-        }
-    }
+    });
 </script>
 {% endblock %} 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
