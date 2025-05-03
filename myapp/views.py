@@ -13,7 +13,7 @@ from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 import os
 from django.views.decorators.http import require_http_methods
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import logging
 from django.db.models import Count, Sum
 from django.views.decorators.csrf import csrf_exempt
@@ -1000,6 +1000,73 @@ def reset_user_password(request):
         'success': False, 
         'error': 'Invalid request method'
     })
+
+@login_required
+@require_http_methods(["POST"])
+def update_trade(request):
+    try:
+        data = json.loads(request.body)
+        trade_id = data.get('trade_id')
+        field = data.get('field')
+        value = data.get('value')
+
+        if not trade_id or not field:
+            return JsonResponse({
+                'success': False,
+                'error': 'Trade ID and field are required'
+            })
+
+        try:
+            # Get the trade
+            trade = Trade.objects.get(id=trade_id)
+            
+            # Update the specified field
+            if field == 'symbol':
+                trade.symbol = value
+            elif field == 'type':
+                trade.type = value.lower()
+            elif field == 'quantity':
+                trade.quantity = Decimal(str(value))
+                # Recalculate total amount
+                trade.total_amount = trade.quantity * trade.entry_price
+            elif field == 'entry_price':
+                trade.entry_price = Decimal(str(value))
+                # Recalculate total amount
+                trade.total_amount = trade.quantity * trade.entry_price
+            elif field == 'status':
+                trade.status = value.lower()
+            
+            trade.save()
+
+            # Format the value for display
+            formatted_value = value
+            if field in ['quantity', 'entry_price']:
+                formatted_value = float(getattr(trade, field))
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Trade updated successfully',
+                'trade_id': trade.id,
+                'field': field,
+                'value': formatted_value
+            })
+        except Trade.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'Trade not found'
+            })
+        except (ValueError, InvalidOperation) as e:
+            return JsonResponse({
+                'success': False,
+                'error': f'Invalid value: {str(e)}'
+            })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
 
 
 

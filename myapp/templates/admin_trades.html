@@ -63,7 +63,7 @@
                             <tbody>
                                 {% if trades %}
                                     {% for trade in trades %}
-                                    <tr>
+                                    <tr data-trade-id="{{ trade.id }}">
                                         <td class="px-4">
                                             <span class="fw-semibold">#{{ trade.id }}</span>
                                         </td>
@@ -75,18 +75,14 @@
                                                 <span>{{ trade.user.username }}</span>
                                             </div>
                                         </td>
-                                        <td>{{ trade.symbol }}</td>
+                                        <td><span contenteditable="true" onblur="updateTradeField(this, 'symbol')">{{ trade.symbol }}</span></td>
                                         <td>
-                                            <span class="badge {% if trade.type == 'BUY' %}bg-success{% else %}bg-danger{% endif %}">{{ trade.type }}</span>
+                                            <span contenteditable="true" class="trade-type" onblur="updateTradeField(this, 'type')">{{ trade.type }}</span>
                                         </td>
+                                        <td><span contenteditable="true" onblur="updateTradeField(this, 'quantity')">{{ trade.quantity }}</span></td>
+                                        <td><span contenteditable="true" onblur="updateTradeField(this, 'entry_price')">{{ trade.entry_price }}</span></td>
                                         <td>
-                                            <span class="fw-semibold">{{ trade.quantity|floatformat:8 }} {{ trade.symbol|slice:":3" }}</span>
-                                        </td>
-                                        <td>
-                                            <span class="text-primary">${{ trade.entry_price|floatformat:2 }}</span>
-                                        </td>
-                                        <td>
-                                            <span class="badge {% if trade.status == 'active' %}bg-success{% elif trade.status == 'closed' %}bg-secondary{% else %}bg-warning{% endif %} rounded-pill px-3">{{ trade.status|title }}</span>
+                                            <span contenteditable="true" class="trade-status" onblur="updateTradeField(this, 'status')">{{ trade.status }}</span>
                                         </td>
                                         <td>
                                             <span class="text-muted">{{ trade.created_at|date:"Y-m-d H:i" }}</span>
@@ -296,6 +292,205 @@
         if (dropdownInstance) {
             dropdownInstance.hide();
         }
+    }
+
+    function updateTradeField(element, field) {
+        const row = element.closest('tr');
+        const tradeId = row.getAttribute('data-trade-id');
+        const value = element.textContent.trim();
+        
+        console.log('Updating trade:', tradeId, field, value);
+        
+        // Check if tradeId exists
+        if (!tradeId) {
+            console.error('Trade ID not found in row');
+            // Show error feedback
+            const feedback = document.createElement('span');
+            feedback.className = 'text-danger ms-2';
+            feedback.innerHTML = '<i class="fas fa-times"></i>';
+            element.parentNode.appendChild(feedback);
+            
+            setTimeout(() => {
+                feedback.remove();
+            }, 2000);
+            return;
+        }
+        
+        // Show loading state
+        const originalContent = element.innerHTML;
+        element.innerHTML = `<i class="fas fa-spinner fa-spin"></i>`;
+        
+        // Send update request to server
+        fetch('/api/update_trade/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({
+                trade_id: tradeId,
+                field: field,
+                value: value
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Update response:', data);
+            
+            if (data.success) {
+                // Restore content with updated value
+                element.innerHTML = data.value || originalContent;
+                
+                // Show success feedback
+                const feedback = document.createElement('span');
+                feedback.className = 'text-success ms-2';
+                feedback.innerHTML = '<i class="fas fa-check"></i>';
+                element.parentNode.appendChild(feedback);
+                
+                // Remove feedback after 2 seconds
+                setTimeout(() => {
+                    feedback.remove();
+                }, 2000);
+            } else {
+                throw new Error(data.error || 'Update failed');
+            }
+        })
+        .catch(error => {
+            console.error('Error updating field:', error);
+            
+            // Restore content
+            element.innerHTML = originalContent;
+            
+            // Show error feedback
+            const feedback = document.createElement('span');
+            feedback.className = 'text-danger ms-2';
+            feedback.innerHTML = '<i class="fas fa-times"></i>';
+            element.parentNode.appendChild(feedback);
+            
+            // Remove feedback after 2 seconds
+            setTimeout(() => {
+                feedback.remove();
+            }, 2000);
+        });
+    }
+
+    function getCsrfToken() {
+        // Try to get from cookie first
+        const cookieValue = document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1];
+        
+        if (cookieValue) {
+            return cookieValue;
+        }
+        
+        // If not in cookie, try to get from hidden input
+        const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfInput) {
+            return csrfInput.value;
+        }
+        
+        console.error('CSRF token not found');
+        return '';
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add keydown event listeners to handle Enter key press
+        document.querySelectorAll('[contenteditable="true"]').forEach(element => {
+            element.addEventListener('keydown', function(e) {
+                // If Enter key is pressed
+                if (e.key === 'Enter') {
+                    e.preventDefault(); // Prevent default behavior (new line)
+                    this.blur(); // Trigger blur event which calls updateTradeField
+                }
+            });
+            
+            // For trade type field, add click handler to show dropdown
+            if (element.classList.contains('trade-type')) {
+                element.addEventListener('click', function(e) {
+                    showTypeDropdown(this);
+                });
+            }
+            
+            // For status field, add click handler to show dropdown
+            if (element.classList.contains('trade-status')) {
+                element.addEventListener('click', function(e) {
+                    showStatusDropdown(this);
+                });
+            }
+        });
+    });
+
+    function showTypeDropdown(element) {
+        // Create dropdown
+        const dropdown = document.createElement('div');
+        dropdown.className = 'position-absolute bg-white shadow rounded p-2 mt-1';
+        dropdown.style.zIndex = '1000';
+        
+        // Add options
+        const options = ['buy', 'sell'];
+        options.forEach(option => {
+            const item = document.createElement('div');
+            item.className = 'dropdown-item p-2 cursor-pointer';
+            item.textContent = option.charAt(0).toUpperCase() + option.slice(1);
+            item.addEventListener('click', function() {
+                element.textContent = this.textContent;
+                dropdown.remove();
+                element.dispatchEvent(new Event('blur'));
+            });
+            dropdown.appendChild(item);
+        });
+        
+        // Position and show dropdown
+        element.parentNode.style.position = 'relative';
+        element.parentNode.appendChild(dropdown);
+        
+        // Remove dropdown when clicking outside
+        document.addEventListener('click', function closeDropdown(e) {
+            if (!dropdown.contains(e.target) && e.target !== element) {
+                dropdown.remove();
+                document.removeEventListener('click', closeDropdown);
+            }
+        });
+    }
+
+    function showStatusDropdown(element) {
+        // Create dropdown
+        const dropdown = document.createElement('div');
+        dropdown.className = 'position-absolute bg-white shadow rounded p-2 mt-1';
+        dropdown.style.zIndex = '1000';
+        
+        // Add options
+        const options = ['active', 'closed', 'pending'];
+        options.forEach(option => {
+            const item = document.createElement('div');
+            item.className = 'dropdown-item p-2 cursor-pointer';
+            item.textContent = option.charAt(0).toUpperCase() + option.slice(1);
+            item.addEventListener('click', function() {
+                element.textContent = this.textContent;
+                dropdown.remove();
+                element.dispatchEvent(new Event('blur'));
+            });
+            dropdown.appendChild(item);
+        });
+        
+        // Position and show dropdown
+        element.parentNode.style.position = 'relative';
+        element.parentNode.appendChild(dropdown);
+        
+        // Remove dropdown when clicking outside
+        document.addEventListener('click', function closeDropdown(e) {
+            if (!dropdown.contains(e.target) && e.target !== element) {
+                dropdown.remove();
+                document.removeEventListener('click', closeDropdown);
+            }
+        });
     }
 </script>
 {% endblock %} 
