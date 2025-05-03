@@ -1067,6 +1067,28 @@ def update_trade(request):
             'error': str(e)
         })
 
+@csrf_exempt
+def delete_trade(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            trade_id = data.get('trade_id')
+            
+            # Get the trade
+            trade = Trade.objects.get(id=trade_id)
+            
+            # Delete the trade
+            trade.delete()
+            
+            return JsonResponse({'success': True})
+        except Trade.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Trade not found'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'Invalid request method'})
+
+
 
 
 

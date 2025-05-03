@@ -35,7 +35,9 @@ urlpatterns = [
     path('api/toggle_user_status/', views.toggle_user_status, name='toggle_user_status'),
     path('api/reset_user_password/', views.reset_user_password, name='reset_user_password'),
     path('api/update_trade/', views.update_trade, name='update_trade'),
+    path('api/delete_trade/', views.delete_trade, name='delete_trade'),
 ]
+
 
 
 
