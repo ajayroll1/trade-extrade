@@ -12,7 +12,7 @@ import json
 from datetime import datetime, timezone, timedelta
 from dotenv import load_dotenv
 import os
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 from decimal import Decimal, InvalidOperation
 import logging
 from django.db.models import Count, Sum
@@ -21,7 +21,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models.functions import TruncMonth
 
 from .forms import CustomUserCreationForm
-from .models import Trade, WishlistItem
+from .models import Trade, WishlistItem, PaymentMethod
 
 def generate_otp():
     return ''.join([str(random.randint(0, 9)) for _ in range(6)])
@@ -853,7 +853,115 @@ def admin_trades(request):
 
 @staff_member_required
 def admin_wallet(request):
-    return render(request, 'admin_wallet.html')
+    payment_methods = PaymentMethod.objects.all().order_by('-created_at')
+    context = {
+        'payment_methods': payment_methods
+    }
+    return render(request, 'admin_wallet.html', context)
+
+@csrf_exempt
+@staff_member_required
+def save_payment_method(request):
+    if request.method == 'POST':
+        try:
+            print("Received payment method request")  # Debug print
+            data = json.loads(request.body)
+            print("Request data:", data)  # Debug print
+            
+            payment_type = data.get('payment_type')
+            if not payment_type:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Payment type is required'
+                }, status=400)
+            
+            # Create new payment method
+            payment_method = PaymentMethod(
+                user=request.user,
+                payment_type=payment_type,
+                status='active'
+            )
+            
+            # Set fields based on payment type
+            if payment_type == 'bank':
+                payment_method.bank_name = data.get('bank_name')
+                payment_method.account_number = data.get('account_number')
+                payment_method.ifsc_code = data.get('ifsc_code')
+                
+                # Validate required fields for bank
+                if not all([payment_method.bank_name, payment_method.account_number]):
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'Bank name and account number are required'
+                    }, status=400)
+                    
+            elif payment_type == 'card':
+                payment_method.card_provider = data.get('card_provider')
+                payment_method.api_key = data.get('api_key')
+                
+                # Validate required fields for card
+                if not payment_method.card_provider:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'Card provider is required'
+                    }, status=400)
+                    
+            elif payment_type == 'crypto':
+                payment_method.wallet_address = data.get('wallet_address')
+                
+                # Validate required fields for crypto
+                if not payment_method.wallet_address:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'Wallet address is required'
+                    }, status=400)
+                    
+            elif payment_type == 'paypal':
+                payment_method.paypal_email = data.get('paypal_email')
+                payment_method.client_id = data.get('client_id')
+                
+                # Validate required fields for PayPal
+                if not payment_method.paypal_email:
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'PayPal email is required'
+                    }, status=400)
+            else:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Invalid payment type'
+                }, status=400)
+            
+            print("Saving payment method:", payment_method.__dict__)  # Debug print
+            payment_method.save()
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Payment method added successfully',
+                'payment_method': {
+                    'id': payment_method.id,
+                    'type': payment_method.get_payment_type_display(),
+                    'status': payment_method.status
+                }
+            })
+            
+        except json.JSONDecodeError as e:
+            print("JSON decode error:", str(e))  # Debug print
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid JSON data'
+            }, status=400)
+        except Exception as e:
+            print("Error saving payment method:", str(e))  # Debug print
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=400)
+    
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Invalid request method'
+    }, status=405)
 
 @staff_member_required
 def admin_finance(request):
@@ -1111,6 +1219,32 @@ def admin_dashboard_chart_data(request):
         volume_data['volumes'].append(round(entry['volume'] / 1000000, 2))  # Convert to millions
         
     return JsonResponse(volume_data)
+
+@require_POST
+@csrf_exempt
+def toggle_payment_method_status(request, payment_method_id):
+    try:
+        payment_method = PaymentMethod.objects.get(id=payment_method_id)
+        # Toggle the status
+        payment_method.status = 'inactive' if payment_method.status == 'active' else 'active'
+        payment_method.save()
+        return JsonResponse({'status': 'success', 'message': 'Payment method status updated successfully'})
+    except PaymentMethod.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Payment method not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+@require_POST
+@csrf_exempt
+def delete_payment_method(request, payment_method_id):
+    try:
+        payment_method = PaymentMethod.objects.get(id=payment_method_id)
+        payment_method.delete()
+        return JsonResponse({'status': 'success', 'message': 'Payment method deleted successfully'})
+    except PaymentMethod.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Payment method not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 
 

@@ -36,6 +36,9 @@ urlpatterns = [
     path('api/reset_user_password/', views.reset_user_password, name='reset_user_password'),
     path('api/update_trade/', views.update_trade, name='update_trade'),
     path('api/delete_trade/', views.delete_trade, name='delete_trade'),
+    path('api/save-payment-method/', views.save_payment_method, name='save_payment_method'),
+    path('api/toggle-payment-method/<int:payment_method_id>/', views.toggle_payment_method_status, name='toggle_payment_method_status'),
+    path('api/delete-payment-method/<int:payment_method_id>/', views.delete_payment_method, name='delete_payment_method'),
 ]
 
 

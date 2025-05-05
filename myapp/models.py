@@ -42,3 +42,44 @@ class WishlistItem(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.symbol}"
+
+class PaymentMethod(models.Model):
+    PAYMENT_TYPE_CHOICES = [
+        ('bank', 'Bank Account'),
+        ('card', 'Credit/Debit Card'),
+        ('crypto', 'Cryptocurrency'),
+        ('paypal', 'PayPal'),
+    ]
+
+    STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('inactive', 'Inactive'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPE_CHOICES)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # Bank Account Fields
+    bank_name = models.CharField(max_length=100, null=True, blank=True)
+    account_number = models.CharField(max_length=50, null=True, blank=True)
+    ifsc_code = models.CharField(max_length=20, null=True, blank=True)
+
+    # Card Fields
+    card_provider = models.CharField(max_length=50, null=True, blank=True)
+    api_key = models.CharField(max_length=100, null=True, blank=True)
+
+    # Crypto Fields
+    wallet_address = models.CharField(max_length=100, null=True, blank=True)
+
+    # PayPal Fields
+    paypal_email = models.EmailField(null=True, blank=True)
+    client_id = models.CharField(max_length=100, null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.get_payment_type_display()} - {self.user.username if self.user else 'System'}"

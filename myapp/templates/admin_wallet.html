@@ -397,110 +397,76 @@
                 <div class="row">
                     <!-- Left Column - Existing Accounts -->
                     <div class="col-md-6 border-end">
-                        <h6 class="fw-bold mb-3">Existing Payment Accounts</h6>
-                        <div class="list-group mb-3">
+                        <h6 class="fw-bold mb-3">Existing Payment Methods</h6>
+                        <div class="list-group mb-3" id="existingPaymentMethods">
+                            {% for payment_method in payment_methods %}
                             <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                <div>
-                                    <i class="fas fa-university me-2 text-primary"></i>
-                                    <span>Bank of America</span>
+                                <div class="d-flex align-items-center">
+                                    <i class="{% if payment_method.payment_type == 'bank' %}fas fa-university
+                                             {% elif payment_method.payment_type == 'card' %}fas fa-credit-card
+                                             {% elif payment_method.payment_type == 'crypto' %}fab fa-bitcoin
+                                             {% elif payment_method.payment_type == 'paypal' %}fab fa-paypal{% endif %} me-2 text-primary"></i>
+                                    <span>{{ payment_method.get_payment_type_display }}</span>
                                 </div>
-                                <span class="badge bg-success rounded-pill">Active</span>
-                            </div>
-                            <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                <div>
-                                    <i class="fab fa-paypal me-2 text-primary"></i>
-                                    <span>PayPal Business</span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <button class="btn btn-link text-danger p-0" onclick="deletePaymentMethod({{ payment_method.id }}, event)">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                    <span class="badge {% if payment_method.status == 'active' %}bg-success{% else %}bg-danger{% endif %} rounded-pill" 
+                                          onclick="togglePaymentMethodStatus({{ payment_method.id }})" style="cursor: pointer;">
+                                        {{ payment_method.status|title }}
+                                    </span>
                                 </div>
-                                <span class="badge bg-success rounded-pill">Active</span>
                             </div>
-                            <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                <div>
-                                    <i class="fab fa-bitcoin me-2 text-primary"></i>
-                                    <span>Bitcoin Wallet</span>
-                                </div>
-                                <span class="badge bg-warning rounded-pill">Pending</span>
+                            {% empty %}
+                            <div class="list-group-item text-center text-muted">
+                                No payment methods added yet
                             </div>
-                            <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                <div>
-                                    <i class="fas fa-credit-card me-2 text-primary"></i>
-                                    <span>Stripe Account</span>
-                                </div>
-                                <span class="badge bg-success rounded-pill">Active</span>
-                            </div>
+                            {% endfor %}
                         </div>
-                        <button class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-cog me-1"></i> Manage Existing Accounts
-                        </button>
                     </div>
                     
                     <!-- Right Column - Add New Payment Method -->
                     <div class="col-md-6">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="fw-bold mb-0">Add New Payment Method</h6>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" id="backToPaymentList">
-                                <i class="fas fa-arrow-left"></i> Back
-                            </button>
-                        </div>
-                        <form>
+                        <h6 class="fw-bold mb-3">Add New Payment Method</h6>
+                        <form id="paymentMethodForm">
                             <div class="mb-3">
                                 <label class="form-label">Payment Type</label>
-                                <select class="form-select" id="paymentMethodSelect">
+                                <select class="form-select" id="paymentMethodSelect" name="payment_type" required>
                                     <option value="" selected disabled>Select payment method</option>
                                     <option value="bank">Bank Account</option>
-                                    <option value="upi">UPI</option>
-                                    <option value="crypto">Cryptocurrency</option>
                                     <option value="card">Credit/Debit Card</option>
+                                    <option value="crypto">Cryptocurrency</option>
                                     <option value="paypal">PayPal</option>
                                 </select>
                             </div>
                             
-                            <!-- Dynamic form fields based on selection -->
                             <div id="bankFields" class="payment-fields d-none">
                                 <div class="mb-3">
                                     <label class="form-label">Bank Name</label>
-                                    <input type="text" class="form-control" placeholder="Enter bank name">
+                                    <input type="text" class="form-control" name="bank_name" placeholder="Enter bank name">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Account Number</label>
-                                    <input type="text" class="form-control" placeholder="Enter account number">
+                                    <input type="text" class="form-control" name="account_number" placeholder="Enter account number">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">IFSC Code</label>
-                                    <input type="text" class="form-control" placeholder="Enter IFSC code">
-                                </div>
-                            </div>
-                            
-                            <div id="upiFields" class="payment-fields d-none">
-                                <div class="mb-3">
-                                    <label class="form-label">UPI ID</label>
-                                    <input type="text" class="form-control" placeholder="username@upi">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Display Name</label>
-                                    <input type="text" class="form-control" placeholder="Enter display name">
+                                    <input type="text" class="form-control" name="ifsc_code" placeholder="Enter IFSC code">
                                 </div>
                             </div>
                             
                             <div id="cryptoFields" class="payment-fields d-none">
                                 <div class="mb-3">
-                                    <label class="form-label">Cryptocurrency</label>
-                                    <select class="form-select">
-                                        <option value="btc">Bitcoin (BTC)</option>
-                                        <option value="eth">Ethereum (ETH)</option>
-                                        <option value="usdt">Tether (USDT)</option>
-                                        <option value="bnb">Binance Coin (BNB)</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
                                     <label class="form-label">Wallet Address</label>
-                                    <input type="text" class="form-control" placeholder="Enter wallet address">
+                                    <input type="text" class="form-control" name="wallet_address" placeholder="Enter wallet address">
                                 </div>
                             </div>
                             
                             <div id="cardFields" class="payment-fields d-none">
                                 <div class="mb-3">
                                     <label class="form-label">Card Provider</label>
-                                    <select class="form-select">
+                                    <select class="form-select" name="card_provider">
                                         <option value="visa">Visa</option>
                                         <option value="mastercard">Mastercard</option>
                                         <option value="amex">American Express</option>
@@ -509,27 +475,25 @@
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">API Key</label>
-                                    <input type="text" class="form-control" placeholder="Enter API key">
+                                    <input type="text" class="form-control" name="api_key" placeholder="Enter API key">
                                 </div>
                             </div>
                             
                             <div id="paypalFields" class="payment-fields d-none">
                                 <div class="mb-3">
                                     <label class="form-label">PayPal Email</label>
-                                    <input type="email" class="form-control" placeholder="Enter PayPal email">
+                                    <input type="email" class="form-control" name="paypal_email" placeholder="Enter PayPal email">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label">Client ID</label>
-                                    <input type="text" class="form-control" placeholder="Enter client ID">
+                                    <input type="text" class="form-control" name="client_id" placeholder="Enter client ID">
                                 </div>
                             </div>
                             
-                            <div class="mb-3 form-check">
-                                <input type="checkbox" class="form-check-input" id="defaultGateway">
-                                <label class="form-check-label" for="defaultGateway">Set as default payment gateway</label>
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-primary" onclick="savePaymentMethod(event)">Add Payment Method</button>
+                                <button type="button" class="btn btn-secondary ms-2" data-bs-dismiss="modal">Cancel</button>
                             </div>
-                            
-                            <button type="submit" class="btn btn-primary w-100">Add Payment Method</button>
                         </form>
                     </div>
                 </div>
@@ -537,6 +501,197 @@
         </div>
     </div>
 </div>
+
+<!-- Add this function at the top of your script section -->
+<script>
+function openPaymentGatewayModal() {
+    const modal = new bootstrap.Modal(document.getElementById('paymentGatewayModal'));
+    modal.show();
+}
+
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+
+function savePaymentMethod(event) {
+    event.preventDefault();
+    
+    const form = document.getElementById('paymentMethodForm');
+    const paymentType = document.getElementById('paymentMethodSelect').value;
+    
+    if (!paymentType) {
+        alert('Please select a payment method');
+        return;
+    }
+    
+    // Get active fields based on payment type
+    const activeFields = document.getElementById(`${paymentType}Fields`);
+    if (!activeFields) {
+        alert('Invalid payment method selected');
+        return;
+    }
+    
+    // Create FormData object
+    const formData = new FormData(form);
+    const data = {};
+    
+    // Convert FormData to JSON object
+    for (let [key, value] of formData.entries()) {
+        if (value.trim() !== '') {  // Only include non-empty values
+            data[key] = value.trim();
+        }
+    }
+    
+    // Get CSRF token
+    const csrftoken = getCookie('csrftoken');
+    
+    // Send data to server
+    fetch('/api/save-payment-method/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Show success message
+            alert('Payment method added successfully!');
+            
+            // Reset form
+            form.reset();
+            document.querySelectorAll('.payment-fields').forEach(field => {
+                field.classList.add('d-none');
+            });
+            
+            // Reload the page to show new payment method
+            location.reload();
+        } else {
+            throw new Error(data.message || 'Error saving payment method');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert(error.message || 'Error saving payment method');
+    });
+}
+
+// Helper function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Show/hide payment fields based on selection
+document.getElementById('paymentMethodSelect').addEventListener('change', function() {
+    document.querySelectorAll('.payment-fields').forEach(field => {
+        field.classList.add('d-none');
+    });
+    
+    const selectedType = this.value;
+    if(selectedType) {
+        const selectedFields = document.getElementById(`${selectedType}Fields`);
+        if (selectedFields) {
+            selectedFields.classList.remove('d-none');
+        }
+    }
+});
+
+function togglePaymentMethodStatus(paymentMethodId) {
+    // Get CSRF token
+    const csrftoken = getCookie('csrftoken');
+    
+    // Send request to toggle status
+    fetch(`/api/toggle-payment-method/${paymentMethodId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Find the payment method element
+            const paymentMethodElement = document.querySelector(`[onclick="togglePaymentMethodStatus(${paymentMethodId})"]`);
+            if (paymentMethodElement) {
+                // Find the badge element
+                const badgeElement = paymentMethodElement.querySelector('.badge');
+                if (badgeElement) {
+                    // Toggle the badge classes and text
+                    if (badgeElement.classList.contains('bg-success')) {
+                        badgeElement.classList.remove('bg-success');
+                        badgeElement.classList.add('bg-danger');
+                        badgeElement.textContent = 'Inactive';
+                    } else {
+                        badgeElement.classList.remove('bg-danger');
+                        badgeElement.classList.add('bg-success');
+                        badgeElement.textContent = 'Active';
+                    }
+                }
+            }
+        } else {
+            throw new Error(data.message || 'Error toggling payment method status');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert(error.message || 'Error toggling payment method status');
+    });
+}
+
+function deletePaymentMethod(paymentMethodId, event) {
+    // Prevent default behavior and stop event propagation
+    event.preventDefault();
+    event.stopPropagation();
+    
+    if (confirm('Are you sure you want to delete this payment method?')) {
+        // Get CSRF token
+        const csrftoken = getCookie('csrftoken');
+        
+        // Send delete request
+        fetch(`/api/delete-payment-method/${paymentMethodId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Find and remove the payment method element
+                const paymentMethodElement = event.target.closest('.list-group-item');
+                if (paymentMethodElement) {
+                    paymentMethodElement.remove();
+                }
+            } else {
+                throw new Error(data.message || 'Error deleting payment method');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(error.message || 'Error deleting payment method');
+        });
+    }
+}
+</script>
 
 <style>
     body {
@@ -817,7 +972,9 @@
         }
     });
 </script>
-{% endblock %} 
+{% endblock %}
+
+
 
 
 
