@@ -46,7 +46,7 @@ class WishlistItem(models.Model):
 class PaymentMethod(models.Model):
     PAYMENT_TYPE_CHOICES = [
         ('bank', 'Bank Account'),
-        ('card', 'Credit/Debit Card'),
+        ('upi', 'UPI ID'),
         ('crypto', 'Cryptocurrency'),
         ('paypal', 'PayPal'),
     ]
@@ -67,9 +67,9 @@ class PaymentMethod(models.Model):
     account_number = models.CharField(max_length=50, null=True, blank=True)
     ifsc_code = models.CharField(max_length=20, null=True, blank=True)
 
-    # Card Fields
-    card_provider = models.CharField(max_length=50, null=True, blank=True)
-    api_key = models.CharField(max_length=100, null=True, blank=True)
+    # UPI Fields
+    upi_id = models.CharField(max_length=100, null=True, blank=True)
+    account_name = models.CharField(max_length=100, null=True, blank=True)
 
     # Crypto Fields
     wallet_address = models.CharField(max_length=100, null=True, blank=True)

@@ -130,7 +130,11 @@ def logout_view(request):
 
 @login_required
 def dashboard(request):
-    return render(request, 'dashboard.html')
+    payment_methods = PaymentMethod.objects.all()
+    context = {
+        'payment_methods': payment_methods
+    }
+    return render(request, 'dashboard.html', context)
 
 @login_required
 def wishlist(request):
@@ -925,6 +929,16 @@ def save_payment_method(request):
                     return JsonResponse({
                         'status': 'error',
                         'message': 'PayPal email is required'
+                    }, status=400)
+            elif payment_type == 'upi':
+                payment_method.upi_id = data.get('upi_id')
+                payment_method.account_name = data.get('account_name')
+                
+                # Validate required fields for UPI
+                if not all([payment_method.upi_id, payment_method.account_name]):
+                    return JsonResponse({
+                        'status': 'error',
+                        'message': 'UPI ID and Account Name are required'
                     }, status=400)
             else:
                 return JsonResponse({

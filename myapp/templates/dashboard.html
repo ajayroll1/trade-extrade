@@ -789,14 +789,14 @@
                 </div>
             </div>
 
-            <!-- Credit Card Option -->
-            <div class="payment-option" onclick="selectPaymentMethod('card')">
+            <!-- UPI Option -->
+            <div class="payment-option" onclick="selectPaymentMethod('upi')">
                 <div class="payment-icon">
-                    <i class="fas fa-credit-card"></i>
+                    <i class="fas fa-mobile-alt"></i>
                 </div>
                 <div class="payment-details">
-                    <h3>Credit/Debit Card</h3>
-                    <p>Pay using Visa, Mastercard, or other cards</p>
+                    <h3>UPI Payment</h3>
+                    <p>Pay using UPI apps like Google Pay, PhonePe, etc.</p>
                 </div>
             </div>
 
@@ -814,11 +814,11 @@
             <!-- E-Wallet Option -->
             <div class="payment-option" onclick="selectPaymentMethod('ewallet')">
                 <div class="payment-icon">
-                    <i class="fas fa-wallet"></i>
+                    <i class="fab fa-paypal"></i>
                 </div>
                 <div class="payment-details">
-                    <h3>E-Wallet</h3>
-                    <p>Pay using PayPal, Skrill, or other e-wallets</p>
+                    <h3>PayPal</h3>
+                    <p>Pay using your PayPal account</p>
                 </div>
             </div>
         </div>
@@ -902,34 +902,31 @@
             <!-- Bank Information -->
             <div class="bank-info" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; width: 100%; max-width: 500px;">
                 <h3 style="margin-bottom: 15px; color: #333; text-align: center;">Bank Account Details</h3>
-                <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
-                    <span style="font-weight: 500; color: #666;">Bank Name:</span>
-                    <span>State Bank of India</span>
-                </div>
-                <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
-                    <span style="font-weight: 500; color: #666;">Account Name:</span>
-                    <span>TradePro Solutions Pvt Ltd</span>
-                </div>
-                <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
-                    <span style="font-weight: 500; color: #666;">Account Number:</span>
-                    <span>3164 2957 1825 9164</span>
-                </div>
-                <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
-                    <span style="font-weight: 500; color: #666;">IFSC Code:</span>
-                    <span>SBIN0021548</span>
-                </div>
-                <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
-                    <span style="font-weight: 500; color: #666;">Branch Name:</span>
-                    <span>Cyber City Branch</span>
-                </div>
-                <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
-                    <span style="font-weight: 500; color: #666;">Branch Address:</span>
-                    <span>Plot No. 123, Cyber City, Sector 15, Gurugram, Haryana</span>
-                </div>
-                <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
-                    <span style="font-weight: 500; color: #666;">Pin Code:</span>
-                    <span>122002</span>
-                </div>
+                {% for payment_method in payment_methods %}
+                    {% if payment_method.payment_type == 'bank' and payment_method.status == 'active' %}
+                        <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
+                            <span style="font-weight: 500; color: #666;">Bank Name:</span>
+                            <span>{{ payment_method.bank_name }}</span>
+                        </div>
+                        <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
+                            <span style="font-weight: 500; color: #666;">Account Number:</span>
+                            <span>{{ payment_method.account_number }}</span>
+                        </div>
+                        <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
+                            <span style="font-weight: 500; color: #666;">IFSC Code:</span>
+                            <span>{{ payment_method.ifsc_code }}</span>
+                        </div>
+                        <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
+                            <span style="font-weight: 500; color: #666;">Status:</span>
+                            <span style="color: #28a745; font-weight: 500;">{{ payment_method.status|title }}</span>
+                        </div>
+                    {% endif %}
+                {% empty %}
+                    <div class="text-center text-muted" style="padding: 20px;">
+                        <i class="fas fa-info-circle" style="font-size: 24px; margin-bottom: 10px;"></i>
+                        <p>No active bank account found</p>
+                    </div>
+                {% endfor %}
             </div>
 
             <!-- Upload Receipt Form -->
@@ -972,6 +969,292 @@
                            border-radius: 8px; 
                            font-size: 16px;"
                            placeholder="Enter bank transaction reference">
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" 
+                        style="width: 100%; 
+                        padding: 15px; 
+                        background: #00c7ff; 
+                        color: white; 
+                        border: none; 
+                        border-radius: 8px; 
+                        font-size: 16px; 
+                        cursor: pointer; 
+                        transition: all 0.3s ease;">
+                    Submit Payment Proof
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Cryptocurrency Details Modal -->
+<div id="cryptoDetailsModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 500px; margin: auto; max-height: 80vh; overflow-y: auto;">
+        <div class="modal-header" style="text-align: center; position: sticky; top: 0; background: white; z-index: 1; padding: 15px; border-bottom: 1px solid #eee;">
+            <h2 style="width: 100%; font-size: 20px;">Cryptocurrency Wallet Details</h2>
+            <span class="close" onclick="closeCryptoModal()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);">&times;</span>
+        </div>
+        <div class="crypto-details-content" style="padding: 20px; display: flex; flex-direction: column; align-items: center;">
+            <!-- Cryptocurrency Information -->
+            <div class="crypto-info" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; width: 100%; max-width: 500px;">
+                <h3 style="margin-bottom: 15px; color: #333; text-align: center;">Cryptocurrency Wallet Details</h3>
+                {% for payment_method in payment_methods %}
+                    {% if payment_method.payment_type == 'crypto' and payment_method.status == 'active' %}
+                        <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
+                            <span style="font-weight: 500; color: #666;">Coin Type:</span>
+                            <span>{{ payment_method.coin_type }}</span>
+                        </div>
+                        <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
+                            <span style="font-weight: 500; color: #666;">Wallet Address:</span>
+                            <span>{{ payment_method.wallet_address }}</span>
+                        </div>
+                        <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
+                            <span style="font-weight: 500; color: #666;">Network:</span>
+                            <span>{{ payment_method.network }}</span>
+                        </div>
+                        <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
+                            <span style="font-weight: 500; color: #666;">Status:</span>
+                            <span style="color: #28a745; font-weight: 500;">{{ payment_method.status|title }}</span>
+                        </div>
+                    {% endif %}
+                {% empty %}
+                    <div class="text-center text-muted" style="padding: 20px;">
+                        <i class="fas fa-info-circle" style="font-size: 24px; margin-bottom: 10px;"></i>
+                        <p>No active cryptocurrency wallet found</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Upload Transaction Proof Form -->
+            <form id="cryptoReceiptUploadForm" onsubmit="handleCryptoReceiptSubmit(event)" style="width: 100%; max-width: 500px;">
+                <div style="margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 15px; color: #333; text-align: center;">Upload Transaction Proof</h3>
+                    <div class="upload-section" style="border: 2px dashed #ddd; padding: 20px; border-radius: 8px; text-align: center;">
+                        <input type="file" 
+                               id="cryptoReceiptFile" 
+                               accept="image/*,.pdf" 
+                               required 
+                               style="display: none;"
+                               onchange="updateCryptoFileName(this)">
+                        <label for="cryptoReceiptFile" 
+                               style="display: block; 
+                               cursor: pointer; 
+                               padding: 15px; 
+                               background: #f8f9fa; 
+                               border-radius: 8px;">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 24px; color: #00c7ff; margin-bottom: 10px;"></i>
+                            <div id="cryptoFileName">Click to upload transaction proof</div>
+                            <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                                Supported formats: JPG, PNG, PDF (Max size: 5MB)
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Transaction Hash -->
+                <div style="margin-bottom: 20px;">
+                    <label for="transactionHash" style="display: block; margin-bottom: 8px; color: #333; text-align: center;">
+                        Transaction Hash
+                    </label>
+                    <input type="text" 
+                           id="transactionHash" 
+                           required 
+                           style="width: 100%; 
+                           padding: 12px; 
+                           border: 2px solid #e0e0e0; 
+                           border-radius: 8px; 
+                           font-size: 16px;"
+                           placeholder="Enter transaction hash">
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" 
+                        style="width: 100%; 
+                        padding: 15px; 
+                        background: #00c7ff; 
+                        color: white; 
+                        border: none; 
+                        border-radius: 8px; 
+                        font-size: 16px; 
+                        cursor: pointer; 
+                        transition: all 0.3s ease;">
+                    Submit Transaction Proof
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- PayPal Details Modal -->
+<div id="paypalDetailsModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 500px; margin: auto; max-height: 80vh; overflow-y: auto;">
+        <div class="modal-header" style="text-align: center; position: sticky; top: 0; background: white; z-index: 1; padding: 15px; border-bottom: 1px solid #eee;">
+            <h2 style="width: 100%; font-size: 20px;">PayPal Payment Details</h2>
+            <span class="close" onclick="closePayPalModal()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);">&times;</span>
+        </div>
+        <div class="paypal-details-content" style="padding: 20px; display: flex; flex-direction: column; align-items: center;">
+            <!-- PayPal Information -->
+            <div class="paypal-info" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; width: 100%; max-width: 500px;">
+                <h3 style="margin-bottom: 15px; color: #333; text-align: center;">PayPal Account Details</h3>
+                {% for payment_method in payment_methods %}
+                    {% if payment_method.payment_type == 'paypal' and payment_method.status == 'active' %}
+                        <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
+                            <span style="font-weight: 500; color: #666;">PayPal Email:</span>
+                            <span>{{ payment_method.paypal_email }}</span>
+                        </div>
+                        <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
+                            <span style="font-weight: 500; color: #666;">Account Name:</span>
+                            <span>{{ payment_method.account_name }}</span>
+                        </div>
+                        <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
+                            <span style="font-weight: 500; color: #666;">Status:</span>
+                            <span style="color: #28a745; font-weight: 500;">{{ payment_method.status|title }}</span>
+                        </div>
+                    {% endif %}
+                {% empty %}
+                    <div class="text-center text-muted" style="padding: 20px;">
+                        <i class="fas fa-info-circle" style="font-size: 24px; margin-bottom: 10px;"></i>
+                        <p>No active PayPal account found</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Upload Payment Proof Form -->
+            <form id="paypalReceiptUploadForm" onsubmit="handlePayPalReceiptSubmit(event)" style="width: 100%; max-width: 500px;">
+                <div style="margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 15px; color: #333; text-align: center;">Upload Payment Proof</h3>
+                    <div class="upload-section" style="border: 2px dashed #ddd; padding: 20px; border-radius: 8px; text-align: center;">
+                        <input type="file" 
+                               id="paypalReceiptFile" 
+                               accept="image/*,.pdf" 
+                               required 
+                               style="display: none;"
+                               onchange="updatePayPalFileName(this)">
+                        <label for="paypalReceiptFile" 
+                               style="display: block; 
+                               cursor: pointer; 
+                               padding: 15px; 
+                               background: #f8f9fa; 
+                               border-radius: 8px;">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 24px; color: #00c7ff; margin-bottom: 10px;"></i>
+                            <div id="paypalFileName">Click to upload payment proof</div>
+                            <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                                Supported formats: JPG, PNG, PDF (Max size: 5MB)
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Transaction ID -->
+                <div style="margin-bottom: 20px;">
+                    <label for="paypalTransactionId" style="display: block; margin-bottom: 8px; color: #333; text-align: center;">
+                        PayPal Transaction ID
+                    </label>
+                    <input type="text" 
+                           id="paypalTransactionId" 
+                           required 
+                           style="width: 100%; 
+                           padding: 12px; 
+                           border: 2px solid #e0e0e0; 
+                           border-radius: 8px; 
+                           font-size: 16px;"
+                           placeholder="Enter PayPal transaction ID">
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" 
+                        style="width: 100%; 
+                        padding: 15px; 
+                        background: #00c7ff; 
+                        color: white; 
+                        border: none; 
+                        border-radius: 8px; 
+                        font-size: 16px; 
+                        cursor: pointer; 
+                        transition: all 0.3s ease;">
+                    Submit Payment Proof
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- UPI Details Modal -->
+<div id="upiDetailsModal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 500px; margin: auto; max-height: 80vh; overflow-y: auto;">
+        <div class="modal-header" style="text-align: center; position: sticky; top: 0; background: white; z-index: 1; padding: 15px; border-bottom: 1px solid #eee;">
+            <h2 style="width: 100%; font-size: 20px;">UPI Payment Details</h2>
+            <span class="close" onclick="closeUPIModal()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%);">&times;</span>
+        </div>
+        <div class="upi-details-content" style="padding: 20px; display: flex; flex-direction: column; align-items: center;">
+            <!-- UPI Information -->
+            <div class="upi-info" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; width: 100%; max-width: 500px;">
+                <h3 style="margin-bottom: 15px; color: #333; text-align: center;">UPI Account Details</h3>
+                {% for payment_method in payment_methods %}
+                    {% if payment_method.payment_type == 'upi' and payment_method.status == 'active' %}
+                        <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
+                            <span style="font-weight: 500; color: #666;">UPI ID:</span>
+                            <span>{{ payment_method.upi_id }}</span>
+                        </div>
+                        <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
+                            <span style="font-weight: 500; color: #666;">Account Name:</span>
+                            <span>{{ payment_method.account_name }}</span>
+                        </div>
+                        <div class="detail-row" style="display: grid; grid-template-columns: 140px 1fr; gap: 10px; margin-bottom: 10px;">
+                            <span style="font-weight: 500; color: #666;">Status:</span>
+                            <span style="color: #28a745; font-weight: 500;">{{ payment_method.status|title }}</span>
+                        </div>
+                    {% endif %}
+                {% empty %}
+                    <div class="text-center text-muted" style="padding: 20px;">
+                        <i class="fas fa-info-circle" style="font-size: 24px; margin-bottom: 10px;"></i>
+                        <p>No active UPI account found</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Upload Payment Proof Form -->
+            <form id="upiReceiptUploadForm" onsubmit="handleUPIReceiptSubmit(event)" style="width: 100%; max-width: 500px;">
+                <div style="margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 15px; color: #333; text-align: center;">Upload Payment Proof</h3>
+                    <div class="upload-section" style="border: 2px dashed #ddd; padding: 20px; border-radius: 8px; text-align: center;">
+                        <input type="file" 
+                               id="upiReceiptFile" 
+                               accept="image/*,.pdf" 
+                               required 
+                               style="display: none;"
+                               onchange="updateUPIFileName(this)">
+                        <label for="upiReceiptFile" 
+                               style="display: block; 
+                               cursor: pointer; 
+                               padding: 15px; 
+                               background: #f8f9fa; 
+                               border-radius: 8px;">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 24px; color: #00c7ff; margin-bottom: 10px;"></i>
+                            <div id="upiFileName">Click to upload payment proof</div>
+                            <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                                Supported formats: JPG, PNG, PDF (Max size: 5MB)
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- UPI Transaction ID -->
+                <div style="margin-bottom: 20px;">
+                    <label for="upiTransactionId" style="display: block; margin-bottom: 8px; color: #333; text-align: center;">
+                        UPI Transaction ID
+                    </label>
+                    <input type="text" 
+                           id="upiTransactionId" 
+                           required 
+                           style="width: 100%; 
+                           padding: 12px; 
+                           border: 2px solid #e0e0e0; 
+                           border-radius: 8px; 
+                           font-size: 16px;"
+                           placeholder="Enter UPI transaction ID">
                 </div>
 
                 <!-- Submit Button -->
@@ -1155,17 +1438,17 @@
                 closeAmountModal();
                 showBankDetails();
                 break;
-            case 'card':
-                alert(`Processing card payment for $${amount}`);
+            case 'upi':
                 closeAmountModal();
+                showUPIDetails();
                 break;
             case 'crypto':
-                alert(`Processing crypto payment for $${amount}`);
                 closeAmountModal();
+                showCryptoDetails();
                 break;
             case 'ewallet':
-                alert(`Processing e-wallet payment for $${amount}`);
                 closeAmountModal();
+                showPayPalDetails();
                 break;
         }
     }
@@ -1186,10 +1469,23 @@
     window.onclick = function(event) {
         const amountModal = document.getElementById('amountInputModal');
         const bankModal = document.getElementById('bankDetailsModal');
+        const upiModal = document.getElementById('upiDetailsModal');
+        const cryptoModal = document.getElementById('cryptoDetailsModal');
+        const paypalModal = document.getElementById('paypalDetailsModal');
+        const successModal = document.getElementById('successModal');
+        
         if (event.target == amountModal) {
             closeAmountModal();
         } else if (event.target == bankModal) {
             bankModal.style.display = 'none';
+        } else if (event.target == upiModal) {
+            upiModal.style.display = 'none';
+        } else if (event.target == cryptoModal) {
+            cryptoModal.style.display = 'none';
+        } else if (event.target == paypalModal) {
+            paypalModal.style.display = 'none';
+        } else if (event.target == successModal) {
+            closeSuccessModal();
         }
     }
 
@@ -1260,15 +1556,82 @@
         document.getElementById('fileName').textContent = 'Click to upload payment receipt';
     }
 
-    // Close modals when clicking outside
-    window.onclick = function(event) {
-        const bankModal = document.getElementById('bankDetailsModal');
-        const successModal = document.getElementById('successModal');
-        if (event.target == bankModal) {
-            closeBankModal();
-        } else if (event.target == successModal) {
-            closeSuccessModal();
-        }
+    function showCryptoDetails() {
+        document.getElementById('cryptoDetailsModal').style.display = 'block';
+    }
+
+    function closeCryptoModal() {
+        document.getElementById('cryptoDetailsModal').style.display = 'none';
+    }
+
+    function updateCryptoFileName(input) {
+        const fileName = input.files[0]?.name || 'Click to upload transaction proof';
+        document.getElementById('cryptoFileName').textContent = fileName;
+    }
+
+    function handleCryptoReceiptSubmit(event) {
+        event.preventDefault();
+        
+        // Here you would typically send the data to your server
+        // For now, we'll just show the success message
+        document.getElementById('cryptoDetailsModal').style.display = 'none';
+        document.getElementById('successModal').style.display = 'block';
+        
+        // Reset form
+        event.target.reset();
+        document.getElementById('cryptoFileName').textContent = 'Click to upload transaction proof';
+    }
+
+    function showPayPalDetails() {
+        document.getElementById('paypalDetailsModal').style.display = 'block';
+    }
+
+    function closePayPalModal() {
+        document.getElementById('paypalDetailsModal').style.display = 'none';
+    }
+
+    function updatePayPalFileName(input) {
+        const fileName = input.files[0]?.name || 'Click to upload payment proof';
+        document.getElementById('paypalFileName').textContent = fileName;
+    }
+
+    function handlePayPalReceiptSubmit(event) {
+        event.preventDefault();
+        
+        // Here you would typically send the data to your server
+        // For now, we'll just show the success message
+        document.getElementById('paypalDetailsModal').style.display = 'none';
+        document.getElementById('successModal').style.display = 'block';
+        
+        // Reset form
+        event.target.reset();
+        document.getElementById('paypalFileName').textContent = 'Click to upload payment proof';
+    }
+
+    function showUPIDetails() {
+        document.getElementById('upiDetailsModal').style.display = 'block';
+    }
+
+    function closeUPIModal() {
+        document.getElementById('upiDetailsModal').style.display = 'none';
+    }
+
+    function updateUPIFileName(input) {
+        const fileName = input.files[0]?.name || 'Click to upload payment proof';
+        document.getElementById('upiFileName').textContent = fileName;
+    }
+
+    function handleUPIReceiptSubmit(event) {
+        event.preventDefault();
+        
+        // Here you would typically send the data to your server
+        // For now, we'll just show the success message
+        document.getElementById('upiDetailsModal').style.display = 'none';
+        document.getElementById('successModal').style.display = 'block';
+        
+        // Reset form
+        event.target.reset();
+        document.getElementById('upiFileName').textContent = 'Click to upload payment proof';
     }
 
     // Withdrawal Modal functionality

@@ -405,7 +405,8 @@
                                     <i class="{% if payment_method.payment_type == 'bank' %}fas fa-university
                                              {% elif payment_method.payment_type == 'card' %}fas fa-credit-card
                                              {% elif payment_method.payment_type == 'crypto' %}fab fa-bitcoin
-                                             {% elif payment_method.payment_type == 'paypal' %}fab fa-paypal{% endif %} me-2 text-primary"></i>
+                                             {% elif payment_method.payment_type == 'paypal' %}fab fa-paypal
+                                             {% elif payment_method.payment_type == 'upi' %}fas fa-mobile-alt{% endif %} me-2 text-primary"></i>
                                     <span>{{ payment_method.get_payment_type_display }}</span>
                                 </div>
                                 <div class="d-flex align-items-center gap-2">
@@ -439,6 +440,7 @@
                                     <option value="card">Credit/Debit Card</option>
                                     <option value="crypto">Cryptocurrency</option>
                                     <option value="paypal">PayPal</option>
+                                    <option value="upi">UPI ID</option>
                                 </select>
                             </div>
                             
@@ -488,6 +490,17 @@
                                 <div class="mb-3">
                                     <label class="form-label">Client ID</label>
                                     <input type="text" class="form-control" name="client_id" placeholder="Enter client ID">
+                                </div>
+                            </div>
+                            
+                            <div id="upiFields" class="payment-fields d-none">
+                                <div class="mb-3">
+                                    <label class="form-label">UPI ID</label>
+                                    <input type="text" class="form-control" name="upi_id" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Account Name</label>
+                                    <input type="text" class="form-control" name="account_name" required>
                                 </div>
                             </div>
                             
@@ -588,6 +601,9 @@ function savePaymentMethod(event) {
                     break;
                 case 'paypal':
                     iconClass = 'fab fa-paypal';
+                    break;
+                case 'upi':
+                    iconClass = 'fas fa-mobile-alt';
                     break;
             }
             
