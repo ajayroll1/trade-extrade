@@ -413,7 +413,8 @@
                                         <i class="fas fa-trash-alt"></i>
                                     </button>
                                     <span class="badge {% if payment_method.status == 'active' %}bg-success{% else %}bg-danger{% endif %} rounded-pill" 
-                                          onclick="togglePaymentMethodStatus({{ payment_method.id }})" style="cursor: pointer;">
+                                          style="cursor: pointer; padding: 0.5em 1em;"
+                                          onclick="togglePaymentMethodStatus({{ payment_method.id }}, this)">
                                         {{ payment_method.status|title }}
                                     </span>
                                 </div>
@@ -595,19 +596,11 @@ function savePaymentMethod(event) {
             const newPaymentMethod = document.createElement('div');
             newPaymentMethod.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
             newPaymentMethod.innerHTML = `
-                <div class="d-flex align-items-center">
-                    <i class="${iconClass} me-2 text-primary"></i>
-                    <span>${paymentTypeDisplay}</span>
-                </div>
-                <div class="d-flex align-items-center gap-2">
-                    <button class="btn btn-link text-danger p-0" onclick="deletePaymentMethod(${data.payment_method_id}, event)">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                    <span class="badge bg-success rounded-pill" onclick="togglePaymentMethodStatus(${data.payment_method_id})" style="cursor: pointer;">
-                        Active
-                    </span>
-                </div>
-            `;
+                <div class=\"d-flex align-items-center\">\n                    <i class=\"${iconClass} me-2 text-primary\"></i>\n                    <span>${paymentTypeDisplay}</span>\n                </div>\n                <div class=\"d-flex align-items-center gap-2\">\n                    <button class=\"btn btn-link text-danger p-0\" onclick=\"deletePaymentMethod(${data.payment_method_id}, event)\">\n                        <i class=\"fas fa-trash-alt\"></i>\n                    </button>\n                    <span class=\"badge bg-success rounded-pill\" 
+                          style=\"cursor: pointer; padding: 0.5em 1em;\"
+                          onclick=\"togglePaymentMethodStatus(${data.payment_method_id}, this)\">
+                            Active
+                        </span>\n                </div>\n            `;
             paymentMethodsList.appendChild(newPaymentMethod);
             
             // Remove "No payment methods" message if present
@@ -656,7 +649,7 @@ document.getElementById('paymentMethodSelect').addEventListener('change', functi
     }
 });
 
-function togglePaymentMethodStatus(paymentMethodId) {
+function togglePaymentMethodStatus(paymentMethodId, statusElement) {
     // Get CSRF token
     const csrftoken = getCookie('csrftoken');
     
@@ -671,19 +664,15 @@ function togglePaymentMethodStatus(paymentMethodId) {
     .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
-            // Find the payment method element
-            const paymentMethodElement = document.querySelector(`[onclick="togglePaymentMethodStatus(${paymentMethodId})"]`);
-            if (paymentMethodElement) {
-                // Toggle the badge classes and text
-                if (paymentMethodElement.classList.contains('bg-success')) {
-                    paymentMethodElement.classList.remove('bg-success');
-                    paymentMethodElement.classList.add('bg-danger');
-                    paymentMethodElement.textContent = 'Inactive';
-                } else {
-                    paymentMethodElement.classList.remove('bg-danger');
-                    paymentMethodElement.classList.add('bg-success');
-                    paymentMethodElement.textContent = 'Active';
-                }
+            // Toggle the status text and color
+            if (statusElement.textContent.trim() === 'Active') {
+                statusElement.textContent = 'Inactive';
+                statusElement.classList.remove('bg-success');
+                statusElement.classList.add('bg-danger');
+            } else {
+                statusElement.textContent = 'Active';
+                statusElement.classList.remove('bg-danger');
+                statusElement.classList.add('bg-success');
             }
         } else {
             throw new Error(data.message || 'Error toggling payment method status');
