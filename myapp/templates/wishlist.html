@@ -1196,11 +1196,26 @@
                 const currentPrice = parseFloat(priceElement.textContent);
                 const newPrice = currentPrice * (1 + changePercent);
 
-                // Format based on value
-                const formattedPrice = newPrice < 0.01 ? newPrice.toFixed(8) :
-                                     newPrice < 1 ? newPrice.toFixed(5) :
-                                     newPrice < 100 ? newPrice.toFixed(3) :
-                                     newPrice.toFixed(2);
+                // Format based on category and value
+                let formattedPrice;
+                if (category === 'Forex') {
+                    // Ensure exactly 4 decimal places for forex
+                    formattedPrice = newPrice.toFixed(4);
+                    // If the number has less than 4 decimal places, pad with zeros
+                    if (!formattedPrice.includes('.')) {
+                        formattedPrice += '.0000';
+                    } else {
+                        const decimalPlaces = formattedPrice.split('.')[1].length;
+                        if (decimalPlaces < 4) {
+                            formattedPrice = formattedPrice.padEnd(formattedPrice.length + (4 - decimalPlaces), '0');
+                        }
+                    }
+                } else {
+                    formattedPrice = newPrice < 0.01 ? newPrice.toFixed(8) :
+                                    newPrice < 1 ? newPrice.toFixed(5) :
+                                    newPrice < 100 ? newPrice.toFixed(3) :
+                                    newPrice.toFixed(2);
+                }
 
                 // Update elements with animation
                 priceElement.textContent = formattedPrice;
@@ -1304,12 +1319,27 @@
 
                 const symbolId = displaySymbol.replace('/', '');
 
-                // Format price based on value
+                // Format price based on value and category
                 const numPrice = parseFloat(item.price);
-                const formattedPrice = numPrice < 0.01 ? numPrice.toFixed(8) :
-                                     numPrice < 1 ? numPrice.toFixed(5) :
-                                     numPrice < 100 ? numPrice.toFixed(3) :
-                                     numPrice.toFixed(2);
+                let formattedPrice;
+                if (item.category === 'Forex') {
+                    // Ensure exactly 4 decimal places for forex
+                    formattedPrice = numPrice.toFixed(4);
+                    // If the number has less than 4 decimal places, pad with zeros
+                    if (!formattedPrice.includes('.')) {
+                        formattedPrice += '.0000';
+                    } else {
+                        const decimalPlaces = formattedPrice.split('.')[1].length;
+                        if (decimalPlaces < 4) {
+                            formattedPrice = formattedPrice.padEnd(formattedPrice.length + (4 - decimalPlaces), '0');
+                        }
+                    }
+                } else {
+                    formattedPrice = numPrice < 0.01 ? numPrice.toFixed(8) :
+                                    numPrice < 1 ? numPrice.toFixed(5) :
+                                    numPrice < 100 ? numPrice.toFixed(3) :
+                                    numPrice.toFixed(2);
+                }
 
                 // Create the UI element
                 const pairItem = document.createElement('div');
@@ -2294,23 +2324,38 @@
             pairItem.setAttribute('data-symbol', symbolId);
             pairItem.setAttribute('data-category', category);
 
-            // Format price based on value
+            // Format price based on value and category
             const numPrice = parseFloat(price);
-            const formattedPrice = numPrice < 0.01 ? numPrice.toFixed(8) :
-                                 numPrice < 1 ? numPrice.toFixed(5) :
-                                 numPrice < 100 ? numPrice.toFixed(3) :
-                                 numPrice.toFixed(2);
+            let formattedPrice;
+            if (category === 'Forex') {
+                // Ensure exactly 4 decimal places for forex
+                formattedPrice = numPrice.toFixed(4);
+                // If the number has less than 4 decimal places, pad with zeros
+                if (!formattedPrice.includes('.')) {
+                    formattedPrice += '.0000';
+                } else {
+                    const decimalPlaces = formattedPrice.split('.')[1].length;
+                    if (decimalPlaces < 4) {
+                        formattedPrice = formattedPrice.padEnd(formattedPrice.length + (4 - decimalPlaces), '0');
+                    }
+                }
+            } else {
+                formattedPrice = numPrice < 0.01 ? numPrice.toFixed(8) :
+                                numPrice < 1 ? numPrice.toFixed(5) :
+                                numPrice < 100 ? numPrice.toFixed(3) :
+                                numPrice.toFixed(2);
+            }
 
             pairItem.innerHTML = `
                 <div class="pair-info">
                     <span class="symbol">${symbol}</span>
                     <div class="value-container">
                         <span class="value-label">Price:</span>
-                    <span class="main-value">${formattedPrice}</span>
+                        <span class="main-value">${formattedPrice}</span>
                     </div>
                     <div class="value-container">
                         <span class="value-label">Change:</span>
-                    <span class="change">0.00% ↑</span>
+                        <span class="change">0.00% ↑</span>
                     </div>
                 </div>
                 <div class="pair-actions">

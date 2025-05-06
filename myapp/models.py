@@ -114,3 +114,30 @@ class Transaction(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+class Withdrawal(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('completed', 'Completed')
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
+    currency = models.CharField(max_length=10)
+    bank_name = models.CharField(max_length=100)
+    account_number = models.CharField(max_length=50)
+    account_holder = models.CharField(max_length=100)
+    ifsc_code = models.CharField(max_length=20)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    transaction_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
+    notes = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.amount} {self.currency} - {self.status}"
+
+    class Meta:
+        ordering = ['-created_at']

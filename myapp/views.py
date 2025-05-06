@@ -21,7 +21,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models.functions import TruncMonth
 from django.core.files.storage import default_storage
 import uuid
-from .models import Trade, WishlistItem, PaymentMethod, Transaction
+from .models import Trade, WishlistItem, PaymentMethod, Transaction, Withdrawal
 
 from .forms import CustomUserCreationForm
 
@@ -1437,6 +1437,59 @@ def update_transaction_status(request, transaction_id):
         'status': 'error',
         'message': 'Method not allowed'
     }, status=405)
+
+@login_required
+@require_POST
+def submit_withdrawal(request):
+    try:
+        # Get form data
+        amount = request.POST.get('amount')
+        currency = request.POST.get('currency')
+        bank_name = request.POST.get('bankName')
+        account_number = request.POST.get('accountNumber')
+        account_holder = request.POST.get('accountHolder')
+        ifsc_code = request.POST.get('ifscCode')
+
+        # Validate amount
+        try:
+            amount = float(amount)
+            if amount < 10:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Minimum withdrawal amount is $10'
+                })
+        except ValueError:
+            return JsonResponse({
+                'success': False,
+                'message': 'Invalid amount'
+            })
+
+        # Generate unique transaction ID
+        transaction_id = f"WD-{uuid.uuid4().hex[:8].upper()}"
+
+        # Create withdrawal record
+        withdrawal = Withdrawal.objects.create(
+            user=request.user,
+            amount=amount,
+            currency=currency,
+            bank_name=bank_name,
+            account_number=account_number,
+            account_holder=account_holder,
+            ifsc_code=ifsc_code,
+            transaction_id=transaction_id
+        )
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Withdrawal request submitted successfully',
+            'transaction_id': transaction_id
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        })
 
 
 

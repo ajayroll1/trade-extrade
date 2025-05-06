@@ -133,6 +133,52 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Recent Withdrawals -->
+            <div class="card bg-dark text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="d-flex align-items-center">
+                            <h5 class="text-white mb-0 fs-6">Recent Withdrawals</h5>
+                            <div class="ms-3 d-flex gap-2">
+                                <span class="badge bg-warning rounded-pill" id="pendingCount">0</span>
+                                <span class="badge bg-success rounded-pill" id="completedCount">0</span>
+                                <span class="badge bg-danger rounded-pill" id="failedCount">0</span>
+                            </div>
+                        </div>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="withdrawalFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                Filter
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="withdrawalFilterDropdown">
+                                <li><h6 class="dropdown-header px-0 fw-bold">Status</h6></li>
+                                <li><a class="dropdown-item" href="#" data-withdrawal-filter="all">All Withdrawals</a></li>
+                                <li><a class="dropdown-item" href="#" data-withdrawal-filter="pending">Pending</a></li>
+                                <li><a class="dropdown-item" href="#" data-withdrawal-filter="completed">Completed</a></li>
+                                <li><a class="dropdown-item" href="#" data-withdrawal-filter="failed">Failed</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-uppercase px-4">Withdrawal ID</th>
+                                    <th class="text-uppercase px-4">User</th>
+                                    <th class="text-uppercase px-4">Amount</th>
+                                    <th class="text-uppercase px-4">Payment Method</th>
+                                    <th class="text-uppercase px-4">Status</th>
+                                    <th class="text-uppercase px-4">Date</th>
+                                    <th class="text-uppercase px-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="withdrawalsTableBody">
+                                <!-- Withdrawals will be loaded dynamically from the backend -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -820,9 +866,11 @@ function downloadReceipt(url) {
 // Load transactions when page loads
 document.addEventListener('DOMContentLoaded', function() {
     loadTransactions();
+    loadWithdrawals();
     
     // Set up periodic refresh (every 30 seconds)
     setInterval(loadTransactions, 30000);
+    setInterval(loadWithdrawals, 30000);
 });
 
 // Add filter functionality
@@ -848,6 +896,218 @@ document.querySelectorAll('[data-filter]').forEach(filter => {
         });
     });
 });
+
+function loadWithdrawals() {
+    // Static withdrawal data
+    const staticWithdrawals = [
+        {
+            withdrawal_id: "WD001",
+            user_name: "John Doe",
+            currency: "USD",
+            amount: "1,500.00",
+            payment_method: "Bank Transfer",
+            status: "pending",
+            created_at: new Date(),
+            proof_url: "https://i.imgur.com/example1.jpg"
+        },
+        {
+            withdrawal_id: "WD002",
+            user_name: "Jane Smith",
+            currency: "EUR",
+            amount: "2,000.00",
+            payment_method: "PayPal",
+            status: "completed",
+            created_at: new Date(Date.now() - 3600000),
+            proof_url: "https://i.imgur.com/example2.jpg"
+        },
+        {
+            withdrawal_id: "WD003",
+            user_name: "Mike Johnson",
+            currency: "GBP",
+            amount: "3,500.00",
+            payment_method: "Crypto Wallet",
+            status: "failed",
+            created_at: new Date(Date.now() - 7200000),
+            proof_url: null
+        },
+        {
+            withdrawal_id: "WD004",
+            user_name: "Sarah Wilson",
+            currency: "USD",
+            amount: "1,200.00",
+            payment_method: "Bank Transfer",
+            status: "pending",
+            created_at: new Date(Date.now() - 10800000),
+            proof_url: "https://i.imgur.com/example3.jpg"
+        },
+        {
+            withdrawal_id: "WD005",
+            user_name: "David Brown",
+            currency: "EUR",
+            amount: "2,800.00",
+            payment_method: "PayPal",
+            status: "completed",
+            created_at: new Date(Date.now() - 14400000),
+            proof_url: null
+        }
+    ];
+
+    // Initialize counters
+    let pendingCount = 0;
+    let completedCount = 0;
+    let failedCount = 0;
+
+    const tableBody = document.getElementById('withdrawalsTableBody');
+    tableBody.innerHTML = ''; // Clear existing rows
+
+    staticWithdrawals.forEach(withdrawal => {
+        // Update counters
+        if (withdrawal.status === 'pending') pendingCount++;
+        else if (withdrawal.status === 'completed') completedCount++;
+        else if (withdrawal.status === 'failed') failedCount++;
+
+        // Format date
+        const date = new Date(withdrawal.created_at);
+        const formattedDate = formatDate(date);
+        
+        // Get status badge class
+        let statusClass = 'bg-warning';
+        if (withdrawal.status === 'completed') {
+            statusClass = 'bg-success';
+        } else if (withdrawal.status === 'failed') {
+            statusClass = 'bg-danger';
+        }
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="px-4">${withdrawal.withdrawal_id}</td>
+            <td class="px-4">${withdrawal.user_name}</td>
+            <td class="px-4">${withdrawal.currency} ${withdrawal.amount}</td>
+            <td class="px-4">${withdrawal.payment_method}</td>
+            <td class="px-4">
+                <span class="badge ${statusClass} rounded-pill px-3" 
+                      style="cursor: pointer;"
+                      onclick="toggleWithdrawalStatus('${withdrawal.withdrawal_id}', this)"
+                      data-bs-toggle="tooltip" 
+                      data-bs-placement="top" 
+                      title="Click to toggle status">
+                    ${withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
+                </span>
+            </td>
+            <td class="px-4">${formattedDate}</td>
+            <td class="px-4">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary btn-sm" onclick="viewWithdrawalDetails('${withdrawal.withdrawal_id}')" data-bs-toggle="tooltip" data-bs-placement="top" title="View Details">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    ${withdrawal.proof_url ? `
+                        <button class="btn btn-info btn-sm" onclick="viewReceipt('${withdrawal.proof_url}', '${withdrawal.withdrawal_id}')" data-bs-toggle="tooltip" data-bs-placement="top" title="View Receipt">
+                            <i class="fas fa-file-alt"></i>
+                        </button>
+                    ` : ''}
+                </div>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
+
+    // Update count badges
+    document.getElementById('pendingCount').textContent = pendingCount;
+    document.getElementById('completedCount').textContent = completedCount;
+    document.getElementById('failedCount').textContent = failedCount;
+
+    // Reinitialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+}
+
+// Add function to handle withdrawal status toggle
+function toggleWithdrawalStatus(withdrawalId, statusElement) {
+    const currentStatus = statusElement.textContent.trim().toLowerCase();
+    let newStatus, newClass;
+    
+    // Get current counts
+    const pendingCount = parseInt(document.getElementById('pendingCount').textContent);
+    const completedCount = parseInt(document.getElementById('completedCount').textContent);
+    const failedCount = parseInt(document.getElementById('failedCount').textContent);
+    
+    if (currentStatus === 'pending') {
+        newStatus = 'completed';
+        newClass = 'bg-success';
+        document.getElementById('pendingCount').textContent = pendingCount - 1;
+        document.getElementById('completedCount').textContent = completedCount + 1;
+    } else if (currentStatus === 'completed') {
+        newStatus = 'failed';
+        newClass = 'bg-danger';
+        document.getElementById('completedCount').textContent = completedCount - 1;
+        document.getElementById('failedCount').textContent = failedCount + 1;
+    } else {
+        newStatus = 'pending';
+        newClass = 'bg-warning';
+        document.getElementById('failedCount').textContent = failedCount - 1;
+        document.getElementById('pendingCount').textContent = pendingCount + 1;
+    }
+    
+    statusElement.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+    statusElement.classList.remove('bg-warning', 'bg-success', 'bg-danger');
+    statusElement.classList.add(newClass);
+}
+
+// Add function to handle withdrawal details view
+function viewWithdrawalDetails(withdrawalId) {
+    alert(`Viewing details for withdrawal ${withdrawalId}`);
+}
+
+// Replace the viewProof function with this new viewReceipt function
+function viewReceipt(receiptUrl, withdrawalId) {
+    // Create modal HTML
+    const modalHtml = `
+        <div class="modal fade" id="receiptModal" tabindex="-1" aria-labelledby="receiptModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-dark text-white">
+                        <h5 class="modal-title" id="receiptModalLabel">Withdrawal Receipt - ${withdrawalId}</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img src="${receiptUrl}" class="img-fluid" alt="Withdrawal Receipt" style="max-height: 80vh;">
+                    </div>
+                    <div class="modal-footer bg-dark text-white">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" onclick="downloadReceipt('${receiptUrl}')">
+                            <i class="fas fa-download"></i> Download Receipt
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Remove existing modal if any
+    const existingModal = document.getElementById('receiptModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+
+    // Add new modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+    // Show modal
+    const modal = new bootstrap.Modal(document.getElementById('receiptModal'));
+    modal.show();
+}
+
+// Add download receipt function
+function downloadReceipt(url) {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `withdrawal_receipt_${Date.now()}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
 </script>
 
 <style>

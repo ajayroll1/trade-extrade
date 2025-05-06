@@ -652,7 +652,7 @@
             </div>
             <div class="balance-info">
                 <p>Available Balance</p>
-                <div class="balance-amount">$250,000.00</div>
+                <div class="balance-amount">0</div>
             </div>
         </div>
     </div>
@@ -1924,38 +1924,60 @@
         }
         
         // Get form values
-        const amount = document.getElementById('withdrawalAmount').value;
-        const bankName = document.getElementById('bankName').value;
-        const accountNumber = document.getElementById('accountNumber').value;
-        const accountHolder = document.getElementById('accountHolder').value;
-        const ifscCode = document.getElementById('ifscCode').value;
+        const formData = new FormData();
+        formData.append('amount', document.getElementById('withdrawalAmount').value);
+        formData.append('currency', document.getElementById('withdrawalCurrency').value);
+        formData.append('bankName', document.getElementById('bankName').value);
+        formData.append('accountNumber', document.getElementById('accountNumber').value);
+        formData.append('accountHolder', document.getElementById('accountHolder').value);
+        formData.append('ifscCode', document.getElementById('ifscCode').value);
 
-        // Show success message
-        const successMessage = `
-            <div style="text-align: center; padding: 20px;">
-                <div style="color: #28a745; font-size: 50px; margin-bottom: 20px;">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <h2 style="color: #2a2d3e; margin-bottom: 15px;">Withdrawal Request Submitted!</h2>
-                <p style="color: #666; margin-bottom: 20px;">
-                    Your withdrawal request has been submitted successfully.<br>
-                    Amount: $${amount}<br>
-                    Bank: ${bankName}<br>
-                    Account: ${accountNumber}
-                </p>
-                <button onclick="closeWithdrawalModal()" 
-                        style="padding: 12px 30px; 
-                               background: #00c7ff; 
-                               color: white; 
-                               border: none; 
-                               border-radius: 8px; 
-                               cursor: pointer;">
-                    Close
-                </button>
-            </div>
-        `;
+        // Send withdrawal request to server
+        fetch('/api/submit-withdrawal/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                const successMessage = `
+                    <div style="text-align: center; padding: 20px;">
+                        <div style="color: #28a745; font-size: 50px; margin-bottom: 20px;">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h2 style="color: #2a2d3e; margin-bottom: 15px;">Withdrawal Request Submitted!</h2>
+                        <p style="color: #666; margin-bottom: 20px;">
+                            Your withdrawal request has been submitted successfully.<br>
+                            Amount: ${formData.get('currency')}${formData.get('amount')}<br>
+                            Bank: ${formData.get('bankName')}<br>
+                            Account: ${formData.get('accountNumber')}<br>
+                            Transaction ID: ${data.transaction_id}
+                        </p>
+                        <button onclick="closeWithdrawalModal()" 
+                                style="padding: 12px 30px; 
+                                       background: #00c7ff; 
+                                       color: white; 
+                                       border: none; 
+                                       border-radius: 8px; 
+                                       cursor: pointer;">
+                            Close
+                        </button>
+                    </div>
+                `;
 
-        document.querySelector('.withdrawal-modal-content').innerHTML = successMessage;
+                document.querySelector('.withdrawal-modal-content').innerHTML = successMessage;
+            } else {
+                alert('Error submitting withdrawal request: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error submitting withdrawal request. Please try again.');
+        });
     }
 
     // Add input validation on blur
