@@ -39,6 +39,10 @@ urlpatterns = [
     path('api/save-payment-method/', views.save_payment_method, name='save_payment_method'),
     path('api/toggle-payment-method/<int:payment_method_id>/', views.toggle_payment_method_status, name='toggle_payment_method_status'),
     path('api/delete-payment-method/<int:payment_method_id>/', views.delete_payment_method, name='delete_payment_method'),
+    path('api/submit-payment-proof/', views.submit_payment_proof, name='submit_payment_proof'),
+    path('api/get-transactions/', views.get_transactions, name='get_transactions'),
+    path('api/transaction-details/<str:transaction_id>/', views.transaction_details, name='transaction_details'),
+    path('api/update-transaction-status/<str:transaction_id>/', views.update_transaction_status, name='update_transaction_status'),
 ]
 
 

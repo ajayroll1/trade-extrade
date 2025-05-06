@@ -833,25 +833,59 @@
             <span class="close" onclick="closeAmountModal()">&times;</span>
         </div>
         <form id="amountForm" onsubmit="handleAmountSubmit(event)" style="padding: 20px 0;">
-            <div style="margin-bottom: 20px;">
+            <div style="margin-bottom: 20px; position: relative;">
                 <label for="amount" style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">Amount to Add</label>
-                <div style="position: relative;">
-                    <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #666;">$</span>
-                    <input 
-                        type="number" 
-                        id="amount" 
-                        min="10" 
-                        step="0.01" 
-                        required 
-                        style="width: 100%; 
-                        padding: 12px 15px 12px 30px; 
+                <div style="display: flex; gap: 10px; position: relative;">
+                    <div style="position: relative; flex: 1;">
+                        <span style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #666; z-index: 1;">$</span>
+                        <input 
+                            type="number" 
+                            id="amount" 
+                            name="amount"
+                            min="10" 
+                            step="0.01" 
+                            required 
+                            style="width: 100%; 
+                            padding: 12px 15px 12px 30px; 
+                            border: 2px solid #e0e0e0; 
+                            border-radius: 8px; 
+                            font-size: 16px; 
+                            outline: none; 
+                            transition: border-color 0.3s ease;
+                            position: relative;
+                            z-index: 2;
+                            background: white;
+                            pointer-events: auto;
+                            cursor: text;"
+                            placeholder="Enter amount (min. $10)"
+                        >
+                    </div>
+                    <select 
+                        id="currency" 
+                        name="currency"
+                        style="padding: 12px 15px; 
                         border: 2px solid #e0e0e0; 
                         border-radius: 8px; 
                         font-size: 16px; 
                         outline: none; 
-                        transition: border-color 0.3s ease;"
-                        placeholder="Enter amount (min. $10)"
+                        transition: border-color 0.3s ease;
+                        background: white;
+                        cursor: pointer;
+                        min-width: 120px;
+                        z-index: 2;
+                        pointer-events: auto;"
                     >
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="GBP">GBP</option>
+                        <option value="INR">INR</option>
+                        <option value="JPY">JPY</option>
+                        <option value="AUD">AUD</option>
+                        <option value="CAD">CAD</option>
+                        <option value="CHF">CHF</option>
+                        <option value="CNY">CNY</option>
+                        <option value="SGD">SGD</option>
+                    </select>
                 </div>
                 <div id="amountError" style="color: #dc3545; font-size: 0.875rem; margin-top: 5px; display: none;">
                     Please enter a valid amount (minimum $10)
@@ -1282,8 +1316,11 @@
             <i class="fas fa-check-circle"></i>
         </div>
         <h2 style="color: #333; margin-bottom: 15px;">Payment Submitted Successfully!</h2>
-        <p style="color: #666; margin-bottom: 20px;">
+        <p style="color: #666; margin-bottom: 10px;">
             Your payment proof has been submitted successfully. We will verify and update your balance shortly.
+        </p>
+        <p class="transaction-id" style="color: #333; font-weight: 500; margin-bottom: 20px;">
+            Transaction ID: <span id="displayTransactionId"></span>
         </p>
         <button onclick="closeSuccessModal()" 
                 style="padding: 12px 30px; 
@@ -1432,6 +1469,10 @@
 
         errorDiv.style.display = 'none';
 
+        // Store amount and currency in sessionStorage for later use
+        sessionStorage.setItem('amount', amount);
+        sessionStorage.setItem('currency', document.getElementById('currency').value);
+
         // Handle different payment methods
         switch(currentPaymentMethod) {
             case 'bank':
@@ -1546,14 +1587,55 @@
     function handleReceiptSubmit(event) {
         event.preventDefault();
         
-        // Here you would typically send the data to your server
-        // For now, we'll just show the success message
-        document.getElementById('bankDetailsModal').style.display = 'none';
-        document.getElementById('successModal').style.display = 'block';
+        const formData = new FormData();
+        const amount = sessionStorage.getItem('amount');
+        const currency = sessionStorage.getItem('currency');
+        const receiptFile = document.getElementById('receiptFile').files[0];
+        const transactionRef = document.getElementById('transactionRef').value;
         
-        // Reset form
-        event.target.reset();
-        document.getElementById('fileName').textContent = 'Click to upload payment receipt';
+        if (!amount || !currency) {
+            alert('Please enter amount first');
+            return;
+        }
+        
+        formData.append('amount', amount);
+        formData.append('currency', currency);
+        formData.append('receipt', receiptFile);
+        formData.append('transaction_ref', transactionRef);
+        formData.append('payment_type', 'bank');
+        
+        // Send data to server
+        fetch('/api/submit-payment-proof/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update the transaction ID display with the reference number
+                const transactionIdElement = document.querySelector('.transaction-id');
+                if (transactionIdElement) {
+                    transactionIdElement.textContent = `Transaction ID: ${transactionRef}`;
+                }
+                
+                document.getElementById('bankDetailsModal').style.display = 'none';
+                document.getElementById('successModal').style.display = 'block';
+                // Reset form and clear session storage
+                event.target.reset();
+                document.getElementById('fileName').textContent = 'Click to upload payment receipt';
+                sessionStorage.removeItem('amount');
+                sessionStorage.removeItem('currency');
+            } else {
+                alert('Error submitting payment proof: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error submitting payment proof. Please try again.');
+        });
     }
 
     function showCryptoDetails() {
@@ -1572,14 +1654,49 @@
     function handleCryptoReceiptSubmit(event) {
         event.preventDefault();
         
-        // Here you would typically send the data to your server
-        // For now, we'll just show the success message
-        document.getElementById('cryptoDetailsModal').style.display = 'none';
-        document.getElementById('successModal').style.display = 'block';
+        const formData = new FormData();
+        const amount = sessionStorage.getItem('amount');
+        const currency = sessionStorage.getItem('currency');
+        const receiptFile = document.getElementById('cryptoReceiptFile').files[0];
+        const transactionHash = document.getElementById('transactionHash').value;
         
-        // Reset form
-        event.target.reset();
-        document.getElementById('cryptoFileName').textContent = 'Click to upload transaction proof';
+        if (!amount || !currency) {
+            alert('Please enter amount first');
+            return;
+        }
+        
+        formData.append('amount', amount);
+        formData.append('currency', currency);
+        formData.append('receipt', receiptFile);
+        formData.append('transaction_hash', transactionHash);
+        formData.append('payment_type', 'crypto');
+        
+        // Send data to server
+        fetch('/api/submit-payment-proof/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('cryptoDetailsModal').style.display = 'none';
+                document.getElementById('successModal').style.display = 'block';
+                // Reset form and clear session storage
+                event.target.reset();
+                document.getElementById('cryptoFileName').textContent = 'Click to upload transaction proof';
+                sessionStorage.removeItem('amount');
+                sessionStorage.removeItem('currency');
+            } else {
+                alert('Error submitting payment proof: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error submitting payment proof. Please try again.');
+        });
     }
 
     function showPayPalDetails() {
@@ -1598,14 +1715,49 @@
     function handlePayPalReceiptSubmit(event) {
         event.preventDefault();
         
-        // Here you would typically send the data to your server
-        // For now, we'll just show the success message
-        document.getElementById('paypalDetailsModal').style.display = 'none';
-        document.getElementById('successModal').style.display = 'block';
+        const formData = new FormData();
+        const amount = sessionStorage.getItem('amount');
+        const currency = sessionStorage.getItem('currency');
+        const receiptFile = document.getElementById('paypalReceiptFile').files[0];
+        const transactionId = document.getElementById('paypalTransactionId').value;
         
-        // Reset form
-        event.target.reset();
-        document.getElementById('paypalFileName').textContent = 'Click to upload payment proof';
+        if (!amount || !currency) {
+            alert('Please enter amount first');
+            return;
+        }
+        
+        formData.append('amount', amount);
+        formData.append('currency', currency);
+        formData.append('receipt', receiptFile);
+        formData.append('transaction_id', transactionId);
+        formData.append('payment_type', 'paypal');
+        
+        // Send data to server
+        fetch('/api/submit-payment-proof/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('paypalDetailsModal').style.display = 'none';
+                document.getElementById('successModal').style.display = 'block';
+                // Reset form and clear session storage
+                event.target.reset();
+                document.getElementById('paypalFileName').textContent = 'Click to upload payment proof';
+                sessionStorage.removeItem('amount');
+                sessionStorage.removeItem('currency');
+            } else {
+                alert('Error submitting payment proof: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error submitting payment proof. Please try again.');
+        });
     }
 
     function showUPIDetails() {
@@ -1624,14 +1776,65 @@
     function handleUPIReceiptSubmit(event) {
         event.preventDefault();
         
-        // Here you would typically send the data to your server
-        // For now, we'll just show the success message
-        document.getElementById('upiDetailsModal').style.display = 'none';
-        document.getElementById('successModal').style.display = 'block';
+        const formData = new FormData();
+        const amount = sessionStorage.getItem('amount');
+        const currency = sessionStorage.getItem('currency');
+        const receiptFile = document.getElementById('upiReceiptFile').files[0];
+        const transactionId = document.getElementById('upiTransactionId').value;
         
-        // Reset form
-        event.target.reset();
-        document.getElementById('upiFileName').textContent = 'Click to upload payment proof';
+        if (!amount || !currency) {
+            alert('Please enter amount first');
+            return;
+        }
+        
+        formData.append('amount', amount);
+        formData.append('currency', currency);
+        formData.append('receipt', receiptFile);
+        formData.append('transaction_id', transactionId);
+        formData.append('payment_type', 'upi');
+        
+        // Send data to server
+        fetch('/api/submit-payment-proof/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('upiDetailsModal').style.display = 'none';
+                document.getElementById('successModal').style.display = 'block';
+                // Reset form and clear session storage
+                event.target.reset();
+                document.getElementById('upiFileName').textContent = 'Click to upload payment proof';
+                sessionStorage.removeItem('amount');
+                sessionStorage.removeItem('currency');
+            } else {
+                alert('Error submitting payment proof: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error submitting payment proof. Please try again.');
+        });
+    }
+
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
     }
 
     // Withdrawal Modal functionality
@@ -1737,6 +1940,35 @@
             }
         });
     });
+
+    // Update currency symbol when currency changes
+    document.getElementById('currency').addEventListener('change', function() {
+        const currencySymbols = {
+            'USD': '$',
+            'EUR': '€',
+            'GBP': '£',
+            'INR': '₹',
+            'JPY': '¥',
+            'AUD': 'A$',
+            'CAD': 'C$',
+            'CHF': 'Fr',
+            'CNY': '¥',
+            'SGD': 'S$'
+        };
+        const symbol = currencySymbols[this.value];
+        const symbolSpan = this.previousElementSibling.querySelector('span');
+        symbolSpan.textContent = symbol;
+        
+        // Update placeholder text
+        const amountInput = document.getElementById('amount');
+        amountInput.placeholder = `Enter amount (min. ${symbol}10)`;
+    });
+
+    // Update the success modal display function
+    function showSuccessModal(transactionRef) {
+        document.getElementById('displayTransactionId').textContent = transactionRef;
+        document.getElementById('successModal').style.display = 'block';
+    }
 </script>
 {% endblock %}
 

@@ -19,9 +19,11 @@ from django.db.models import Count, Sum
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models.functions import TruncMonth
+from django.core.files.storage import default_storage
+import uuid
+from .models import Trade, WishlistItem, PaymentMethod, Transaction
 
 from .forms import CustomUserCreationForm
-from .models import Trade, WishlistItem, PaymentMethod
 
 def generate_otp():
     return ''.join([str(random.randint(0, 9)) for _ in range(6)])
@@ -1259,6 +1261,180 @@ def delete_payment_method(request, payment_method_id):
         return JsonResponse({'status': 'error', 'message': 'Payment method not found'}, status=404)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+@require_http_methods(["POST"])
+@login_required
+def submit_payment_proof(request):
+    try:
+        # Get form data
+        amount = request.POST.get('amount')
+        currency = request.POST.get('currency')
+        payment_type = request.POST.get('payment_type')
+        receipt_file = request.FILES.get('receipt')
+        
+        # Convert amount to Decimal
+        try:
+            amount = Decimal(str(amount))
+        except (TypeError, ValueError, InvalidOperation):
+            return JsonResponse({
+                'success': False,
+                'message': 'Invalid amount value'
+            }, status=400)
+        
+        # Get transaction reference based on payment type
+        transaction_ref = None
+        if payment_type == 'bank':
+            transaction_ref = request.POST.get('transaction_ref')
+        elif payment_type == 'crypto':
+            transaction_ref = request.POST.get('transaction_hash')
+        elif payment_type in ['paypal', 'upi']:
+            transaction_ref = request.POST.get('transaction_id')
+
+        if not transaction_ref:
+            return JsonResponse({
+                'success': False,
+                'message': 'Transaction reference is required'
+            }, status=400)
+
+        # Generate unique transaction ID
+        transaction_id = f"TRX-{uuid.uuid4().hex[:8].upper()}"
+
+        # Create transaction record
+        transaction = Transaction.objects.create(
+            transaction_id=transaction_id,
+            user=request.user,
+            payment_type=payment_type,
+            amount=amount,
+            currency=currency,
+            transaction_reference=transaction_ref,
+            receipt_file=receipt_file if receipt_file else None,
+            status='pending'  # Set initial status as pending
+        )
+
+        return JsonResponse({
+            'success': True,
+            'message': 'Payment proof submitted successfully',
+            'transaction_id': transaction_id,
+            'transaction_reference': transaction_ref  # Include in response
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=400)
+
+@require_http_methods(["GET"])
+@login_required
+def get_transactions(request):
+    try:
+        # Get all transactions
+        transactions = Transaction.objects.all().order_by('-created_at')  # Order by newest first
+        
+        # Convert to list of dictionaries
+        transaction_list = []
+        for transaction in transactions:
+            transaction_list.append({
+                'transaction_id': transaction.transaction_id,
+                'user_name': transaction.user.username,
+                'payment_type': transaction.get_payment_type_display(),
+                'amount': float(transaction.amount),
+                'currency': transaction.currency,
+                'status': transaction.status,
+                'created_at': transaction.created_at.isoformat(),
+                'receipt_url': transaction.receipt_file.url if transaction.receipt_file else None,
+                'transaction_reference': transaction.transaction_reference or 'N/A'  # Ensure we always have a value
+            })
+
+        return JsonResponse({
+            'success': True,
+            'transactions': transaction_list
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=400)
+
+@require_http_methods(["GET"])
+@login_required
+def transaction_details(request, transaction_id):
+    try:
+        # Get transaction details
+        transaction = Transaction.objects.get(transaction_id=transaction_id)
+        
+        return JsonResponse({
+            'success': True,
+            'transaction_id': transaction.transaction_id,
+            'user_name': transaction.user.username,
+            'payment_type': transaction.get_payment_type_display(),
+            'amount': float(transaction.amount),
+            'currency': transaction.currency,
+            'status': transaction.status,
+            'created_at': transaction.created_at.isoformat(),
+            'receipt_url': transaction.receipt_file.url if transaction.receipt_file else None,
+            'transaction_reference': transaction.transaction_reference
+        })
+
+    except Transaction.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Transaction not found'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=400)
+
+@login_required
+def update_transaction_status(request, transaction_id):
+    if request.method == 'POST':
+        try:
+            # Get the transaction
+            transaction = Transaction.objects.get(transaction_id=transaction_id)
+            
+            # Get the new status from request body
+            data = json.loads(request.body)
+            new_status = data.get('status')
+            
+            # Validate status
+            if new_status not in ['pending', 'approved']:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': 'Invalid status value'
+                }, status=400)
+            
+            # Update the status
+            transaction.status = new_status
+            transaction.save()
+            
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Transaction status updated successfully'
+            })
+            
+        except Transaction.DoesNotExist:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Transaction not found'
+            }, status=404)
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid JSON data'
+            }, status=400)
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'message': str(e)
+            }, status=500)
+    
+    return JsonResponse({
+        'status': 'error',
+        'message': 'Method not allowed'
+    }, status=405)
 
 
 

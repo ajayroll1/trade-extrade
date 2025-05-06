@@ -83,3 +83,34 @@ class PaymentMethod(models.Model):
 
     def __str__(self):
         return f"{self.get_payment_type_display()} - {self.user.username if self.user else 'System'}"
+
+class Transaction(models.Model):
+    PAYMENT_TYPES = (
+        ('bank', 'Bank Transfer'),
+        ('crypto', 'Cryptocurrency'),
+        ('paypal', 'PayPal'),
+        ('upi', 'UPI'),
+    )
+    
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('failed', 'Failed'),
+    )
+
+    transaction_id = models.CharField(max_length=50, unique=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    payment_type = models.CharField(max_length=20, choices=PAYMENT_TYPES)
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
+    currency = models.CharField(max_length=3, default='USD')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    receipt_file = models.FileField(upload_to='receipts/', null=True, blank=True)
+    transaction_reference = models.CharField(max_length=100, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.transaction_id} - {self.user.username} - {self.amount} {self.currency}"
+
+    class Meta:
+        ordering = ['-created_at']
