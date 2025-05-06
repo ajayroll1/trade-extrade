@@ -1347,13 +1347,42 @@
                     <i class="fas fa-money-bill-wave"></i>
                     Withdrawal Amount
                 </div>
-                <div class="form-group">
-                    <label for="withdrawalAmount">Enter Amount</label>
-                    <div class="amount-input-container">
-                        <i class="fas fa-dollar-sign input-icon"></i>
-                        <input type="number" id="withdrawalAmount" min="10" step="0.01" required placeholder="Enter amount (min. $10)" class="input-with-icon">
+                <div class="form-group mb-3" style="text-align:center;">
+                    <label for="withdrawalAmount" class="form-label" style="font-weight:600;">Amount to Withdraw</label>
+                    <div class="d-flex justify-content-center gap-2">
+                        <input 
+                            type="number" 
+                            class="form-control" 
+                            id="withdrawalAmount" 
+                            name="amount"
+                            min="10"
+                            step="0.01"
+                            placeholder="Enter amount (min. $10)"
+                            style="max-width: 250px;"
+                            required
+                        >
+                        <select 
+                            class="form-select" 
+                            id="withdrawalCurrency" 
+                            name="currency"
+                            style="max-width: 100px;"
+                            required
+                        >
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                            <option value="GBP">GBP</option>
+                            <option value="INR">INR</option>
+                            <option value="JPY">JPY</option>
+                            <option value="AUD">AUD</option>
+                            <option value="CAD">CAD</option>
+                            <option value="CHF">CHF</option>
+                            <option value="CNY">CNY</option>
+                            <option value="SGD">SGD</option>
+                            <option value="BTC">BTC</option>
+                            <option value="ETH">ETH</option>
+                        </select>
                     </div>
-                    <div class="error-message">Please enter a valid amount (minimum $10)</div>
+                    <div class="form-text text-danger" id="withdrawalAmountError" style="display:none;">Please enter a valid amount (minimum $10)</div>
                 </div>
             </div>
 

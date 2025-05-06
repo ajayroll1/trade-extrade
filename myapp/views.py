@@ -812,6 +812,7 @@ def update_trade_status(request):
 def admin_dashboard(request):
     total_traders = User.objects.count()
     active_trades = Trade.objects.filter(status='active').count()
+    pending_transactions = Transaction.objects.filter(status='pending').count()
     
     # Calculate total trading volume
     total_volume = Trade.objects.filter(status='closed').aggregate(total=Sum('total_amount'))['total'] or 0
@@ -841,6 +842,7 @@ def admin_dashboard(request):
     return render(request, 'admin_dashboard.html', {
         'total_traders': total_traders,
         'active_trades': active_trades,
+        'pending_transactions': pending_transactions,
         'total_volume': total_volume,
         'volume_in_millions': volume_in_millions,
         'volume_data': volume_data
