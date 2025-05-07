@@ -118,23 +118,42 @@ class Transaction(models.Model):
 class Withdrawal(models.Model):
     STATUS_CHOICES = (
         ('pending', 'Pending'),
-        ('approved', 'Approved'),
-        ('rejected', 'Rejected'),
-        ('completed', 'Completed')
+        ('completed', 'Completed'),
+        ('failed', 'Failed')
+    )
+
+    PAYMENT_METHOD_CHOICES = (
+        ('bank', 'Bank Transfer'),
+        ('crypto', 'Cryptocurrency'),
+        ('paypal', 'PayPal'),
+        ('upi', 'UPI'),
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=15, decimal_places=2)
     currency = models.CharField(max_length=10)
-    bank_name = models.CharField(max_length=100)
-    account_number = models.CharField(max_length=50)
-    account_holder = models.CharField(max_length=100)
-    ifsc_code = models.CharField(max_length=20)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     transaction_id = models.CharField(max_length=100, unique=True, null=True, blank=True)
     notes = models.TextField(blank=True, null=True)
+    proof = models.FileField(upload_to='withdrawal_proofs/', null=True, blank=True)
+
+    # Bank Account Fields (if payment_method is 'bank')
+    bank_name = models.CharField(max_length=100, null=True, blank=True)
+    account_number = models.CharField(max_length=50, null=True, blank=True)
+    account_holder = models.CharField(max_length=100, null=True, blank=True)
+    ifsc_code = models.CharField(max_length=20, null=True, blank=True)
+
+    # Crypto Fields (if payment_method is 'crypto')
+    wallet_address = models.CharField(max_length=100, null=True, blank=True)
+
+    # PayPal Fields (if payment_method is 'paypal')
+    paypal_email = models.EmailField(null=True, blank=True)
+
+    # UPI Fields (if payment_method is 'upi')
+    upi_id = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         return f"{self.user.username} - {self.amount} {self.currency} - {self.status}"

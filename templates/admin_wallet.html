@@ -1,0 +1,146 @@
+<!-- Recent Withdrawals Section -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title">Recent Withdrawals</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Amount</th>
+                        <th>Payment Method</th>
+                        <th>Bank Details</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="withdrawalsTableBody">
+                    <!-- Withdrawals will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function loadWithdrawals() {
+    fetch('/api/get-withdrawals/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const tableBody = document.getElementById('withdrawalsTableBody');
+                tableBody.innerHTML = '';
+                
+                data.withdrawals.forEach(withdrawal => {
+                    const row = document.createElement('tr');
+                    
+                    // Format bank details
+                    let bankDetailsHtml = 'Not Available';
+                    if (withdrawal.bank_details) {
+                        bankDetailsHtml = `
+                            <div class="bank-details-popup">
+                                <strong>Bank:</strong> ${withdrawal.bank_details.bank_name}<br>
+                                <strong>Account:</strong> ${withdrawal.bank_details.account_number}<br>
+                                <strong>Holder:</strong> ${withdrawal.bank_details.account_holder}<br>
+                                <strong>IFSC:</strong> ${withdrawal.bank_details.ifsc_code}
+                            </div>
+                        `;
+                    }
+                    
+                    row.innerHTML = `
+                        <td>${withdrawal.user_name}</td>
+                        <td>${withdrawal.formatted_amount}</td>
+                        <td>${withdrawal.payment_method}</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" 
+                                    data-bs-toggle="popover" 
+                                    data-bs-html="true"
+                                    data-bs-content="${bankDetailsHtml}"
+                                    data-bs-placement="left">
+                                View Details
+                            </button>
+                        </td>
+                        <td>
+                            <span class="badge bg-${getStatusColor(withdrawal.status)}">
+                                ${withdrawal.status}
+                            </span>
+                        </td>
+                        <td>${withdrawal.created_at}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="viewWithdrawalDetails(${withdrawal.withdrawal_id})">
+                                View
+                            </button>
+                            <button class="btn btn-sm btn-success" onclick="updateWithdrawalStatus(${withdrawal.withdrawal_id}, 'completed')">
+                                Approve
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="updateWithdrawalStatus(${withdrawal.withdrawal_id}, 'failed')">
+                                Reject
+                            </button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+                
+                // Initialize popovers
+                var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+                var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+                    return new bootstrap.Popover(popoverTriggerEl);
+                });
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+function getStatusColor(status) {
+    switch(status.toLowerCase()) {
+        case 'completed':
+            return 'success';
+        case 'pending':
+            return 'warning';
+        case 'failed':
+            return 'danger';
+        default:
+            return 'secondary';
+    }
+}
+
+// Load withdrawals when the page loads
+document.addEventListener('DOMContentLoaded', loadWithdrawals);
+</script>
+
+<style>
+.bank-details-popup {
+    padding: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.bank-details-popup strong {
+    color: #495057;
+    margin-right: 5px;
+}
+
+.popover {
+    max-width: 300px;
+}
+
+.popover-body {
+    padding: 15px;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.badge {
+    padding: 6px 10px;
+    font-weight: 500;
+}
+
+.btn-sm {
+    margin: 0 2px;
+}
+</style> 

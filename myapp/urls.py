@@ -44,6 +44,9 @@ urlpatterns = [
     path('api/get-transactions/', views.get_transactions, name='get_transactions'),
     path('api/transaction-details/<str:transaction_id>/', views.transaction_details, name='transaction_details'),
     path('api/update-transaction-status/<str:transaction_id>/', views.update_transaction_status, name='update_transaction_status'),
+    path('api/get-withdrawals/', views.get_withdrawals, name='get_withdrawals'),
+    path('api/withdrawal-details/<int:withdrawal_id>/', views.withdrawal_details, name='withdrawal_details'),
+    path('api/update-withdrawal-status/<int:withdrawal_id>/', views.update_withdrawal_status, name='update_withdrawal_status'),
 ]
 
 

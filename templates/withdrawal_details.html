@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="withdrawal-details-container">
+    <div class="withdrawal-header">
+        <h1 class="withdrawal-title">Withdrawal Details</h1>
+        <span class="withdrawal-status status-{{ withdrawal.status|lower }}">{{ withdrawal.status|title }}</span>
+    </div>
+
+    <div class="amount-display">
+        {{ withdrawal.formatted_amount }}
+    </div>
+
+    <div class="withdrawal-info">
+        <div class="info-group">
+            <div class="info-label">Transaction ID</div>
+            <div class="info-value">{{ withdrawal.transaction_id }}</div>
+        </div>
+        <div class="info-group">
+            <div class="info-label">Payment Method</div>
+            <div class="info-value">{{ withdrawal.payment_method }}</div>
+        </div>
+        <div class="info-group">
+            <div class="info-label">Date</div>
+            <div class="info-value">{{ withdrawal.created_at }}</div>
+        </div>
+        <div class="info-group">
+            <div class="info-label">User</div>
+            <div class="info-value">{{ withdrawal.user_name }}</div>
+        </div>
+    </div>
+
+    {% if withdrawal.bank_details %}
+    <div class="bank-details">
+        <h2 class="bank-details-title">Bank Account Information</h2>
+        <div class="bank-details-grid">
+            <div class="info-group">
+                <div class="info-label">Bank Name</div>
+                <div class="info-value">{{ withdrawal.bank_details.bank_name }}</div>
+            </div>
+            <div class="info-group">
+                <div class="info-label">Account Number</div>
+                <div class="info-value">{{ withdrawal.bank_details.account_number }}</div>
+            </div>
+            <div class="info-group">
+                <div class="info-label">Account Holder Name</div>
+                <div class="info-value">{{ withdrawal.bank_details.account_holder }}</div>
+            </div>
+            <div class="info-group">
+                <div class="info-label">IFSC Code</div>
+                <div class="info-value">{{ withdrawal.bank_details.ifsc_code }}</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if withdrawal.proof_url %}
+    <div class="proof-section">
+        <h2 class="bank-details-title">Proof of Withdrawal</h2>
+        <img src="{{ withdrawal.proof_url }}" alt="Withdrawal Proof" class="proof-image">
+    </div>
+    {% endif %}
+
+    {% if withdrawal.notes %}
+    <div class="notes-section">
+        <h3 class="notes-title">Additional Notes</h3>
+        <div class="notes-content">{{ withdrawal.notes }}</div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.withdrawal-details-container {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    margin: 20px;
+    max-width: 800px;
+}
+
+.withdrawal-header {
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+}
+
+.withdrawal-title {
+    font-size: 24px;
+    color: #2c3e50;
+    margin: 0;
+    font-weight: 600;
+}
+
+.withdrawal-status {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 8px;
+}
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-completed {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-failed {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.withdrawal-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.info-group {
+    margin-bottom: 16px;
+}
+
+.info-label {
+    font-size: 14px;
+    color: #6c757d;
+    margin-bottom: 4px;
+}
+
+.info-value {
+    font-size: 16px;
+    color: #2c3e50;
+    font-weight: 500;
+}
+
+.amount-display {
+    font-size: 32px;
+    color: #2c3e50;
+    font-weight: 600;
+    margin: 16px 0;
+    text-align: center;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.bank-details {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 24px;
+    border: 1px solid #e9ecef;
+}
+
+.bank-details-title {
+    font-size: 18px;
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-weight: 600;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.bank-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.bank-details-grid .info-group {
+    background: white;
+    padding: 15px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.bank-details-grid .info-label {
+    color: #495057;
+    font-weight: 500;
+}
+
+.bank-details-grid .info-value {
+    color: #2c3e50;
+    font-size: 15px;
+    margin-top: 5px;
+}
+
+.proof-section {
+    margin-top: 24px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.proof-image {
+    max-width: 100%;
+    border-radius: 8px;
+    margin-top: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.notes-section {
+    margin-top: 24px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.notes-title {
+    font-size: 16px;
+    color: #2c3e50;
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+.notes-content {
+    color: #495057;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .withdrawal-info,
+    .bank-details-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .withdrawal-details-container {
+        margin: 10px;
+        padding: 16px;
+    }
+    
+    .bank-details-grid .info-group {
+        padding: 12px;
+    }
+}
+</style>
+{% endblock %} 

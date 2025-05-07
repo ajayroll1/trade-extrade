@@ -1491,6 +1491,158 @@ def submit_withdrawal(request):
             'message': str(e)
         })
 
+@require_http_methods(["GET"])
+@login_required
+def get_withdrawals(request):
+    try:
+        # Get all withdrawals ordered by creation date (newest first)
+        withdrawals = Withdrawal.objects.all().order_by('-created_at')
+        
+        # Format the data for the frontend
+        withdrawals_data = []
+        for withdrawal in withdrawals:
+            # Format bank details
+            bank_details = None
+            if withdrawal.bank_name or withdrawal.account_number:
+                bank_details = {
+                    'bank_name': withdrawal.bank_name or 'Not Provided',
+                    'account_number': withdrawal.account_number or 'Not Provided',
+                    'account_holder': withdrawal.account_holder or 'Not Provided',
+                    'ifsc_code': withdrawal.ifsc_code or 'Not Provided'
+                }
+
+            # Format amount with currency
+            formatted_amount = f"{withdrawal.amount} {withdrawal.currency}"
+
+            # Determine payment method based on available fields
+            payment_method = None
+            if withdrawal.payment_method:
+                payment_method = withdrawal.get_payment_method_display()
+            elif withdrawal.bank_name:
+                payment_method = "Bank Transfer"
+            elif withdrawal.wallet_address:
+                payment_method = "Cryptocurrency"
+            elif withdrawal.paypal_email:
+                payment_method = "PayPal"
+            elif withdrawal.upi_id:
+                payment_method = "UPI"
+            else:
+                payment_method = "Bank Transfer"  # Default to Bank Transfer if no specific method is found
+
+            # Format date
+            formatted_date = withdrawal.created_at.strftime("%B %d, %Y %H:%M")
+
+            withdrawals_data.append({
+                'withdrawal_id': withdrawal.id,
+                'user_name': withdrawal.user.username,
+                'currency': withdrawal.currency,
+                'amount': str(withdrawal.amount),
+                'formatted_amount': formatted_amount,
+                'payment_method': payment_method,
+                'status': withdrawal.status,
+                'created_at': formatted_date,
+                'proof_url': withdrawal.proof.url if withdrawal.proof else None,
+                'bank_details': bank_details,
+                'transaction_id': withdrawal.transaction_id or 'Not Available',
+                'notes': withdrawal.notes or 'No additional notes'
+            })
+        
+        return JsonResponse({
+            'status': 'success',
+            'withdrawals': withdrawals_data
+        })
+    except Exception as e:
+        print(f"Error fetching withdrawals: {e}")
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Failed to fetch withdrawals'
+        }, status=500)
+
+@require_http_methods(["GET"])
+@login_required
+def withdrawal_details(request, withdrawal_id):
+    try:
+        withdrawal = Withdrawal.objects.get(id=withdrawal_id)
+        
+        # Format bank details if available
+        bank_details = None
+        if withdrawal.bank_name or withdrawal.account_number:
+            bank_details = {
+                'bank_name': withdrawal.bank_name or 'Not Provided',
+                'account_number': withdrawal.account_number or 'Not Provided',
+                'account_holder': withdrawal.account_holder or 'Not Provided',
+                'ifsc_code': withdrawal.ifsc_code or 'Not Provided'
+            }
+        
+        # Format amount with currency
+        formatted_amount = f"{withdrawal.amount} {withdrawal.currency}"
+        
+        # Format payment method
+        payment_method = withdrawal.get_payment_method_display() if withdrawal.payment_method else "Not Specified"
+        
+        # Format date
+        formatted_date = withdrawal.created_at.strftime("%B %d, %Y %H:%M")
+        
+        return JsonResponse({
+            'status': 'success',
+            'withdrawal_id': withdrawal.id,
+            'user_name': withdrawal.user.username,
+            'currency': withdrawal.currency,
+            'amount': str(withdrawal.amount),
+            'formatted_amount': formatted_amount,
+            'payment_method': payment_method,
+            'status': withdrawal.status,
+            'created_at': formatted_date,
+            'proof_url': withdrawal.proof.url if withdrawal.proof else None,
+            'bank_details': bank_details,
+            'transaction_id': withdrawal.transaction_id or 'Not Available',
+            'notes': withdrawal.notes or 'No additional notes'
+        })
+    except Withdrawal.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Withdrawal not found'
+        }, status=404)
+    except Exception as e:
+        print(f"Error fetching withdrawal details: {e}")
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Failed to fetch withdrawal details'
+        }, status=500)
+
+@require_http_methods(["POST"])
+@login_required
+def update_withdrawal_status(request, withdrawal_id):
+    try:
+        data = json.loads(request.body)
+        new_status = data.get('status')
+        
+        if not new_status or new_status not in ['pending', 'completed', 'failed']:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid status'
+            }, status=400)
+        
+        withdrawal = Withdrawal.objects.get(id=withdrawal_id)
+        withdrawal.status = new_status
+        withdrawal.save()
+        
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Withdrawal status updated successfully'
+        })
+    except Withdrawal.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Withdrawal not found'
+        }, status=404)
+    except Exception as e:
+        print(f"Error updating withdrawal status: {e}")
+        return JsonResponse({
+            'status': 'error',
+            'message': 'Failed to update withdrawal status'
+        }, status=500)
+
 
 
 
