@@ -652,7 +652,7 @@
             </div>
             <div class="balance-info">
                 <p>Available Balance</p>
-                <div class="balance-amount">0</div>
+                <div class="balance-amount">${{ available_balance|floatformat:2 }}</div>
             </div>
         </div>
     </div>
@@ -676,7 +676,7 @@
             <h3 class="card-title">Available Funds</h3>
         </div>
         <div class="card-value">
-            $250,000.00
+            ${{ available_balance|floatformat:2 }}
             <span class="add-funds-btn" title="Add Funds">
                 <i class="fas fa-plus-circle"></i>
             </span>

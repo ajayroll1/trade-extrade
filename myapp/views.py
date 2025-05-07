@@ -132,9 +132,27 @@ def logout_view(request):
 
 @login_required
 def dashboard(request):
-    payment_methods = PaymentMethod.objects.all()
+    # Get all approved transactions for the user
+    approved_deposits = Transaction.objects.filter(
+        user=request.user,
+        status='completed'
+    ).aggregate(total=Sum('amount'))['total'] or 0
+
+    # Get all completed withdrawals
+    completed_withdrawals = Withdrawal.objects.filter(
+        user=request.user,
+        status='completed'
+    ).aggregate(total=Sum('amount'))['total'] or 0
+
+    # Calculate available balance
+    available_balance = approved_deposits - completed_withdrawals
+
+    # Get payment methods
+    payment_methods = PaymentMethod.objects.filter(status='active')
+
     context = {
-        'payment_methods': payment_methods
+        'payment_methods': payment_methods,
+        'available_balance': available_balance
     }
     return render(request, 'dashboard.html', context)
 
@@ -1401,8 +1419,12 @@ def update_transaction_status(request, transaction_id):
             data = json.loads(request.body)
             new_status = data.get('status')
             
+            # Map 'approved' to 'completed' for backward compatibility
+            if new_status == 'approved':
+                new_status = 'completed'
+            
             # Validate status
-            if new_status not in ['pending', 'approved']:
+            if new_status not in ['pending', 'completed', 'failed']:
                 return JsonResponse({
                     'status': 'error',
                     'message': 'Invalid status value'
