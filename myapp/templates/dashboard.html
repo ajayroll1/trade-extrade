@@ -1360,6 +1360,7 @@
                             placeholder="Enter amount (min. $10)"
                             style="max-width: 250px;"
                             required
+                            oninput="validateWithdrawalAmount(this)"
                         >
                         <select 
                             class="form-select" 
@@ -1382,7 +1383,7 @@
                             <option value="ETH">ETH</option>
                         </select>
                     </div>
-                    <div class="form-text text-danger" id="withdrawalAmountError" style="display:none;">Please enter a valid amount (minimum $10)</div>
+                    <div class="form-text text-danger" id="withdrawalAmountError" style="display:none; margin-top: 5px; font-size: 14px;"></div>
                 </div>
             </div>
 
@@ -1880,6 +1881,20 @@
         withdrawalModal.style.display = "none";
         document.body.style.overflow = 'auto';
         document.getElementById('withdrawalForm').reset();
+        
+        // Reset all inputs to enabled state
+        const allInputs = document.querySelectorAll('#withdrawalForm input, #withdrawalForm select');
+        const submitButton = document.querySelector('#withdrawalForm button[type="submit"]');
+        
+        allInputs.forEach(input => {
+            input.disabled = false;
+            input.style.opacity = '1';
+        });
+        submitButton.disabled = false;
+        submitButton.style.opacity = '1';
+        
+        // Hide error message
+        document.getElementById('withdrawalAmountError').style.display = 'none';
     }
 
     function validateWithdrawalForm() {
@@ -1912,8 +1927,63 @@
         return isValid;
     }
 
+    function validateWithdrawalAmount(input) {
+        const amount = parseFloat(input.value);
+        const availableBalance = parseFloat('{{ available_balance }}');
+        const errorDiv = document.getElementById('withdrawalAmountError');
+        
+        // Get all other form inputs except the amount input
+        const otherInputs = document.querySelectorAll('#withdrawalForm input:not(#withdrawalAmount), #withdrawalForm select:not(#withdrawalCurrency)');
+        const submitButton = document.querySelector('#withdrawalForm button[type="submit"]');
+        
+        if (isNaN(amount) || amount < 10) {
+            errorDiv.textContent = 'Please enter a valid amount (minimum $10)';
+            errorDiv.style.display = 'block';
+            // Enable all inputs
+            otherInputs.forEach(input => {
+                input.disabled = false;
+                input.style.opacity = '1';
+            });
+            submitButton.disabled = false;
+            submitButton.style.opacity = '1';
+            return false;
+        } else if (amount > availableBalance) {
+            errorDiv.textContent = `Amount exceeds available balance of $${availableBalance.toFixed(2)}. Please enter an amount within your available balance.`;
+            errorDiv.style.display = 'block';
+            // Disable all other inputs
+            otherInputs.forEach(input => {
+                input.disabled = true;
+                input.style.opacity = '0.5';
+            });
+            submitButton.disabled = true;
+            submitButton.style.opacity = '0.5';
+            return false;
+        } else {
+            errorDiv.style.display = 'none';
+            // Enable all inputs
+            otherInputs.forEach(input => {
+                input.disabled = false;
+                input.style.opacity = '1';
+            });
+            submitButton.disabled = false;
+            submitButton.style.opacity = '1';
+            return true;
+        }
+    }
+
     function handleWithdrawalSubmit(event) {
         event.preventDefault();
+        
+        const amount = parseFloat(document.getElementById('withdrawalAmount').value);
+        const availableBalance = parseFloat('{{ available_balance }}');
+        
+        if (amount > availableBalance) {
+            document.getElementById('withdrawalForm').classList.add('shake');
+            setTimeout(() => {
+                document.getElementById('withdrawalForm').classList.remove('shake');
+            }, 300);
+            return;
+        }
         
         if (!validateWithdrawalForm()) {
             document.getElementById('withdrawalForm').classList.add('shake');
