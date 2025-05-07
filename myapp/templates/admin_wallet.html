@@ -95,24 +95,21 @@
             <div class="card bg-dark text-white mb-4">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h5 class="text-white mb-0 fs-6">Recent Transactions</h5>
-                            <div class="dropdown">
-                                <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="transactionFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                Filter
-                                </button>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="transactionFilterDropdown">
-                                <li><h6 class="dropdown-header px-0 fw-bold">Transaction Type</h6></li>
-                                <li><a class="dropdown-item" href="#" data-filter="all">All Transactions</a></li>
-                                <li><a class="dropdown-item" href="#" data-filter="deposit">Deposits</a></li>
-                                <li><a class="dropdown-item" href="#" data-filter="withdrawal">Withdrawals</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><h6 class="dropdown-header px-0 fw-bold">Status</h6></li>
-                                <li><a class="dropdown-item" href="#" data-filter="pending">Pending</a></li>
-                                <li><a class="dropdown-item" href="#" data-filter="completed">Completed</a></li>
-                                <li><a class="dropdown-item" href="#" data-filter="failed">Failed</a></li>
-                            </ul>
-                                    </div>
-                                    </div>
+                        <div class="d-flex align-items-center">
+                            <h5 class="text-white mb-0 fs-6">Recent Deposits</h5>
+                            <div class="ms-3 d-flex gap-2">
+                                <span class="badge bg-warning rounded-pill" id="transactionPendingCount">0</span>
+                                <span class="badge bg-success rounded-pill" id="transactionCompletedCount">0</span>
+                                <span class="badge bg-danger rounded-pill" id="transactionFailedCount">0</span>
+                            </div>
+                        </div>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-outline-light btn-sm active" data-deposit-filter="all">All</button>
+                            <button type="button" class="btn btn-outline-light btn-sm" data-deposit-filter="pending">Pending</button>
+                            <button type="button" class="btn btn-outline-light btn-sm" data-deposit-filter="approved">Completed</button>
+                            <button type="button" class="btn btn-outline-light btn-sm" data-deposit-filter="failed">Failed</button>
+                        </div>
+                    </div>
                     <div class="table-responsive">
                         <table class="table table-dark table-hover align-middle mb-0">
                             <thead>
@@ -146,17 +143,11 @@
                                 <span class="badge bg-danger rounded-pill" id="failedCount">0</span>
                             </div>
                         </div>
-                        <div class="dropdown">
-                            <button class="btn btn-outline-light btn-sm dropdown-toggle" type="button" id="withdrawalFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                Filter
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="withdrawalFilterDropdown">
-                                <li><h6 class="dropdown-header px-0 fw-bold">Status</h6></li>
-                                <li><a class="dropdown-item" href="#" data-withdrawal-filter="all">All Withdrawals</a></li>
-                                <li><a class="dropdown-item" href="#" data-withdrawal-filter="pending">Pending</a></li>
-                                <li><a class="dropdown-item" href="#" data-withdrawal-filter="completed">Completed</a></li>
-                                <li><a class="dropdown-item" href="#" data-withdrawal-filter="failed">Failed</a></li>
-                            </ul>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-outline-light btn-sm active" data-withdrawal-filter="all">All</button>
+                            <button type="button" class="btn btn-outline-light btn-sm" data-withdrawal-filter="pending">Pending</button>
+                            <button type="button" class="btn btn-outline-light btn-sm" data-withdrawal-filter="completed">Completed</button>
+                            <button type="button" class="btn btn-outline-light btn-sm" data-withdrawal-filter="failed">Failed</button>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -169,7 +160,7 @@
                                     <th class="text-uppercase px-4">Payment Method</th>
                                     <th class="text-uppercase px-4">Status</th>
                                     <th class="text-uppercase px-4">Date</th>
-                                    <th class="text-uppercase px-4">Action</th>
+                                    <th class="text-uppercase px-4">Bank Details</th>
                                 </tr>
                             </thead>
                             <tbody id="withdrawalsTableBody">
@@ -627,6 +618,47 @@ function toggleTransactionStatus(transactionId, statusElement) {
                 statusElement.classList.remove('bg-success');
                 statusElement.classList.add('bg-warning');
             }
+
+            // Update counters
+            const pendingCount = document.getElementById('transactionPendingCount');
+            const completedCount = document.getElementById('transactionCompletedCount');
+            const failedCount = document.getElementById('transactionFailedCount');
+            
+            // Decrement old status count
+            if (currentStatus === 'pending') {
+                pendingCount.textContent = parseInt(pendingCount.textContent) - 1;
+            } else if (currentStatus === 'approved') {
+                completedCount.textContent = parseInt(completedCount.textContent) - 1;
+            } else if (currentStatus === 'failed') {
+                failedCount.textContent = parseInt(failedCount.textContent) - 1;
+            }
+            
+            // Increment new status count
+            if (newStatus === 'pending') {
+                pendingCount.textContent = parseInt(pendingCount.textContent) + 1;
+            } else if (newStatus === 'approved') {
+                completedCount.textContent = parseInt(completedCount.textContent) + 1;
+            } else if (newStatus === 'failed') {
+                failedCount.textContent = parseInt(failedCount.textContent) + 1;
+            }
+
+            // Update pending sum if needed
+            const amountCell = statusElement.closest('tr').querySelector('td:nth-child(4)');
+            const amountText = amountCell.textContent;
+            const [currency, amount] = amountText.split(' ');
+            const pendingSumText = document.getElementById('pendingSumText');
+            
+            if (currentStatus === 'pending') {
+                // Remove from pending sum
+                const currentSum = parseFloat(pendingSumText.textContent.replace(/[^0-9.-]+/g, ''));
+                const newSum = currentSum - parseFloat(amount);
+                pendingSumText.innerHTML = `<div style='font-weight: bold;'>${currency} ${newSum.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>`;
+            } else if (newStatus === 'pending') {
+                // Add to pending sum
+                const currentSum = parseFloat(pendingSumText.textContent.replace(/[^0-9.-]+/g, ''));
+                const newSum = currentSum + parseFloat(amount);
+                pendingSumText.innerHTML = `<div style='font-weight: bold;'>${currency} ${newSum.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>`;
+            }
         } else {
             throw new Error(data.message || 'Error updating transaction status');
         }
@@ -646,7 +678,44 @@ function toggleTransactionStatus(transactionId, statusElement) {
     });
 }
 
+// Update the DOMContentLoaded event listener
+document.addEventListener('DOMContentLoaded', function() {
+    // Initial load
+    loadTransactions();
+    loadWithdrawals();
+    
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+
+// Add loading indicators
+function showLoading() {
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = 'loadingIndicator';
+    loadingDiv.innerHTML = `
+        <div class="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center" 
+             style="background: rgba(0,0,0,0.5); z-index: 9999;">
+            <div class="spinner-border text-light" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(loadingDiv);
+}
+
+function hideLoading() {
+    const loadingDiv = document.getElementById('loadingIndicator');
+    if (loadingDiv) {
+        loadingDiv.remove();
+    }
+}
+
+// Update loadTransactions function
 function loadTransactions() {
+    showLoading();
     fetch('/api/get-transactions/', {
         method: 'GET',
         headers: {
@@ -659,13 +728,24 @@ function loadTransactions() {
         const tableBody = document.getElementById('transactionsTableBody');
         tableBody.innerHTML = ''; // Clear existing rows
 
+        // Initialize counters
+        let pendingCount = 0;
+        let completedCount = 0;
+        let failedCount = 0;
+
         // Track pending sums by currency
         const pendingSums = {};
 
         data.transactions.forEach(transaction => {
-            // Debug receipt URL
-            console.log('Original receipt URL:', transaction.receipt_url);
-            
+            // Update counters based on status
+            if (transaction.status === 'pending') {
+                pendingCount++;
+            } else if (transaction.status === 'approved') {
+                completedCount++;
+            } else if (transaction.status === 'failed') {
+                failedCount++;
+            }
+
             // Format date
             const date = new Date(transaction.created_at);
             const formattedDate = formatDate(date);
@@ -686,14 +766,11 @@ function loadTransactions() {
                 pendingSums[transaction.currency] += parseFloat(transaction.amount);
             }
 
-            // Get receipt URL - ensure it's properly formatted
+            // Get receipt URL
             let receiptUrl = null;
             if (transaction.receipt_url) {
-                // Clean the URL by removing any existing /media/ prefix
                 receiptUrl = transaction.receipt_url.replace(/^\/media\//, '');
-                // Add back the /media/ prefix for proper file access
                 receiptUrl = `/media/${receiptUrl}`;
-                console.log('Formatted receipt URL:', receiptUrl);
             }
 
             const row = document.createElement('tr');
@@ -729,7 +806,12 @@ function loadTransactions() {
             tableBody.appendChild(row);
         });
 
-        // Update the Pending Transactions card to show all currencies
+        // Update the count badges
+        document.getElementById('transactionPendingCount').textContent = pendingCount;
+        document.getElementById('transactionCompletedCount').textContent = completedCount;
+        document.getElementById('transactionFailedCount').textContent = failedCount;
+
+        // Update the Pending Transactions card
         const pendingCard = document.getElementById('pendingSumText');
         if (pendingCard) {
             let pendingText = '';
@@ -747,6 +829,9 @@ function loadTransactions() {
     })
     .catch(error => {
         console.error('Error loading transactions:', error);
+    })
+    .finally(() => {
+        hideLoading();
     });
 }
 
@@ -863,16 +948,6 @@ function downloadReceipt(url) {
     document.body.removeChild(link);
 }
 
-// Load transactions when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    loadTransactions();
-    loadWithdrawals();
-    
-    // Set up periodic refresh (every 30 seconds)
-    setInterval(loadTransactions, 30000);
-    setInterval(loadWithdrawals, 30000);
-});
-
 // Add filter functionality
 document.querySelectorAll('[data-filter]').forEach(filter => {
     filter.addEventListener('click', function(e) {
@@ -907,83 +982,76 @@ function loadWithdrawals() {
     })
     .then(response => response.json())
     .then(data => {
-    // Initialize counters
-    let pendingCount = 0;
-    let completedCount = 0;
-    let failedCount = 0;
+        // Initialize counters
+        let pendingCount = 0;
+        let completedCount = 0;
+        let failedCount = 0;
 
-    const tableBody = document.getElementById('withdrawalsTableBody');
-    tableBody.innerHTML = ''; // Clear existing rows
+        const tableBody = document.getElementById('withdrawalsTableBody');
+        tableBody.innerHTML = ''; // Clear existing rows
 
         data.withdrawals.forEach(withdrawal => {
-        // Update counters
-        if (withdrawal.status === 'pending') pendingCount++;
-        else if (withdrawal.status === 'completed') completedCount++;
-        else if (withdrawal.status === 'failed') failedCount++;
+            // Update counters
+            if (withdrawal.status === 'pending') pendingCount++;
+            else if (withdrawal.status === 'completed') completedCount++;
+            else if (withdrawal.status === 'failed') failedCount++;
 
-        // Format date
-        const date = new Date(withdrawal.created_at);
-        const formattedDate = formatDate(date);
-        
-        // Get status badge class
-        let statusClass = 'bg-warning';
-        if (withdrawal.status === 'completed') {
-            statusClass = 'bg-success';
-        } else if (withdrawal.status === 'failed') {
-            statusClass = 'bg-danger';
-        }
+            // Format date
+            const date = new Date(withdrawal.created_at);
+            const formattedDate = formatDate(date);
+            
+            // Get status badge class
+            let statusClass = 'bg-warning';
+            if (withdrawal.status === 'completed') {
+                statusClass = 'bg-success';
+            } else if (withdrawal.status === 'failed') {
+                statusClass = 'bg-danger';
+            }
 
-            // Get proof URL - ensure it's properly formatted
-            let proofUrl = null;
-            if (withdrawal.proof_url) {
-                // Clean the URL by removing any existing /media/ prefix
-                proofUrl = withdrawal.proof_url.replace(/^\/media\//, '');
-                // Add back the /media/ prefix for proper file access
-                proofUrl = `/media/${proofUrl}`;
-        }
+            // Format payment method to include bank details if available
+            let paymentMethod = withdrawal.payment_method;
+            if (withdrawal.bank_details) {
+                const bankDetails = withdrawal.bank_details;
+                paymentMethod = `BANK - ${bankDetails.bank_name || 'N/A'}`;
+            }
 
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td class="px-4">${withdrawal.withdrawal_id}</td>
-            <td class="px-4">${withdrawal.user_name}</td>
-            <td class="px-4">${withdrawal.currency} ${withdrawal.amount}</td>
-            <td class="px-4">${withdrawal.payment_method}</td>
-            <td class="px-4">
-                <span class="badge ${statusClass} rounded-pill px-3" 
-                      style="cursor: pointer;"
-                      onclick="toggleWithdrawalStatus('${withdrawal.withdrawal_id}', this)"
-                      data-bs-toggle="tooltip" 
-                      data-bs-placement="top" 
-                      title="Click to toggle status">
-                    ${withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
-                </span>
-            </td>
-            <td class="px-4">${formattedDate}</td>
-            <td class="px-4">
-                <div class="d-flex gap-2">
-                    <button class="btn btn-primary btn-sm" onclick="viewWithdrawalDetails('${withdrawal.withdrawal_id}')" data-bs-toggle="tooltip" data-bs-placement="top" title="View Details">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                        ${proofUrl ? `
-                            <button class="btn btn-info btn-sm" onclick="viewReceipt('${proofUrl}', '${withdrawal.withdrawal_id}')" data-bs-toggle="tooltip" data-bs-placement="top" title="View Receipt">
-                            <i class="fas fa-file-alt"></i>
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td class="px-4">${withdrawal.withdrawal_id}</td>
+                <td class="px-4">${withdrawal.user_name}</td>
+                <td class="px-4">${withdrawal.currency} ${withdrawal.amount}</td>
+                <td class="px-4">${paymentMethod}</td>
+                <td class="px-4">
+                    <span class="badge ${statusClass} rounded-pill px-3" 
+                          style="cursor: pointer;"
+                          onclick="toggleWithdrawalStatus('${withdrawal.withdrawal_id}', this)"
+                          data-bs-toggle="tooltip" 
+                          data-bs-placement="top" 
+                          title="Click to toggle status">
+                        ${withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
+                    </span>
+                </td>
+                <td class="px-4">${formattedDate}</td>
+                <td class="px-4">
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-primary btn-sm" onclick="viewBankDetails('${withdrawal.withdrawal_id}')" data-bs-toggle="tooltip" data-bs-placement="top" title="View Bank Details">
+                            <i class="fas fa-university"></i>
                         </button>
-                    ` : ''}
-                </div>
-            </td>
-        `;
-        tableBody.appendChild(row);
-    });
+                    </div>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
 
-    // Update count badges
-    document.getElementById('pendingCount').textContent = pendingCount;
-    document.getElementById('completedCount').textContent = completedCount;
-    document.getElementById('failedCount').textContent = failedCount;
+        // Update count badges
+        document.getElementById('pendingCount').textContent = pendingCount;
+        document.getElementById('completedCount').textContent = completedCount;
+        document.getElementById('failedCount').textContent = failedCount;
 
-    // Reinitialize tooltips
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
+        // Reinitialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
         });
     })
     .catch(error => {
@@ -1023,10 +1091,10 @@ function toggleWithdrawalStatus(withdrawalId, statusElement) {
     .then(data => {
         if (data.status === 'success') {
             // Update the status badge
-    statusElement.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+            statusElement.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
             
             // Update badge class
-    statusElement.classList.remove('bg-warning', 'bg-success', 'bg-danger');
+            statusElement.classList.remove('bg-warning', 'bg-success', 'bg-danger');
             if (newStatus === 'completed') {
                 statusElement.classList.add('bg-success');
             } else if (newStatus === 'failed') {
@@ -1232,6 +1300,193 @@ function downloadReceipt(url) {
     link.click();
     document.body.removeChild(link);
 }
+
+// Add new function for viewing bank details
+function viewBankDetails(withdrawalId) {
+    // Find the withdrawal data from the table
+    const tableBody = document.getElementById('withdrawalsTableBody');
+    const rows = tableBody.getElementsByTagName('tr');
+    let withdrawalData = null;
+
+    for (let row of rows) {
+        const cells = row.getElementsByTagName('td');
+        if (cells[0].textContent === withdrawalId) {
+            // Get the payment method and other details from the row
+            const paymentMethod = cells[3].textContent;
+            const amount = cells[2].textContent;
+            const user = cells[1].textContent;
+            
+            // Parse bank details from payment method
+            let bankName = 'N/A';
+            let accountNumber = 'N/A';
+            let ifscCode = 'N/A';
+            let accountHolder = 'N/A';
+
+            // Check if payment method contains bank details
+            if (paymentMethod && paymentMethod.includes(' - ')) {
+                const parts = paymentMethod.split(' - ');
+                if (parts.length >= 2) {  // Now expecting 2 parts: BANK and bank name
+                    bankName = parts[1].trim();
+                }
+            }
+            
+            // Create modal with withdrawal bank details
+            const modalHtml = `
+                <div class="modal fade" id="bankDetailsModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Withdrawal Bank Details</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <strong>User:</strong> ${user}
+                                </div>
+                                <div class="mb-3">
+                                    <strong>Amount:</strong> ${amount}
+                                </div>
+                                <div class="mb-3">
+                                    <strong>Payment Method:</strong> BANK
+                                </div>
+                                <div class="mb-3">
+                                    <strong>Bank Name:</strong> ${bankName}
+                                </div>
+                                <div class="mb-3">
+                                    <strong>Account Holder Name:</strong> ${accountHolder}
+                                </div>
+                                <div class="mb-3">
+                                    <strong>Account Number:</strong> ${accountNumber}
+                                </div>
+                                <div class="mb-3">
+                                    <strong>IFSC Code:</strong> ${ifscCode}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Remove existing modal if any
+            const existingModal = document.getElementById('bankDetailsModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Add new modal to body
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('bankDetailsModal'));
+            modal.show();
+            return;
+        }
+    }
+    
+    // If withdrawal not found
+    alert('Withdrawal details not found');
+}
+
+// Filter functionality for deposits
+document.querySelectorAll('[data-deposit-filter]').forEach(filter => {
+    filter.addEventListener('click', function(e) {
+        e.preventDefault();
+        const filterValue = this.getAttribute('data-deposit-filter');
+        const rows = document.querySelectorAll('#transactionsTableBody tr');
+        
+        rows.forEach(row => {
+            if (filterValue === 'all') {
+                row.style.display = '';
+            } else {
+                const status = row.querySelector('td:nth-child(5) .badge').textContent.toLowerCase();
+                row.style.display = status.includes(filterValue) ? '' : 'none';
+            }
+        });
+
+        // Update active filter button text
+        const filterButton = document.getElementById('depositFilterDropdown');
+        filterButton.textContent = this.textContent;
+    });
+});
+
+// Filter functionality for withdrawals
+document.querySelectorAll('[data-withdrawal-filter]').forEach(filter => {
+    filter.addEventListener('click', function(e) {
+        e.preventDefault();
+        const filterValue = this.getAttribute('data-withdrawal-filter');
+        const rows = document.querySelectorAll('#withdrawalsTableBody tr');
+        
+        rows.forEach(row => {
+            if (filterValue === 'all') {
+                row.style.display = '';
+            } else {
+                const status = row.querySelector('td:nth-child(5) .badge').textContent.toLowerCase();
+                row.style.display = status.includes(filterValue) ? '' : 'none';
+            }
+        });
+
+        // Update active filter button text
+        const filterButton = document.getElementById('withdrawalFilterDropdown');
+        filterButton.textContent = this.textContent;
+    });
+});
+
+// Add this new filter functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Deposit filter functionality
+    const depositButtons = document.querySelectorAll('[data-deposit-filter]');
+    depositButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            depositButtons.forEach(btn => btn.classList.remove('active'));
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            const filterValue = this.getAttribute('data-deposit-filter');
+            const rows = document.querySelectorAll('#transactionsTableBody tr');
+            
+            rows.forEach(row => {
+                if (filterValue === 'all') {
+                    row.classList.remove('table-row-hidden');
+                } else {
+                    const status = row.querySelector('td:nth-child(5) .badge').textContent.toLowerCase();
+                    if (status.includes(filterValue)) {
+                        row.classList.remove('table-row-hidden');
+                    } else {
+                        row.classList.add('table-row-hidden');
+                    }
+                }
+            });
+        });
+    });
+
+    // Withdrawal filter functionality
+    const withdrawalButtons = document.querySelectorAll('[data-withdrawal-filter]');
+    withdrawalButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            withdrawalButtons.forEach(btn => btn.classList.remove('active'));
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            const filterValue = this.getAttribute('data-withdrawal-filter');
+            const rows = document.querySelectorAll('#withdrawalsTableBody tr');
+            
+            rows.forEach(row => {
+                if (filterValue === 'all') {
+                    row.classList.remove('table-row-hidden');
+                } else {
+                    const status = row.querySelector('td:nth-child(5) .badge').textContent.toLowerCase();
+                    if (status.includes(filterValue)) {
+                        row.classList.remove('table-row-hidden');
+                    } else {
+                        row.classList.add('table-row-hidden');
+                    }
+                }
+            });
+        });
+    });
+});
 </script>
 
 <style>
@@ -1361,6 +1616,31 @@ function downloadReceipt(url) {
         display: flex;
         flex-direction: column;
         justify-content: center;
+    }
+
+    .btn-group .btn {
+        border-radius: 0;
+        margin: 0;
+        padding: 0.375rem 1rem;
+    }
+
+    .btn-group .btn:first-child {
+        border-top-left-radius: 0.25rem;
+        border-bottom-left-radius: 0.25rem;
+    }
+
+    .btn-group .btn:last-child {
+        border-top-right-radius: 0.25rem;
+        border-bottom-right-radius: 0.25rem;
+    }
+
+    .btn-group .btn.active {
+        background-color: #fff;
+        color: #000;
+    }
+
+    .table-row-hidden {
+        display: none !important;
     }
 </style>
 
