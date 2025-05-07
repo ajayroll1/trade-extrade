@@ -516,8 +516,8 @@
                     quantity: quantity,
                     price: currentPrice,
                     total: total,
-                    stopLoss: 0,  // आप इसे UI से input ले सकते हैं
-                    takeProfit: 0,  // आप इसे UI से input ले सकते हैं
+                    stopLoss: 0,
+                    takeProfit: 0,
                     commission: 0
                 })
             });
@@ -533,17 +533,32 @@
                     () => {}
                 );
 
-                if (typeof updateDashboardBalance === 'function') {
-                    updateDashboardBalance(result.newBalance);
+                // Update balance display if new balance is provided
+                if (result.new_balance !== undefined) {
+                    const balanceElement = document.querySelector('.balance-amount');
+                    if (balanceElement) {
+                        balanceElement.textContent = `$${result.new_balance.toFixed(2)}`;
+                    }
                 }
             } else {
-                showModernAlert(
-                    'error',
-                    'Order Failed',
-                    `Error: ${result.error}`,
-                    () => {},
-                    () => {}
-                );
+                // Handle insufficient funds error
+                if (result.error && result.error.includes('Insufficient funds')) {
+                    showModernAlert(
+                        'error',
+                        'Insufficient Funds',
+                        `You need $${result.required_amount.toFixed(2)} for this trade, but your available balance is $${result.available_balance.toFixed(2)}. Please add more funds to your account.`,
+                        () => {},
+                        () => {}
+                    );
+                } else {
+                    showModernAlert(
+                        'error',
+                        'Order Failed',
+                        `Error: ${result.error}`,
+                        () => {},
+                        () => {}
+                    );
+                }
             }
         } catch (error) {
             console.error('Error executing trade:', error);

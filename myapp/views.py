@@ -136,16 +136,22 @@ def dashboard(request):
     approved_deposits = Transaction.objects.filter(
         user=request.user,
         status='completed'
-    ).aggregate(total=Sum('amount'))['total'] or 0
+    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
 
     # Get all completed withdrawals
     completed_withdrawals = Withdrawal.objects.filter(
         user=request.user,
         status='completed'
-    ).aggregate(total=Sum('amount'))['total'] or 0
+    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
 
-    # Calculate available balance
-    available_balance = approved_deposits - completed_withdrawals
+    # Get total amount of active trades
+    active_trades_total = Trade.objects.filter(
+        user=request.user,
+        status='active'
+    ).aggregate(total=Sum('total_amount'))['total'] or Decimal('0')
+
+    # Calculate available balance by subtracting both completed withdrawals and active trades
+    available_balance = approved_deposits - completed_withdrawals - active_trades_total
 
     # Get payment methods
     payment_methods = PaymentMethod.objects.filter(status='active')
@@ -490,28 +496,61 @@ def execute_trade(request):
     try:
         data = json.loads(request.body)
 
-        # Calculate total amount (quantity * entry_price)
-        quantity = float(data['quantity'])
-        entry_price = float(data['price'])
+        # Convert all numeric values to Decimal
+        quantity = Decimal(str(data['quantity']))
+        entry_price = Decimal(str(data['price']))
         total_amount = quantity * entry_price
+
+        # Get user's available balance
+        approved_deposits = Transaction.objects.filter(
+            user=request.user,
+            status='completed'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
+        completed_withdrawals = Withdrawal.objects.filter(
+            user=request.user,
+            status='completed'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
+        # Get total amount of existing active trades
+        active_trades_total = Trade.objects.filter(
+            user=request.user,
+            status='active'
+        ).aggregate(total=Sum('total_amount'))['total'] or Decimal('0')
+
+        # Calculate available balance by subtracting both completed withdrawals and active trades
+        available_balance = approved_deposits - completed_withdrawals - active_trades_total
+
+        # Check if user has sufficient funds
+        if total_amount > available_balance:
+            return JsonResponse({
+                'success': False,
+                'error': 'Insufficient funds. Please add more funds to your account to complete this trade.',
+                'required_amount': float(total_amount),
+                'available_balance': float(available_balance)
+            })
 
         # Create new trade
         trade = Trade.objects.create(
             user=request.user,
             symbol=data['symbol'],
             type=data['type'],
-            quantity=data['quantity'],
-            entry_price=data['price'],
-            total_amount=total_amount,  # Add the calculated total amount
-            status='active',  # Changed from 'closed' to 'active'
-            stop_loss=data['stopLoss'],
-            take_profit=data['takeProfit']
+            quantity=quantity,
+            entry_price=entry_price,
+            total_amount=total_amount,
+            status='active',
+            stop_loss=Decimal(str(data['stopLoss'])) if data['stopLoss'] else None,
+            take_profit=Decimal(str(data['takeProfit'])) if data['takeProfit'] else None
         )
+
+        # Calculate new balance after trade
+        new_balance = available_balance - total_amount
 
         return JsonResponse({
             'success': True,
             'message': 'Trade executed successfully',
-            'trade_id': trade.id
+            'trade_id': trade.id,
+            'new_balance': float(new_balance)
         })
     except Exception as e:
         return JsonResponse({
