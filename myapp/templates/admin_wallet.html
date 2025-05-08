@@ -53,8 +53,8 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <h6 class="card-title mb-1">Total Deposits</h6>
-                                    <h3 class="mb-0">$850,000</h3>
-                                    <small class="text-white-50">+12.5% from last month</small>
+                                    <h3 class="mb-0" id="totalDepositsAmount">$0</h3>
+                                    <small class="text-white-50">Total completed deposits</small>
                                 </div>
                                 <div class="bg-white bg-opacity-25 rounded-circle p-3">
                                     <i class="fas fa-arrow-down fa-2x"></i>
@@ -103,11 +103,18 @@
                                 <span class="badge bg-danger rounded-pill" id="transactionFailedCount">0</span>
                             </div>
                         </div>
-                        <div class="btn-group">
-                            <button type="button" class="btn btn-outline-light btn-sm active" data-deposit-filter="all">All</button>
-                            <button type="button" class="btn btn-outline-light btn-sm" data-deposit-filter="pending">Pending</button>
-                            <button type="button" class="btn btn-outline-light btn-sm" data-deposit-filter="completed">Completed</button>
-                            <button type="button" class="btn btn-outline-light btn-sm" data-deposit-filter="failed">Failed</button>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="input-group" style="width: 250px;">
+                                <input type="text" class="form-control form-control-sm" id="depositSearch" placeholder="Search deposits...">
+                                <button class="btn btn-outline-light btn-sm" type="button">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-outline-light btn-sm active" data-deposit-filter="all">All</button>
+                                <button type="button" class="btn btn-outline-light btn-sm" data-deposit-filter="pending">Pending</button>
+                                <button type="button" class="btn btn-outline-light btn-sm" data-deposit-filter="approved">Approved</button>
+                            </div>
                         </div>
                     </div>
                     <div class="table-responsive">
@@ -120,7 +127,7 @@
                                     <th class="text-uppercase px-4">Amount</th>
                                     <th class="text-uppercase px-4">Status</th>
                                     <th class="text-uppercase px-4">Date</th>
-                                    <th class="text-uppercase px-4">Action</th>
+                                    <th class="text-uppercase px-4">Receipt</th>
                                 </tr>
                             </thead>
                             <tbody id="transactionsTableBody">
@@ -143,18 +150,28 @@
                                 <span class="badge bg-danger rounded-pill" id="failedCount">0</span>
                             </div>
                         </div>
-                        <div class="btn-group">
-                            <button type="button" class="btn btn-outline-light btn-sm active" data-withdrawal-filter="all">All</button>
-                            <button type="button" class="btn btn-outline-light btn-sm" data-withdrawal-filter="pending">Pending</button>
-                            <button type="button" class="btn btn-outline-light btn-sm" data-withdrawal-filter="completed">Completed</button>
-                            <button type="button" class="btn btn-outline-light btn-sm" data-withdrawal-filter="failed">Failed</button>
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="input-group" style="width: 250px;">
+                                <input type="text" class="form-control form-control-sm" id="withdrawalSearch" placeholder="Search withdrawals...">
+                                <button class="btn btn-outline-light btn-sm" type="button">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-outline-light btn-sm active" data-withdrawal-filter="all">All</button>
+                                <button type="button" class="btn btn-outline-light btn-sm" data-withdrawal-filter="pending">Pending</button>
+                                <button type="button" class="btn btn-outline-light btn-sm" data-withdrawal-filter="completed">Completed</button>
+                                <button type="button" class="btn btn-outline-light btn-sm" data-withdrawal-filter="failed">Failed</button>
+                            </div>
                         </div>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-dark table-hover align-middle mb-0">
                             <thead>
                                 <tr>
-                                    <th class="text-uppercase px-4">Withdrawal ID</th>
+                                    <th class="text-uppercase px-4">Account Number</th>
+                                    <th class="text-uppercase px-4">IFSC Code</th>
+                                    <th class="text-uppercase px-4">Account Holder</th>
                                     <th class="text-uppercase px-4">User</th>
                                     <th class="text-uppercase px-4">Amount</th>
                                     <th class="text-uppercase px-4">Payment Method</th>
@@ -689,6 +706,42 @@ document.addEventListener('DOMContentLoaded', function() {
     var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
+
+    // Add search functionality for withdrawals
+    const withdrawalSearch = document.getElementById('withdrawalSearch');
+    if (withdrawalSearch) {
+        withdrawalSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#withdrawalsTableBody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // Add search functionality for deposits
+    const depositSearch = document.getElementById('depositSearch');
+    if (depositSearch) {
+        depositSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#transactionsTableBody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
 });
 
 // Add loading indicators
@@ -730,20 +783,25 @@ function loadTransactions() {
 
         // Initialize counters
         let pendingCount = 0;
-        let completedCount = 0;
-        let failedCount = 0;
+        let approvedCount = 0;
+        let totalDeposits = 0;
 
         // Track pending sums by currency
         const pendingSums = {};
 
         data.transactions.forEach(transaction => {
+            // Skip failed transactions
+            if (transaction.status === 'failed') {
+                return;
+            }
+
             // Update counters based on status
             if (transaction.status === 'pending') {
                 pendingCount++;
             } else if (transaction.status === 'approved') {
-                completedCount++;
-            } else if (transaction.status === 'failed') {
-                failedCount++;
+                approvedCount++;
+                // Add to total deposits if status is approved
+                totalDeposits += parseFloat(transaction.amount);
             }
 
             // Format date
@@ -754,8 +812,6 @@ function loadTransactions() {
             let statusClass = 'bg-warning';
             if (transaction.status === 'approved') {
                 statusClass = 'bg-success';
-            } else if (transaction.status === 'failed') {
-                statusClass = 'bg-danger';
             }
 
             // Sum pending transactions by currency
@@ -791,16 +847,11 @@ function loadTransactions() {
                 </td>
                 <td class="px-4">${formattedDate}</td>
                 <td class="px-4">
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-primary btn-sm" onclick="viewTransactionDetails('${transaction.transaction_id}')" data-bs-toggle="tooltip" data-bs-placement="top" title="View Details">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        ${receiptUrl ? `
-                            <button class="btn btn-info btn-sm" onclick="viewReceipt('${receiptUrl}')" data-bs-toggle="tooltip" data-bs-placement="top" title="View Receipt">
-                                <i class="fas fa-file-alt"></i>
-                            </button>
-                        ` : ''}
-                    </div>
+                    ${receiptUrl ? `
+                        <a href="${receiptUrl}" class="btn btn-info btn-sm py-1 px-2" onclick="viewReceipt('${receiptUrl}'); return false;" data-bs-toggle="tooltip" data-bs-placement="top" title="View Receipt">
+                            <i class="fas fa-file-alt" style="font-size: 0.8rem;"></i>
+                        </a>
+                    ` : 'No Receipt'}
                 </td>
             `;
             tableBody.appendChild(row);
@@ -808,8 +859,11 @@ function loadTransactions() {
 
         // Update the count badges
         document.getElementById('transactionPendingCount').textContent = pendingCount;
-        document.getElementById('transactionCompletedCount').textContent = completedCount;
-        document.getElementById('transactionFailedCount').textContent = failedCount;
+        document.getElementById('transactionCompletedCount').textContent = approvedCount;
+        document.getElementById('transactionFailedCount').style.display = 'none';
+
+        // Update Total Deposits amount
+        document.getElementById('totalDepositsAmount').textContent = `$${totalDeposits.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
 
         // Update the Pending Transactions card
         const pendingCard = document.getElementById('pendingSumText');
@@ -1008,19 +1062,20 @@ function loadWithdrawals() {
                 statusClass = 'bg-danger';
             }
 
-            // Format payment method to include bank details if available
-            let paymentMethod = withdrawal.payment_method;
-            if (withdrawal.bank_details) {
-                const bankDetails = withdrawal.bank_details;
-                paymentMethod = `BANK - ${bankDetails.bank_name || 'N/A'}`;
-            }
+            // Get bank details
+            const bankDetails = withdrawal.bank_details || {};
+            const accountNumber = bankDetails.account_number || 'N/A';
+            const ifscCode = bankDetails.ifsc_code || 'N/A';
+            const accountHolder = bankDetails.account_holder || 'N/A';
 
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td class="px-4">${withdrawal.withdrawal_id}</td>
+                <td class="px-4">${accountNumber}</td>
+                <td class="px-4">${ifscCode}</td>
+                <td class="px-4">${accountHolder}</td>
                 <td class="px-4">${withdrawal.user_name}</td>
                 <td class="px-4">${withdrawal.currency} ${withdrawal.amount}</td>
-                <td class="px-4">${paymentMethod}</td>
+                <td class="px-4">${withdrawal.payment_method}</td>
                 <td class="px-4">
                     <span class="badge ${statusClass} rounded-pill px-3" 
                           style="cursor: pointer;"
@@ -1641,6 +1696,39 @@ document.addEventListener('DOMContentLoaded', function() {
 
     .table-row-hidden {
         display: none !important;
+    }
+
+    .search-container {
+        position: relative;
+    }
+
+    .search-input {
+        position: absolute;
+        right: 0;
+        top: 100%;
+        margin-top: 5px;
+        z-index: 1000;
+        background: #343a40;
+        padding: 5px;
+        border-radius: 4px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .search-input .form-control {
+        background: #495057;
+        border-color: #6c757d;
+        color: white;
+    }
+
+    .search-input .form-control::placeholder {
+        color: #adb5bd;
+    }
+
+    .search-input .form-control:focus {
+        background: #495057;
+        border-color: #6c757d;
+        color: white;
+        box-shadow: none;
     }
 </style>
 
