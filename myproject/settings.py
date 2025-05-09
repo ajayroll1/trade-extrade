@@ -79,11 +79,11 @@ WSGI_APPLICATION = 'myproject.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'Tradex',         # Aapka Database Name
-        'USER': 'postgres',      # Aapka PostgreSQL Username
-        'PASSWORD': '123456',    # Aapka PostgreSQL Password
-        'HOST': 'localhost',     # Agar DB local hai toh 'localhost', nahi toh server ka IP
-        'PORT': '5432',          # Default PostgreSQL port
+        'NAME': 'Tradex',
+        'USER': 'postgres',
+        'PASSWORD': '123456',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
@@ -145,3 +145,6 @@ EMAIL_HOST_USER = 'ajaymahto2580@gmail.com'  # Your Gmail address
 EMAIL_HOST_PASSWORD = 'odgm jydv dbtu endm'  # Your app password
 DEFAULT_FROM_EMAIL = 'ajaymahto2580@gmail.com'  # Your Gmail address
 EMAIL_TIMEOUT = 20
+
+
+
