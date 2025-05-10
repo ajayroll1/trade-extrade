@@ -22,6 +22,7 @@ from django.db.models.functions import TruncMonth
 from django.core.files.storage import default_storage
 import uuid
 from .models import Trade, WishlistItem, PaymentMethod, Transaction, Withdrawal
+from django.db import models
 
 from .forms import CustomUserCreationForm
 
@@ -896,18 +897,59 @@ def admin_dashboard(request):
         volume_data['labels'].append(entry['month'].strftime('%b %Y'))
         volume_data['volumes'].append(float(entry['volume']) / 1000000)  # Convert to millions
 
+    # Get recent trades for the Recent Activity section
+    recent_trades = Trade.objects.select_related('user').order_by('-created_at')[:5]
+
+    # Get top traders based on transaction count and total amount
+    top_traders = User.objects.annotate(
+        transaction_count=Count('transaction', filter=models.Q(transaction__status='completed')),
+        total_amount=Sum('transaction__amount', filter=models.Q(transaction__status='completed'))
+    ).exclude(total_amount=None).order_by('-total_amount')[:5]
+
+    # Debug prints
+    print("Top Traders Query:", top_traders.query)
+    print("Top Traders Count:", top_traders.count())
+    for trader in top_traders:
+        print(f"Trader: {trader.username}, Transactions: {trader.transaction_count}, Total: {trader.total_amount}")
+
     return render(request, 'admin_dashboard.html', {
         'total_traders': total_traders,
         'active_trades': active_trades,
         'pending_transactions': pending_transactions,
         'total_volume': total_volume,
         'volume_in_millions': volume_in_millions,
-        'volume_data': volume_data
+        'volume_data': volume_data,
+        'recent_trades': recent_trades,
+        'top_traders': top_traders
     })
 
 @staff_member_required
 def admin_traders(request):
     users = User.objects.all().order_by('-date_joined')
+    
+    # Calculate balance for each user
+    for user in users:
+        # Get all approved transactions for the user
+        approved_deposits = Transaction.objects.filter(
+            user=user,
+            status='completed'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
+        # Get all completed withdrawals
+        completed_withdrawals = Withdrawal.objects.filter(
+            user=user,
+            status='completed'
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
+        # Get total amount of active trades
+        active_trades_total = Trade.objects.filter(
+            user=user,
+            status='active'
+        ).aggregate(total=Sum('total_amount'))['total'] or Decimal('0')
+
+        # Calculate available balance
+        user.available_balance = approved_deposits - completed_withdrawals - active_trades_total
+    
     return render(request, 'admin_traders.html', {'users': users})
 
 @staff_member_required
@@ -1092,17 +1134,55 @@ def update_trader(request):
                     return JsonResponse({'success': False, 'error': 'Username already taken'})
                 user.username = value
             elif field == 'balance':
-                # Update user's balance (assuming you have a UserProfile model with balance field)
                 try:
-                    # Remove currency symbol and convert to float
+                    # Remove currency symbol and convert to Decimal
                     clean_value = value.replace('$', '').strip()
-                    balance = float(clean_value)
+                    balance = Decimal(clean_value)
                     
-                    # Update balance in your user profile model
-                    profile = user.profile  # Adjust based on your actual model relationship
-                    profile.balance = balance
-                    profile.save()
-                except (ValueError, AttributeError):
+                    # Get current available balance
+                    approved_deposits = Transaction.objects.filter(
+                        user=user,
+                        status='completed'
+                    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
+                    completed_withdrawals = Withdrawal.objects.filter(
+                        user=user,
+                        status='completed'
+                    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
+                    active_trades_total = Trade.objects.filter(
+                        user=user,
+                        status='active'
+                    ).aggregate(total=Sum('total_amount'))['total'] or Decimal('0')
+
+                    current_balance = approved_deposits - completed_withdrawals - active_trades_total
+                    
+                    # Calculate the difference to adjust
+                    adjustment = balance - current_balance
+                    
+                    # Create a new transaction for the adjustment
+                    Transaction.objects.create(
+                        user=user,
+                        amount=adjustment,
+                        status='completed',
+                        payment_type='balance_adjustment',
+                        transaction_id=f"ADJ-{uuid.uuid4().hex[:8].upper()}"
+                    )
+                    
+                    # Calculate new available balance
+                    new_approved_deposits = Transaction.objects.filter(
+                        user=user,
+                        status='completed'
+                    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+                    
+                    available_balance = new_approved_deposits - completed_withdrawals - active_trades_total
+                    
+                    return JsonResponse({
+                        'success': True,
+                        'available_balance': float(available_balance)
+                    })
+                    
+                except (ValueError, InvalidOperation):
                     return JsonResponse({'success': False, 'error': 'Invalid balance format'})
             else:
                 return JsonResponse({'success': False, 'error': 'Invalid field'})
@@ -1111,6 +1191,7 @@ def update_trader(request):
             user.save()
             
             return JsonResponse({'success': True})
+            
         except User.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'User not found'})
         except ValidationError as e:
@@ -1703,6 +1784,52 @@ def update_withdrawal_status(request, withdrawal_id):
             'status': 'error',
             'message': 'Failed to update withdrawal status'
         }, status=500)
+
+@csrf_exempt
+@staff_member_required
+def login_as_user(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            user_id = data.get('user_id')
+            
+            if not user_id:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'User ID is required'
+                })
+            
+            # Get the target user
+            try:
+                target_user = User.objects.get(id=user_id)
+            except User.DoesNotExist:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'User not found'
+                })
+            
+            # Log out the current admin user
+            logout(request)
+            
+            # Log in as the target user
+            login(request, target_user)
+            
+            return JsonResponse({
+                'success': True,
+                'redirect_url': '/dashboard/'
+            })
+            
+        except Exception as e:
+            print(f"Error in login_as_user: {e}")
+            return JsonResponse({
+                'success': False,
+                'error': 'Failed to login as user'
+            })
+    
+    return JsonResponse({
+        'success': False,
+        'error': 'Invalid request method'
+    })
 
 
 

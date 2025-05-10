@@ -400,7 +400,7 @@
                 <th>PRICE</th>
                 <th>SL</th>
                 <th>TP</th>
-                {% comment %} <th>SWAP</th> {% endcomment %}
+                <th>SWAP</th>
                 <th>LTP</th>
                 <th>PROFIT</th>
                 <th>ACTIONS</th>
@@ -952,17 +952,27 @@
         modalSymbol.textContent = symbol;
         modalOrderType.textContent = orderType;
         modalOrderType.style.color = orderType === 'BUY' ? '#4CAF50' : '#f44336';
-        modalPrice.textContent = price.toFixed(1);
-        
+
         // Get quantity from the trade data dynamically
         const tradeRow = document.querySelector(`tr[data-trade-id="${tradeId}"]`);
+        let displayPrice = price;
         if (tradeRow) {
             const tradeQuantity = parseFloat(tradeRow.querySelector('td:nth-child(5)').textContent);
             modalQuantity.value = tradeQuantity.toFixed(2);
+            if (orderType === 'SELL') {
+                // Use LTP value for sell
+                const ltpCell = tradeRow.querySelector('.ltp');
+                if (ltpCell && !isNaN(parseFloat(ltpCell.textContent))) {
+                    displayPrice = parseFloat(ltpCell.textContent);
+                }
+            }
         } else {
             // Default quantity if trade row not found
             modalQuantity.value = "0.10";
         }
+
+        // Set price in modal
+        modalPrice.textContent = displayPrice.toFixed(1);
         
         // Set currency symbol (first part of the trading pair)
         const currencySymbol = symbol.split('/')[0] || symbol.substring(0, 3);
@@ -980,7 +990,7 @@
 
         function calculateTotal() {
             const quantity = parseFloat(modalQuantity.value) || 0;
-            const total = quantity * price;
+            const total = quantity * displayPrice;
             modalTotal.textContent = total.toFixed(2); // Display 2 decimal places for total
         }
     }

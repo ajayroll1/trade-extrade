@@ -4,10 +4,6 @@
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12">
-            <h2 class="text-primary fw-bold mb-4 fs-4">Traders Dashboard</h2>
-            
-            <!-- Live Trade Section removed -->
-
             <div class="card shadow-sm">
                 <div class="card-header bg-dark py-3">
                     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
@@ -49,6 +45,7 @@
                         <table class="table table-hover align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
+                                    <th class="text-uppercase px-4">Profile</th>
                                     <th class="text-uppercase px-4">Name</th>
                                     <th class="text-uppercase">Email</th>
                                     <th class="text-uppercase">Username</th>
@@ -61,17 +58,19 @@
                                 {% for user in users %}
                                 <tr data-user-id="{{ user.id }}">
                                     <td class="px-4">
+                                        <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; cursor: pointer;" onclick="loginAsUser('{{ user.id }}', '{{ user.username }}')">
+                                            <span class="small">{{ user.first_name|first|default:user.username|first|upper }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-4">
                                         <div class="d-flex align-items-center">
-                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                                                <span class="small">{{ user.first_name|first|default:user.username|first|upper }}</span>
-                                            </div>
                                             <span class="fw-semibold text-nowrap" contenteditable="true" onblur="updateTraderField(this, 'name')">{{ user.get_full_name|default:user.username }}</span>
                                         </div>
                                     </td>
                                     <td class="text-break"><span contenteditable="true" onblur="updateTraderField(this, 'email')">{{ user.email }}</span></td>
                                     <td class="text-nowrap"><span contenteditable="true" onblur="updateTraderField(this, 'username')">{{ user.username }}</span></td>
                                     <td class="text-nowrap">
-                                        <span class="fw-semibold text-primary" contenteditable="true" onblur="updateTraderField(this, 'balance')">$0.00</span>
+                                        <span class="fw-semibold text-primary" contenteditable="true" onblur="updateTraderField(this, 'balance')">${{ user.available_balance|floatformat:2 }}</span>
                                     </td>
                                     <td>
                                         <div class="form-check form-switch">
@@ -448,10 +447,10 @@
         .then(data => {
             console.log('Update response:', data);
             
-            // Restore content
-            element.innerHTML = originalContent;
-            
             if (data.success) {
+                // Keep the exact value that was entered
+                element.innerHTML = value;
+                
                 // Show success feedback
                 const feedback = document.createElement('span');
                 feedback.className = 'text-success ms-2';
@@ -463,7 +462,7 @@
                     feedback.remove();
                 }, 2000);
                 
-                // Update other elements if needed (e.g., if name is updated, update the avatar)
+                // Update other elements if needed
                 if (field === 'name') {
                     // Update the avatar initial if name changed
                     const avatar = row.querySelector('.rounded-circle span');
@@ -484,6 +483,9 @@
                     feedback.remove();
                 }, 2000);
                 
+                // Restore original content
+                element.innerHTML = originalContent;
+                
                 // Show error toast
                 showToast(data.error || 'Failed to update field', 'error');
             }
@@ -491,7 +493,7 @@
         .catch(error => {
             console.error('Error updating field:', error);
             
-            // Restore content
+            // Restore original content
             element.innerHTML = originalContent;
             
             // Show error feedback
@@ -1090,6 +1092,42 @@
         if (!element || !element.dataset.originalText) return;
         element.textContent = element.dataset.originalText;
         delete element.dataset.originalText;
+    }
+
+    // Add this function in the script section
+    function loginAsUser(userId, username) {
+        // Show confirmation dialog
+        showModernAlert(
+            'success',
+            'Login as User',
+            `Are you sure you want to login as ${username}?`,
+            () => {
+                // Send login request to server
+                fetch('/api/login_as_user/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfToken()
+                    },
+                    body: JSON.stringify({
+                        user_id: userId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Redirect to the user's dashboard
+                        window.location.href = data.redirect_url || '/dashboard/';
+                    } else {
+                        showToast(data.error || 'Failed to login as user', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error logging in as user:', error);
+                    showToast('Failed to login as user', 'error');
+                });
+            }
+        );
     }
 </script>
 {% endblock %}

@@ -26,9 +26,11 @@
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card bg-warning text-white summary-card" style="cursor: pointer;" onclick="openSwapChargesModal()">
+                    <div class="card bg-warning text-white summary-card">
                         <div class="card-body">
                             <h6 class="card-title">Swap Charges</h6>
+                            <h3 class="mb-0">$125,000</h3>
+                            <small class="text-white-50">+5.2% from last month</small>
                         </div>
                     </div>
                 </div>
@@ -89,7 +91,7 @@
                 </div>
             </div>
 
-            <!-- Recent Transactions -->
+            <!-- Recent Deposits -->
             <div class="card bg-dark text-white mb-4">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -97,8 +99,7 @@
                             <h5 class="text-white mb-0 fs-6">Recent Deposits</h5>
                             <div class="ms-3 d-flex gap-2">
                                 <span class="badge bg-warning rounded-pill" id="transactionPendingCount">0</span>
-                                <span class="badge bg-success rounded-pill" id="transactionCompletedCount">0</span>
-                                <span class="badge bg-danger rounded-pill" id="transactionFailedCount">0</span>
+                                <span class="badge bg-success rounded-pill" id="transactionApprovedCount">0</span>
                             </div>
                         </div>
                         <div class="d-flex align-items-center gap-3">
@@ -361,91 +362,7 @@
     </div>
 </div>
 
-<!-- Swap Charges Modal -->
-<div class="modal fade" id="swapChargesModal" tabindex="-1" aria-labelledby="swapChargesModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-warning text-white">
-                <h5 class="modal-title" id="swapChargesModalLabel">Swap Charges Management</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <!-- Left Column - Saved Charges List -->
-                    <div class="col-md-5 border-end">
-                        <h6 class="fw-bold mb-3">Saved Charges</h6>
-                        <div class="list-group" id="savedChargesList" style="max-height: 400px; overflow-y: auto;">
-                            <!-- Charges will be loaded here dynamically -->
-                        </div>
-                    </div>
-                    
-                    <!-- Right Column - Add New Charge Form -->
-                    <div class="col-md-7">
-                        <h6 class="fw-bold mb-3">Add New Charge</h6>
-                        <form id="swapChargesForm">
-                            <div class="mb-3">
-                                <label class="form-label">Asset Pair</label>
-                                <select class="form-select" id="assetPair" name="assetPair" required>
-                                    <option value="">Select Asset Pair</option>
-                                    <option value="BTC/USDT">BTC/USDT</option>
-                                    <option value="ETH/USDT">ETH/USDT</option>
-                                    <option value="BNB/USDT">BNB/USDT</option>
-                                    <option value="SOL/USDT">SOL/USDT</option>
-                                    <option value="ADA/USDT">ADA/USDT</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Charge Type</label>
-                                <select class="form-select" id="chargeType" name="chargeType" required>
-                                    <option value="percentage">Percentage</option>
-                                    <option value="fixed">Fixed Amount</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Charge Value</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" id="chargeValue" name="chargeValue" 
-                                           step="0.01" min="0" required>
-                                    <span class="input-group-text" id="chargeUnit">%</span>
-                                </div>
-                                <small class="text-muted" id="chargeValueHelp"></small>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Minimum Amount</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" class="form-control" id="minAmount" name="minAmount" 
-                                           step="0.01" min="0" required>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Maximum Amount</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="number" class="form-control" id="maxAmount" name="maxAmount" 
-                                           step="0.01" min="0" required>
-                                </div>
-                                <small class="text-danger" id="amountError"></small>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Status</label>
-                                <select class="form-select" id="chargeStatus" name="status" required>
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                </select>
-                            </div>
-                            <div class="mt-4">
-                                <button type="submit" class="btn btn-warning">Save Changes</button>
-                                <button type="button" class="btn btn-secondary ms-2" data-bs-dismiss="modal">Close</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
+<!-- Add this function at the top of your script section -->
 <script>
 function openPaymentGatewayModal() {
     const modal = new bootstrap.Modal(document.getElementById('paymentGatewayModal'));
@@ -675,12 +592,16 @@ function formatDate(date) {
 }
 
 function toggleTransactionStatus(transactionId, statusElement) {
-    // Get CSRF token
-    const csrftoken = getCookie('csrftoken');
-    
-    // Determine new status
     const currentStatus = statusElement.textContent.trim().toLowerCase();
     const newStatus = currentStatus === 'pending' ? 'approved' : 'pending';
+    
+    // Get the amount from the row
+    const amountCell = statusElement.closest('tr').querySelector('td:nth-child(4)');
+    const amountText = amountCell.textContent;
+    const amount = parseFloat(amountText.split(' ')[1]);
+    
+    // Get CSRF token
+    const csrftoken = getCookie('csrftoken');
     
     // Send request to update status
     fetch(`/api/update-transaction-status/${transactionId}/`, {
@@ -693,17 +614,7 @@ function toggleTransactionStatus(transactionId, statusElement) {
             status: newStatus
         })
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        // Check if the response is JSON
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new TypeError("Oops, we haven't got JSON!");
-        }
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
         if (data.status === 'success') {
             // Update the status badge
@@ -718,45 +629,33 @@ function toggleTransactionStatus(transactionId, statusElement) {
                 statusElement.classList.add('bg-warning');
             }
 
-            // Update counters
-            const pendingCount = document.getElementById('transactionPendingCount');
-            const completedCount = document.getElementById('transactionCompletedCount');
-            const failedCount = document.getElementById('transactionFailedCount');
-            
-            // Decrement old status count
-            if (currentStatus === 'pending') {
-                pendingCount.textContent = parseInt(pendingCount.textContent) - 1;
-            } else if (currentStatus === 'approved') {
-                completedCount.textContent = parseInt(completedCount.textContent) - 1;
-            } else if (currentStatus === 'failed') {
-                failedCount.textContent = parseInt(failedCount.textContent) - 1;
-            }
-            
-            // Increment new status count
-            if (newStatus === 'pending') {
-                pendingCount.textContent = parseInt(pendingCount.textContent) + 1;
-            } else if (newStatus === 'approved') {
-                completedCount.textContent = parseInt(completedCount.textContent) + 1;
-            } else if (newStatus === 'failed') {
-                failedCount.textContent = parseInt(failedCount.textContent) + 1;
+            // Update total deposits
+            const totalDepositsElement = document.getElementById('totalDepositsAmount');
+            if (totalDepositsElement) {
+                let currentTotal = parseFloat(totalDepositsElement.textContent.replace(/[^0-9.-]+/g, ''));
+                
+                if (newStatus === 'approved') {
+                    currentTotal += amount;
+                } else {
+                    currentTotal -= amount;
+                }
+                
+                totalDepositsElement.textContent = `$${currentTotal.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                })}`;
             }
 
-            // Update pending sum if needed
-            const amountCell = statusElement.closest('tr').querySelector('td:nth-child(4)');
-            const amountText = amountCell.textContent;
-            const [currency, amount] = amountText.split(' ');
-            const pendingSumText = document.getElementById('pendingSumText');
+            // Update counters
+            const pendingCount = document.getElementById('transactionPendingCount');
+            const approvedCount = document.getElementById('transactionApprovedCount');
             
             if (currentStatus === 'pending') {
-                // Remove from pending sum
-                const currentSum = parseFloat(pendingSumText.textContent.replace(/[^0-9.-]+/g, ''));
-                const newSum = currentSum - parseFloat(amount);
-                pendingSumText.innerHTML = `<div style='font-weight: bold;'>${currency} ${newSum.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>`;
-            } else if (newStatus === 'pending') {
-                // Add to pending sum
-                const currentSum = parseFloat(pendingSumText.textContent.replace(/[^0-9.-]+/g, ''));
-                const newSum = currentSum + parseFloat(amount);
-                pendingSumText.innerHTML = `<div style='font-weight: bold;'>${currency} ${newSum.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>`;
+                pendingCount.textContent = parseInt(pendingCount.textContent) - 1;
+                approvedCount.textContent = parseInt(approvedCount.textContent) + 1;
+            } else {
+                pendingCount.textContent = parseInt(pendingCount.textContent) + 1;
+                approvedCount.textContent = parseInt(approvedCount.textContent) - 1;
             }
         } else {
             throw new Error(data.message || 'Error updating transaction status');
@@ -848,7 +747,7 @@ function hideLoading() {
     }
 }
 
-// Update loadTransactions function
+// Function to load transactions
 function loadTransactions() {
     showLoading();
     fetch('/api/get-transactions/', {
@@ -861,50 +760,37 @@ function loadTransactions() {
     .then(response => response.json())
     .then(data => {
         const tableBody = document.getElementById('transactionsTableBody');
-        tableBody.innerHTML = ''; // Clear existing rows
-
-        // Initialize counters
+        tableBody.innerHTML = '';
         let pendingCount = 0;
         let approvedCount = 0;
         let totalDeposits = 0;
 
-        // Track pending sums by currency
-        const pendingSums = {};
-
+        // Process each transaction
         data.transactions.forEach(transaction => {
             // Skip failed transactions
-            if (transaction.status === 'failed') {
-                return;
-            }
+            if (transaction.status === 'failed') return;
 
-            // Update counters based on status
+            // Update counters and total deposits
             if (transaction.status === 'pending') {
                 pendingCount++;
             } else if (transaction.status === 'approved') {
                 approvedCount++;
                 // Add to total deposits if status is approved
-                totalDeposits += parseFloat(transaction.amount);
+                const amount = parseFloat(transaction.amount);
+                if (!isNaN(amount)) {
+                    totalDeposits += amount;
+                }
             }
 
-            // Format date
+            // Create table row
             const date = new Date(transaction.created_at);
             const formattedDate = formatDate(date);
             
-            // Get status badge class
             let statusClass = 'bg-warning';
             if (transaction.status === 'approved') {
                 statusClass = 'bg-success';
             }
 
-            // Sum pending transactions by currency
-            if (transaction.status === 'pending') {
-                if (!pendingSums[transaction.currency]) {
-                    pendingSums[transaction.currency] = 0;
-                }
-                pendingSums[transaction.currency] += parseFloat(transaction.amount);
-            }
-
-            // Get receipt URL
             let receiptUrl = null;
             if (transaction.receipt_url) {
                 receiptUrl = transaction.receipt_url.replace(/^\/media\//, '');
@@ -941,20 +827,15 @@ function loadTransactions() {
 
         // Update the count badges
         document.getElementById('transactionPendingCount').textContent = pendingCount;
-        document.getElementById('transactionCompletedCount').textContent = approvedCount;
-        document.getElementById('transactionFailedCount').style.display = 'none';
+        document.getElementById('transactionApprovedCount').textContent = approvedCount;
 
-        // Update Total Deposits amount
-        document.getElementById('totalDepositsAmount').textContent = `$${totalDeposits.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-
-        // Update the Pending Transactions card
-        const pendingCard = document.getElementById('pendingSumText');
-        if (pendingCard) {
-            let pendingText = '';
-            for (const [currency, sum] of Object.entries(pendingSums)) {
-                pendingText += `<div style='font-weight: bold;'>${currency} ${sum.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>`;
-            }
-            pendingCard.innerHTML = pendingText.trim() || '0';
+        // Update Total Deposits amount with proper formatting
+        const totalDepositsElement = document.getElementById('totalDepositsAmount');
+        if (totalDepositsElement) {
+            totalDepositsElement.textContent = `$${totalDeposits.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}`;
         }
 
         // Reinitialize tooltips
@@ -1084,27 +965,27 @@ function downloadReceipt(url) {
     document.body.removeChild(link);
 }
 
-// Add filter functionality
-document.querySelectorAll('[data-filter]').forEach(filter => {
+// Add filter functionality for deposits
+document.querySelectorAll('[data-deposit-filter]').forEach(filter => {
     filter.addEventListener('click', function(e) {
         e.preventDefault();
-        const filterValue = this.getAttribute('data-filter');
+        const filterValue = this.getAttribute('data-deposit-filter');
         const rows = document.querySelectorAll('#transactionsTableBody tr');
         
         rows.forEach(row => {
             if (filterValue === 'all') {
                 row.style.display = '';
             } else {
-                const type = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
                 const status = row.querySelector('td:nth-child(5) .badge').textContent.toLowerCase();
-                
-                if (filterValue === 'deposit' || filterValue === 'withdrawal') {
-                    row.style.display = type.includes(filterValue) ? '' : 'none';
-                } else {
-                    row.style.display = status.includes(filterValue) ? '' : 'none';
-                }
+                row.style.display = status === filterValue ? '' : 'none';
             }
         });
+
+        // Update active filter button
+        document.querySelectorAll('[data-deposit-filter]').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        this.classList.add('active');
     });
 });
 
@@ -1122,15 +1003,25 @@ function loadWithdrawals() {
         let pendingCount = 0;
         let completedCount = 0;
         let failedCount = 0;
+        let totalWithdrawals = 0;
 
         const tableBody = document.getElementById('withdrawalsTableBody');
         tableBody.innerHTML = ''; // Clear existing rows
 
         data.withdrawals.forEach(withdrawal => {
-            // Update counters
-            if (withdrawal.status === 'pending') pendingCount++;
-            else if (withdrawal.status === 'completed') completedCount++;
-            else if (withdrawal.status === 'failed') failedCount++;
+            // Update counters and total withdrawals
+            if (withdrawal.status === 'pending') {
+                pendingCount++;
+            } else if (withdrawal.status === 'completed') {
+                completedCount++;
+                // Add to total withdrawals if status is completed
+                const amount = parseFloat(withdrawal.amount);
+                if (!isNaN(amount)) {
+                    totalWithdrawals += amount;
+                }
+            } else if (withdrawal.status === 'failed') {
+                failedCount++;
+            }
 
             // Format date
             const date = new Date(withdrawal.created_at);
@@ -1185,6 +1076,15 @@ function loadWithdrawals() {
         document.getElementById('completedCount').textContent = completedCount;
         document.getElementById('failedCount').textContent = failedCount;
 
+        // Update Total Withdrawals amount
+        const totalWithdrawalsElement = document.querySelector('.card.bg-danger .card-body h3.mb-0');
+        if (totalWithdrawalsElement) {
+            totalWithdrawalsElement.textContent = `$${totalWithdrawals.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            })}`;
+        }
+
         // Reinitialize tooltips
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
@@ -1196,7 +1096,7 @@ function loadWithdrawals() {
     });
 }
 
-// Add function to handle withdrawal status toggle
+// Update toggleWithdrawalStatus function to handle total withdrawals update
 function toggleWithdrawalStatus(withdrawalId, statusElement) {
     const currentStatus = statusElement.textContent.trim().toLowerCase();
     let newStatus;
@@ -1209,6 +1109,11 @@ function toggleWithdrawalStatus(withdrawalId, statusElement) {
     } else {
         newStatus = 'pending';
     }
+    
+    // Get the amount from the row
+    const amountCell = statusElement.closest('tr').querySelector('td:nth-child(5)');
+    const amountText = amountCell.textContent;
+    const amount = parseFloat(amountText.split(' ')[1]);
     
     // Get CSRF token
     const csrftoken = getCookie('csrftoken');
@@ -1238,6 +1143,23 @@ function toggleWithdrawalStatus(withdrawalId, statusElement) {
                 statusElement.classList.add('bg-danger');
             } else {
                 statusElement.classList.add('bg-warning');
+            }
+            
+            // Update total withdrawals
+            const totalWithdrawalsElement = document.querySelector('.card.bg-danger .card-body h3.mb-0');
+            if (totalWithdrawalsElement) {
+                let currentTotal = parseFloat(totalWithdrawalsElement.textContent.replace(/[^0-9.-]+/g, ''));
+                
+                if (currentStatus === 'completed') {
+                    currentTotal -= amount;
+                } else if (newStatus === 'completed') {
+                    currentTotal += amount;
+                }
+                
+                totalWithdrawalsElement.textContent = `$${currentTotal.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                })}`;
             }
             
             // Update counters
@@ -1536,13 +1458,15 @@ document.querySelectorAll('[data-deposit-filter]').forEach(filter => {
                 row.style.display = '';
             } else {
                 const status = row.querySelector('td:nth-child(5) .badge').textContent.toLowerCase();
-                row.style.display = status.includes(filterValue) ? '' : 'none';
+                row.style.display = status === filterValue ? '' : 'none';
             }
         });
 
-        // Update active filter button text
-        const filterButton = document.getElementById('depositFilterDropdown');
-        filterButton.textContent = this.textContent;
+        // Update active filter button
+        document.querySelectorAll('[data-deposit-filter]').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        this.classList.add('active');
     });
 });
 
@@ -1553,18 +1477,21 @@ document.querySelectorAll('[data-withdrawal-filter]').forEach(filter => {
         const filterValue = this.getAttribute('data-withdrawal-filter');
         const rows = document.querySelectorAll('#withdrawalsTableBody tr');
         
+        // Remove active class from all buttons
+        document.querySelectorAll('[data-withdrawal-filter]').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        // Add active class to clicked button
+        this.classList.add('active');
+        
         rows.forEach(row => {
             if (filterValue === 'all') {
                 row.style.display = '';
             } else {
-                const status = row.querySelector('td:nth-child(5) .badge').textContent.toLowerCase();
+                const status = row.querySelector('td:nth-child(7) .badge').textContent.toLowerCase();
                 row.style.display = status.includes(filterValue) ? '' : 'none';
             }
         });
-
-        // Update active filter button text
-        const filterButton = document.getElementById('withdrawalFilterDropdown');
-        filterButton.textContent = this.textContent;
     });
 });
 
@@ -1613,7 +1540,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (filterValue === 'all') {
                     row.classList.remove('table-row-hidden');
                 } else {
-                    const status = row.querySelector('td:nth-child(5) .badge').textContent.toLowerCase();
+                    const status = row.querySelector('td:nth-child(7) .badge').textContent.toLowerCase();
                     if (status.includes(filterValue)) {
                         row.classList.remove('table-row-hidden');
                     } else {
@@ -1624,510 +1551,336 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
-
-// Function to open swap charges modal
-function openSwapChargesModal() {
-    const modal = new bootstrap.Modal(document.getElementById('swapChargesModal'));
-    modal.show();
-    loadSavedCharges(); // Load saved charges when modal opens
-}
-
-// Function to load saved charges
-function loadSavedCharges() {
-    const chargesList = document.getElementById('savedChargesList');
-    chargesList.innerHTML = `
-        <div class="text-center py-3">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-    `;
-
-    fetch('/api/get-swap-charges/', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        chargesList.innerHTML = '';
-        
-        if (data.charges && data.charges.length > 0) {
-            data.charges.forEach(charge => {
-                const chargeElement = document.createElement('div');
-                chargeElement.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
-                chargeElement.innerHTML = `
-                    <div>
-                        <h6 class="mb-1">${charge.assetPair}</h6>
-                        <small class="text-muted">
-                            ${charge.chargeType === 'percentage' ? charge.chargeValue + '%' : '$' + charge.chargeValue}
-                            (Min: $${charge.minAmount} - Max: $${charge.maxAmount})
-                        </small>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge ${charge.status === 'active' ? 'bg-success' : 'bg-danger'} rounded-pill">
-                            ${charge.status}
-                        </span>
-                        <button class="btn btn-link text-danger p-0" onclick="deleteSwapCharge('${charge.id}', event)">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </div>
-                `;
-                chargesList.appendChild(chargeElement);
-            });
-        } else {
-            chargesList.innerHTML = `
-                <div class="text-center text-muted py-3">
-                    No swap charges added yet
-                </div>
-            `;
-        }
-    })
-    .catch(error => {
-        console.error('Error loading swap charges:', error);
-        chargesList.innerHTML = `
-            <div class="text-center text-danger py-3">
-                <i class="fas fa-exclamation-circle me-2"></i>
-                Error loading swap charges. Please try again.
-            </div>
-        `;
-    });
-}
-
-// Handle form submission
-document.getElementById('swapChargesForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    // Get form data
-    const formData = {
-        assetPair: document.getElementById('assetPair').value,
-        chargeType: document.getElementById('chargeType').value,
-        chargeValue: document.getElementById('chargeValue').value,
-        minAmount: document.getElementById('minAmount').value,
-        maxAmount: document.getElementById('maxAmount').value,
-        status: document.getElementById('chargeStatus').value
-    };
-
-    // Validate form data
-    if (!formData.assetPair || !formData.chargeValue || !formData.minAmount || !formData.maxAmount) {
-        alert('Please fill in all required fields');
-        return;
-    }
-
-    // Validate amounts
-    if (parseFloat(formData.minAmount) > parseFloat(formData.maxAmount)) {
-        document.getElementById('amountError').textContent = 'Minimum amount cannot be greater than maximum amount';
-        return;
-    }
-
-    // Validate charge value
-    if (formData.chargeType === 'percentage' && parseFloat(formData.chargeValue) > 100) {
-        document.getElementById('chargeValueHelp').textContent = 'Percentage cannot exceed 100%';
-        document.getElementById('chargeValueHelp').className = 'text-danger';
-        return;
-    }
-
-    // Show loading state
-    const submitButton = this.querySelector('button[type="submit"]');
-    const originalButtonText = submitButton.innerHTML;
-    submitButton.disabled = true;
-    submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
-
-    // Send data to server
-    fetch('/api/save-swap-charges/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken'),
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify(formData)
-    })
-    .then(response => {
-        // Reset button state
-        submitButton.disabled = false;
-        submitButton.innerHTML = originalButtonText;
-
-        // Check if response is JSON
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Server returned non-JSON response. Please check your server configuration.');
-        }
-
-        if (!response.ok) {
-            return response.json().then(err => {
-                throw new Error(err.message || 'Server error occurred');
-            });
-        }
-
-        return response.json();
-    })
-    .then(data => {
-        if (data.status === 'success') {
-            // Reset form
-            document.getElementById('swapChargesForm').reset();
-            document.getElementById('chargeValueHelp').textContent = '';
-            document.getElementById('amountError').textContent = '';
-            
-            // Reload saved charges
-            loadSavedCharges();
-            
-            // Show success message
-            alert('Swap charge added successfully!');
-        } else {
-            throw new Error(data.message || 'Error saving swap charge');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert(error.message || 'Error saving swap charge. Please try again.');
-    });
-});
-
-// Handle charge type change
-document.getElementById('chargeType').addEventListener('change', function() {
-    const chargeUnit = document.getElementById('chargeUnit');
-    const chargeValue = document.getElementById('chargeValue');
-    const helpText = document.getElementById('chargeValueHelp');
-    
-    if (this.value === 'percentage') {
-        chargeUnit.textContent = '%';
-        if (parseFloat(chargeValue.value) > 100) {
-            chargeValue.value = 100;
-            helpText.textContent = 'Percentage cannot exceed 100%';
-            helpText.className = 'text-danger';
-        }
-    } else {
-        chargeUnit.textContent = '$';
-        helpText.textContent = '';
-    }
-});
-
-// Function to delete swap charge
-function deleteSwapCharge(chargeId, event) {
-    event.preventDefault();
-    event.stopPropagation();
-    
-    if (confirm('Are you sure you want to delete this swap charge?')) {
-        fetch(`/api/delete-swap-charge/${chargeId}/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                loadSavedCharges(); // Reload the list
-                alert('Swap charge deleted successfully!');
-            } else {
-                throw new Error(data.message || 'Error deleting swap charge');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert(error.message || 'Error deleting swap charge');
-        });
-    }
-}
-
-// Add real-time validation for amounts
-document.getElementById('minAmount').addEventListener('input', validateAmounts);
-document.getElementById('maxAmount').addEventListener('input', validateAmounts);
-
-function validateAmounts() {
-    const minAmount = parseFloat(document.getElementById('minAmount').value);
-    const maxAmount = parseFloat(document.getElementById('maxAmount').value);
-    const errorElement = document.getElementById('amountError');
-    
-    if (minAmount > maxAmount) {
-        errorElement.textContent = 'Minimum amount cannot be greater than maximum amount';
-        return false;
-    } else {
-        errorElement.textContent = '';
-        return true;
-    }
-}
-
-// Add real-time validation for charge value
-document.getElementById('chargeValue').addEventListener('input', function() {
-    const value = parseFloat(this.value);
-    const chargeType = document.getElementById('chargeType').value;
-    const helpText = document.getElementById('chargeValueHelp');
-    
-    if (chargeType === 'percentage') {
-        if (value > 100) {
-            this.value = 100;
-            helpText.textContent = 'Percentage cannot exceed 100%';
-            helpText.className = 'text-danger';
-        } else {
-            helpText.textContent = '';
-        }
-    } else {
-        if (value < 0) {
-            this.value = 0;
-            helpText.textContent = 'Amount cannot be negative';
-            helpText.className = 'text-danger';
-        } else {
-            helpText.textContent = '';
-        }
-    }
-});
 </script>
 
 <style>
+    /* Base styles (Mobile First) */
     body {
         background-color: #f8f9fa;
-    }
-
-    .table th {
-        font-size: 12px;
-        font-weight: 600;
-        color: #6c757d;
-        white-space: nowrap;
-    }
-
-    .table td {
         font-size: 14px;
-        color: #2c3e50;
-        min-width: 100px;
     }
 
+    .container-fluid {
+        padding: 10px;
+    }
+
+    .row {
+        margin: 0;
+    }
+
+    .col-md-3, .col-md-6 {
+        padding: 5px;
+    }
+
+    /* Card styles */
     .card {
-        border: none;
-        border-radius: 10px;
+        margin-bottom: 10px;
+        border-radius: 8px;
         overflow: hidden;
     }
 
-    .card-header {
-        border-bottom: none;
-    }
-
-    .shadow-sm {
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
-    }
-
-    .badge {
-        font-weight: 500;
-        font-size: 12px;
-    }
-
-    .btn-sm {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.875rem;
-    }
-
-    .table-responsive {
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: thin;
-    }
-
-    .table-responsive::-webkit-scrollbar {
-        height: 6px;
-    }
-
-    .table-responsive::-webkit-scrollbar-track {
-        background: #f1f1f1;
-    }
-
-    .table-responsive::-webkit-scrollbar-thumb {
-        background: #888;
-        border-radius: 3px;
-    }
-
-    .table-responsive::-webkit-scrollbar-thumb:hover {
-        background: #555;
-    }
-
-    @media (max-width: 768px) {
-        .table {
-            display: block;
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .card-header {
-            padding: 1rem;
-        }
-
-        .dropdown-menu {
-            position: fixed !important;
-            top: 50% !important;
-            left: 50% !important;
-            transform: translate(-50%, -50%) !important;
-            width: 90% !important;
-            max-width: 320px;
-        }
-    }
-
-    .payment-option-card {
-        cursor: pointer;
-        transition: all 0.3s ease;
-        border: 1px solid #dee2e6;
-    }
-    
-    .payment-option-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    
-    .payment-option-card .card-body {
-        padding: 1.5rem;
-    }
-
-    .dropdown-menu {
-        display: none;
-        position: absolute;
-        background-color: white;
-        min-width: 200px;
-        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-        z-index: 1000;
-    }
-    
-    .dropdown.show .dropdown-menu {
-        display: block;
-    }
-    
-    .dropdown-item {
-        cursor: pointer;
-    }
-    
-    .dropdown-item:hover {
-        background-color: #f8f9fa;
-    }
-
     .summary-card {
-        min-height: 130px;
+        min-height: 100px;
         display: flex;
         flex-direction: column;
         justify-content: center;
     }
 
+    /* Table styles */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table th {
+        font-size: 12px;
+        padding: 8px 5px;
+        white-space: nowrap;
+    }
+
+    .table td {
+        font-size: 12px;
+        padding: 8px 5px;
+        vertical-align: middle;
+    }
+
+    /* Button styles */
+    .btn-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        width: 100%;
+    }
+
     .btn-group .btn {
-        border-radius: 0;
-        margin: 0;
-        padding: 0.375rem 1rem;
+        flex: 1;
+        min-width: 80px;
+        font-size: 12px;
+        padding: 0.25rem 0.5rem;
     }
 
-    .btn-group .btn:first-child {
-        border-top-left-radius: 0.25rem;
-        border-bottom-left-radius: 0.25rem;
+    /* Search and filter section */
+    .d-flex.justify-content-between.align-items-center {
+        flex-direction: column;
+        gap: 10px;
     }
 
-    .btn-group .btn:last-child {
-        border-top-right-radius: 0.25rem;
-        border-bottom-right-radius: 0.25rem;
+    .input-group {
+        width: 100%;
     }
 
-    .btn-group .btn.active {
-        background-color: #fff;
-        color: #000;
+    /* Badge styles */
+    .badge {
+        font-size: 11px;
+        padding: 0.4em 0.6em;
     }
 
-    .table-row-hidden {
-        display: none !important;
+    /* Modal styles */
+    .modal-dialog {
+        margin: 10px;
+        max-width: 95%;
     }
 
-    .search-container {
-        position: relative;
+    .modal-content {
+        padding: 15px;
     }
 
-    .search-input {
-        position: absolute;
-        right: 0;
-        top: 100%;
-        margin-top: 5px;
-        z-index: 1000;
-        background: #343a40;
-        padding: 5px;
-        border-radius: 4px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    .modal-body {
+        padding: 10px;
     }
 
-    .search-input .form-control {
-        background: #495057;
-        border-color: #6c757d;
-        color: white;
+    /* Action buttons */
+    .trade-actions {
+        flex-direction: column;
+        gap: 5px;
     }
 
-    .search-input .form-control::placeholder {
-        color: #adb5bd;
+    .action-button {
+        width: 100%;
+        padding: 4px 8px;
+        font-size: 11px;
     }
 
-    .search-input .form-control:focus {
-        background: #495057;
-        border-color: #6c757d;
-        color: white;
-        box-shadow: none;
+    /* Tablet styles */
+    @media (min-width: 769px) and (max-width: 1024px) {
+        .container-fluid {
+            padding: 15px;
+        }
+
+        .col-md-3 {
+            width: 50%;
+        }
+
+        .col-md-6 {
+            width: 100%;
+        }
+
+        .summary-card {
+            min-height: 120px;
+        }
+
+        .table th {
+            font-size: 13px;
+            padding: 10px 8px;
+        }
+
+        .table td {
+            font-size: 13px;
+            padding: 10px 8px;
+        }
+
+        .btn-group {
+            width: auto;
+        }
+
+        .btn-group .btn {
+            font-size: 13px;
+            padding: 0.3rem 0.6rem;
+        }
+
+        .d-flex.justify-content-between.align-items-center {
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            width: 250px;
+        }
+
+        .badge {
+            font-size: 12px;
+            padding: 0.5em 0.7em;
+        }
+
+        .trade-actions {
+            flex-direction: row;
+        }
+
+        .action-button {
+            width: auto;
+            font-size: 12px;
+        }
     }
 
-    .list-group-item {
-        border-left: none;
-        border-right: none;
-        padding: 1rem;
+    /* Desktop styles */
+    @media (min-width: 1025px) {
+        .container-fluid {
+            padding: 20px;
+        }
+
+        .col-md-3 {
+            width: 25%;
+        }
+
+        .col-md-6 {
+            width: 50%;
+        }
+
+        .summary-card {
+            min-height: 130px;
+        }
+
+        .table th {
+            font-size: 14px;
+            padding: 12px 10px;
+        }
+
+        .table td {
+            font-size: 14px;
+            padding: 12px 10px;
+        }
+
+        .btn-group {
+            width: auto;
+        }
+
+        .btn-group .btn {
+            font-size: 14px;
+            padding: 0.375rem 0.75rem;
+        }
+
+        .d-flex.justify-content-between.align-items-center {
+            flex-direction: row;
+        }
+
+        .input-group {
+            width: 300px;
+        }
+
+        .badge {
+            font-size: 13px;
+            padding: 0.6em 0.8em;
+        }
+
+        .trade-actions {
+            flex-direction: row;
+            gap: 8px;
+        }
+
+        .action-button {
+            width: auto;
+            font-size: 13px;
+            padding: 6px 12px;
+        }
+
+        /* Enhanced desktop features */
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .table-responsive {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-radius: 8px;
+        }
+
+        .modal-dialog {
+            max-width: 600px;
+            margin: 30px auto;
+        }
+
+        .modal-content {
+            padding: 25px;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
     }
 
-    .list-group-item:first-child {
-        border-top: none;
+    /* Dark mode support */
+    @media (prefers-color-scheme: dark) {
+        body {
+            background-color: #1a1c25;
+            color: #fff;
+        }
+
+        .card {
+            background-color: #2a2d3e;
+            border-color: #3a3d4e;
+        }
+
+        .table {
+            color: #fff;
+        }
+
+        .table th {
+            color: #8a8d98;
+            background-color: #2a2d3e;
+        }
+
+        .table td {
+            color: #fff;
+            border-color: #3a3d4e;
+        }
+
+        .form-control {
+            background-color: #1a1c25;
+            border-color: #3a3d4e;
+            color: #fff;
+        }
+
+        .form-control:focus {
+            background-color: #1a1c25;
+            border-color: #4a4d5e;
+            color: #fff;
+        }
+
+        .modal-content {
+            background-color: #2a2d3e;
+            color: #fff;
+        }
+
+        .btn-outline-light {
+            color: #fff;
+            border-color: #4a4d5e;
+        }
+
+        .btn-outline-light:hover {
+            background-color: #4a4d5e;
+            color: #fff;
+        }
     }
 
-    .list-group-item:last-child {
-        border-bottom: none;
-    }
+    /* Print styles */
+    @media print {
+        .btn-group, .action-buttons, .modal {
+            display: none !important;
+        }
 
-    .list-group-item:hover {
-        background-color: #f8f9fa;
-    }
+        .table {
+            width: 100% !important;
+        }
 
-    .modal-lg {
-        max-width: 800px;
-    }
+        .table th, .table td {
+            border: 1px solid #ddd;
+        }
 
-    .border-end {
-        border-right: 1px solid #dee2e6;
-    }
-
-    #savedChargesList {
-        max-height: 400px;
-        overflow-y: auto;
-        scrollbar-width: thin;
-    }
-
-    #savedChargesList::-webkit-scrollbar {
-        width: 6px;
-    }
-
-    #savedChargesList::-webkit-scrollbar-track {
-        background: #f1f1f1;
-    }
-
-    #savedChargesList::-webkit-scrollbar-thumb {
-        background: #888;
-        border-radius: 3px;
-    }
-
-    #savedChargesList::-webkit-scrollbar-thumb:hover {
-        background: #555;
-    }
-
-    .list-group-item {
-        transition: background-color 0.2s;
-    }
-
-    .list-group-item:hover {
-        background-color: #f8f9fa;
-    }
-
-    .text-danger {
-        color: #dc3545 !important;
-    }
-
-    .text-muted {
-        color: #6c757d !important;
+        .card {
+            border: 1px solid #ddd;
+            break-inside: avoid;
+        }
     }
 </style>
 

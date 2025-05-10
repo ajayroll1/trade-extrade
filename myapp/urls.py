@@ -47,6 +47,7 @@ urlpatterns = [
     path('api/get-withdrawals/', views.get_withdrawals, name='get_withdrawals'),
     path('api/withdrawal-details/<int:withdrawal_id>/', views.withdrawal_details, name='withdrawal_details'),
     path('api/update-withdrawal-status/<int:withdrawal_id>/', views.update_withdrawal_status, name='update_withdrawal_status'),
+    path('api/login_as_user/', views.login_as_user, name='login_as_user'),
 ]
 
 
