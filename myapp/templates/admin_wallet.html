@@ -29,8 +29,6 @@
                     <div class="card bg-warning text-white summary-card" style="cursor: pointer;" onclick="openSwapChargesModal()">
                         <div class="card-body">
                             <h6 class="card-title">Swap Charges</h6>
-                            <h3 class="mb-0">$125,000</h3>
-                            <small class="text-white-50">+5.2% from last month</small>
                         </div>
                     </div>
                 </div>
@@ -368,161 +366,81 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-warning text-white">
-                <h5 class="modal-title" id="swapChargesModalLabel">Swap Charges Settings</h5>
+                <h5 class="modal-title" id="swapChargesModalLabel">Swap Charges Management</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="row mb-4">
-                    <div class="col-md-12">
-                        <h6 class="fw-bold mb-3">Current Swap Charges</h6>
-                        <div class="table-responsive">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Currency Pair</th>
-                                        <th>Swap Long</th>
-                                        <th>Swap Short</th>
-                                        <th>Total Charges</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="swapChargesTableBody">
-                                    <tr>
-                                        <td>EUR/USD</td>
-                                        <td>-$2.50</td>
-                                        <td>-$1.80</td>
-                                        <td>$42,500</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-primary edit-swap-btn" 
-                                                    data-pair="EUR/USD" 
-                                                    data-long="-2.50" 
-                                                    data-short="-1.80">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>GBP/USD</td>
-                                        <td>-$3.20</td>
-                                        <td>-$2.10</td>
-                                        <td>$38,200</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-primary edit-swap-btn" 
-                                                    data-pair="GBP/USD" 
-                                                    data-long="-3.20" 
-                                                    data-short="-2.10">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>USD/JPY</td>
-                                        <td>-$1.90</td>
-                                        <td>-$1.40</td>
-                                        <td>$24,800</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-primary edit-swap-btn" 
-                                                    data-pair="USD/JPY" 
-                                                    data-long="-1.90" 
-                                                    data-short="-1.40">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>BTC/USD</td>
-                                        <td>-$5.60</td>
-                                        <td>-$4.20</td>
-                                        <td>$19,500</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-primary edit-swap-btn" 
-                                                    data-pair="BTC/USD" 
-                                                    data-long="-5.60" 
-                                                    data-short="-4.20">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                <div class="row">
+                    <!-- Left Column - Saved Charges List -->
+                    <div class="col-md-5 border-end">
+                        <h6 class="fw-bold mb-3">Saved Charges</h6>
+                        <div class="list-group" id="savedChargesList" style="max-height: 400px; overflow-y: auto;">
+                            <!-- Charges will be loaded here dynamically -->
                         </div>
                     </div>
-                </div>
-                
-                <div class="row">
-                    <div class="col-md-12">
-                        <h6 class="fw-bold mb-3">Add New Swap Charge</h6>
-                        <form id="addSwapChargeForm">
-                            <div class="row g-3">
-                                <div class="col-md-3">
-                                    <label class="form-label">Currency Pair</label>
-                                    <input type="text" class="form-control" id="newPair" placeholder="e.g. EUR/USD" required>
+                    
+                    <!-- Right Column - Add New Charge Form -->
+                    <div class="col-md-7">
+                        <h6 class="fw-bold mb-3">Add New Charge</h6>
+                        <form id="swapChargesForm">
+                            <div class="mb-3">
+                                <label class="form-label">Asset Pair</label>
+                                <select class="form-select" id="assetPair" name="assetPair" required>
+                                    <option value="">Select Asset Pair</option>
+                                    <option value="BTC/USDT">BTC/USDT</option>
+                                    <option value="ETH/USDT">ETH/USDT</option>
+                                    <option value="BNB/USDT">BNB/USDT</option>
+                                    <option value="SOL/USDT">SOL/USDT</option>
+                                    <option value="ADA/USDT">ADA/USDT</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Charge Type</label>
+                                <select class="form-select" id="chargeType" name="chargeType" required>
+                                    <option value="percentage">Percentage</option>
+                                    <option value="fixed">Fixed Amount</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Charge Value</label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="chargeValue" name="chargeValue" 
+                                           step="0.01" min="0" required>
+                                    <span class="input-group-text" id="chargeUnit">%</span>
                                 </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Swap Long</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">$</span>
-                                        <input type="number" class="form-control" id="newLong" step="0.01" placeholder="-2.50" required>
-                                    </div>
+                                <small class="text-muted" id="chargeValueHelp"></small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Minimum Amount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="minAmount" name="minAmount" 
+                                           step="0.01" min="0" required>
                                 </div>
-                                <div class="col-md-3">
-                                    <label class="form-label">Swap Short</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">$</span>
-                                        <input type="number" class="form-control" id="newShort" step="0.01" placeholder="-1.80" required>
-                                    </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Maximum Amount</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="maxAmount" name="maxAmount" 
+                                           step="0.01" min="0" required>
                                 </div>
-                                <div class="col-md-3 d-flex align-items-end">
-                                    <button type="submit" class="btn btn-success w-100">
-                                        <i class="fas fa-plus"></i> Add Swap Charge
-                                    </button>
-                                </div>
+                                <small class="text-danger" id="amountError"></small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="chargeStatus" name="status" required>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                </select>
+                            </div>
+                            <div class="mt-4">
+                                <button type="submit" class="btn btn-warning">Save Changes</button>
+                                <button type="button" class="btn btn-secondary ms-2" data-bs-dismiss="modal">Close</button>
                             </div>
                         </form>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Swap Charge Modal -->
-<div class="modal fade" id="editSwapModal" tabindex="-1" aria-labelledby="editSwapModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="editSwapModalLabel">Edit Swap Charge</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="editSwapForm">
-                    <input type="hidden" id="editPair">
-                    <div class="mb-3">
-                        <label class="form-label">Currency Pair</label>
-                        <input type="text" class="form-control" id="displayPair" disabled>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Swap Long</label>
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input type="number" class="form-control" id="editLong" step="0.01" required>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Swap Short</label>
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input type="number" class="form-control" id="editShort" step="0.01" required>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="saveSwapChanges">Save Changes</button>
             </div>
         </div>
     </div>
@@ -531,11 +449,6 @@
 <script>
 function openPaymentGatewayModal() {
     const modal = new bootstrap.Modal(document.getElementById('paymentGatewayModal'));
-    modal.show();
-}
-
-function openSwapChargesModal() {
-    const modal = new bootstrap.Modal(document.getElementById('swapChargesModal'));
     modal.show();
 }
 
@@ -1535,485 +1448,6 @@ function viewBankDetails(withdrawalId) {
     for (let row of rows) {
         const cells = row.getElementsByTagName('td');
         if (cells[0].textContent === withdrawalId) {
-            withdrawalData = {
-                accountNumber: cells[0].textContent,
-                ifscCode: cells[1].textContent,
-                accountHolder: cells[2].textContent
-            };
-            break;
-        }
-    }
-
-    if (withdrawalData) {
-        // Create and show modal with bank details
-        const modalHtml = `
-            <div class="modal fade" id="bankDetailsModal" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Bank Details</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <strong>Account Number:</strong> ${withdrawalData.accountNumber}
-                            </div>
-                            <div class="mb-3">
-                                <strong>IFSC Code:</strong> ${withdrawalData.ifscCode}
-                            </div>
-                            <div class="mb-3">
-                                <strong>Account Holder:</strong> ${withdrawalData.accountHolder}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // Remove existing modal if any
-        const existingModal = document.getElementById('bankDetailsModal');
-        if (existingModal) {
-            existingModal.remove();
-        }
-
-        // Add new modal to body
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-
-        // Show modal
-        const modal = new bootstrap.Modal(document.getElementById('bankDetailsModal'));
-        modal.show();
-    } else {
-        alert('Withdrawal data not found');
-    }
-}
-
-// Add event listeners for swap charge management
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle add new swap charge form submission
-    document.getElementById('addSwapChargeForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const pair = document.getElementById('newPair').value;
-        const swapLong = document.getElementById('newLong').value;
-        const swapShort = document.getElementById('newShort').value;
-        
-        // Add to table
-        const tableBody = document.getElementById('swapChargesTableBody');
-        const newRow = document.createElement('tr');
-        newRow.innerHTML = `
-            <td>${pair}</td>
-            <td>-$${Math.abs(swapLong).toFixed(2)}</td>
-            <td>-$${Math.abs(swapShort).toFixed(2)}</td>
-            <td>$0</td>
-            <td>
-                <button class="btn btn-sm btn-primary edit-swap-btn" 
-                        data-pair="${pair}" 
-                        data-long="${swapLong}" 
-                        data-short="${swapShort}">
-                    <i class="fas fa-edit"></i> Edit
-                </button>
-            </td>
-        `;
-        tableBody.appendChild(newRow);
-        
-        // Reset form
-        document.getElementById('addSwapChargeForm').reset();
-        
-        // Show modern alert instead of basic alert
-        showSwapAlert('Swap charge added successfully!');
-        
-        // API call
-        try {
-            const csrftoken = getCookie('csrftoken');
-            fetch('/api/add-swap-charge/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
-                },
-                body: JSON.stringify({
-                    pair: pair,
-                    swap_long: swapLong,
-                    swap_short: swapShort
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log("API response:", data);
-            })
-            .catch(error => {
-                console.error('Fetch Error:', error);
-            });
-        } catch (error) {
-            console.error('Error in fetch operation:', error);
-        }
-    });
-    
-    // Also update the save changes button to use modern alert
-    document.getElementById('saveSwapChanges').addEventListener('click', function() {
-        const pair = document.getElementById('editPair').value;
-        const swapLong = document.getElementById('editLong').value;
-        const swapShort = document.getElementById('editShort').value;
-        
-        // Update table row
-        const tableBody = document.getElementById('swapChargesTableBody');
-        const rows = tableBody.querySelectorAll('tr');
-        
-        for (let row of rows) {
-            const pairCell = row.querySelector('td:first-child');
-            if (pairCell && pairCell.textContent === pair) {
-                row.querySelector('td:nth-child(2)').textContent = `-$${Math.abs(swapLong).toFixed(2)}`;
-                row.querySelector('td:nth-child(3)').textContent = `-$${Math.abs(swapShort).toFixed(2)}`;
-                
-                // Update data attributes on edit button
-                const editBtn = row.querySelector('.edit-swap-btn');
-                if (editBtn) {
-                    editBtn.dataset.long = swapLong;
-                    editBtn.dataset.short = swapShort;
-                }
-                break;
-            }
-        }
-        
-        // Close modal
-        bootstrap.Modal.getInstance(document.getElementById('editSwapModal')).hide();
-        
-        // Show modern alert
-        showSwapAlert('Swap charge updated successfully!');
-        
-        // API call
-        try {
-            const csrftoken = getCookie('csrftoken');
-            fetch('/api/update-swap-charge/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
-                },
-                body: JSON.stringify({
-                    pair: pair,
-                    swap_long: swapLong,
-                    swap_short: swapShort
-                })
-            });
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    });
-    
-    // Helper function for CSRF token
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-});
-
-// Function to show modern alert
-function showSwapAlert(message) {
-    const wrapper = document.getElementById('swapAlertWrapper');
-    const alert = document.getElementById('swapModernAlert');
-    const messageEl = document.getElementById('swapAlertMessage');
-    
-    // Set message
-    messageEl.textContent = message;
-    
-    // Show wrapper
-    wrapper.style.display = 'flex';
-    
-    // Animate alert
-    setTimeout(() => {
-        alert.classList.add('show');
-    }, 10);
-    
-    // Add event listener to confirm button
-    document.getElementById('swapAlertConfirm').addEventListener('click', function() {
-        alert.classList.remove('show');
-        setTimeout(() => {
-            wrapper.style.display = 'none';
-        }, 300);
-    });
-}
-</script>
-
-<!-- Modern Alert Component -->
-<div class="modern-alert-wrapper" id="swapAlertWrapper">
-    <div class="modern-alert" id="swapModernAlert">
-        <div class="alert-content">
-            <div class="alert-header">
-                <div class="alert-status-icon">
-                    <svg class="success-icon" viewBox="0 0 24 24">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                    </svg>
-                </div>
-                <h3 class="alert-heading">Success</h3>
-            </div>
-            <p class="alert-message" id="swapAlertMessage">Swap charge added successfully!</p>
-            <div class="alert-actions">
-                <button class="alert-button confirm-btn" id="swapAlertConfirm">Continue</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<style>
-.modern-alert-wrapper {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.65);
-    backdrop-filter: blur(6px);
-    z-index: 9999;
-    align-items: center;
-    justify-content: center;
-}
-
-.modern-alert {
-    background: #ffffff;
-    border-radius: 24px;
-    width: 90%;
-    max-width: 420px;
-    padding: 0;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    transform: scale(0.95);
-    opacity: 0;
-    transition: all 0.3s ease;
-}
-
-.modern-alert.show {
-    transform: scale(1);
-    opacity: 1;
-}
-
-.alert-content {
-    padding: 32px;
-}
-
-.alert-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 24px;
-}
-
-.alert-status-icon {
-    width: 48px;
-    height: 48px;
-    margin-right: 16px;
-}
-
-.alert-status-icon svg {
-    width: 100%;
-    height: 100%;
-}
-
-.success-icon {
-    fill: #FFB800;
-    display: block;
-}
-
-.alert-heading {
-    font-size: 24px;
-    font-weight: 700;
-    color: #111827;
-    margin: 0;
-}
-
-.alert-message {
-    font-size: 16px;
-    line-height: 1.5;
-    color: #6B7280;
-    margin: 0 0 32px 0;
-}
-
-.alert-actions {
-    display: flex;
-    justify-content: center;
-}
-
-.alert-button {
-    padding: 12px 24px;
-    border-radius: 12px;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: none;
-    min-width: 120px;
-}
-
-.confirm-btn {
-    background: linear-gradient(135deg, #FFB800, #FF8A00);
-    color: white;
-}
-
-.confirm-btn:hover {
-    background: linear-gradient(135deg, #FF8A00, #FF6B00);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 184, 0, 0.3);
-}
-
-@media (max-width: 640px) {
-    .modern-alert {
-        width: 95%;
-        margin: 16px;
-    }
-    
-    .alert-content {
-        padding: 24px;
-    }
-}
-</style>
-                        data-short="${swapShort}">
-                    <i class="fas fa-edit"></i> Edit
-                </button>
-            </td>
-        `;
-        tableBody.appendChild(newRow);
-        
-        // Reset form
-        document.getElementById('addSwapChargeForm').reset();
-        
-        // Show success message
-        alert('Swap charge added successfully!');
-        
-        // Try API call after UI update
-        try {
-            fetch('/api/add-swap-charge/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
-                },
-                body: JSON.stringify({
-                    pair: pair,
-                    swap_long: swapLong,
-                    swap_short: swapShort
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log("API response:", data);
-                if (data.status !== 'success') {
-                    console.error('API Error:', data.message);
-                }
-            })
-            .catch(error => {
-                console.error('Fetch Error:', error);
-            });
-        } catch (error) {
-            console.error('Error in fetch operation:', error);
-        }
-    });
-    
-    // Add helper function for CSRF token if not already defined
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    
-    // Handle edit button clicks
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.edit-swap-btn')) {
-            const btn = e.target.closest('.edit-swap-btn');
-            const pair = btn.dataset.pair;
-            const swapLong = btn.dataset.long;
-            const swapShort = btn.dataset.short;
-            
-            // Fill edit form
-            document.getElementById('editPair').value = pair;
-            document.getElementById('displayPair').value = pair;
-            document.getElementById('editLong').value = swapLong;
-            document.getElementById('editShort').value = swapShort;
-            
-            // Show edit modal
-            const editModal = new bootstrap.Modal(document.getElementById('editSwapModal'));
-            editModal.show();
-        }
-    });
-    
-    // Handle save changes button
-    document.getElementById('saveSwapChanges').addEventListener('click', function() {
-        const pair = document.getElementById('editPair').value;
-        const swapLong = document.getElementById('editLong').value;
-        const swapShort = document.getElementById('editShort').value;
-        
-        // Get CSRF token
-        const csrftoken = getCookie('csrftoken');
-        
-        // Send data to server
-        fetch('/api/update-swap-charge/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            },
-            body: JSON.stringify({
-                pair: pair,
-                swap_long: swapLong,
-                swap_short: swapShort
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                // Update table row
-                const tableBody = document.getElementById('swapChargesTableBody');
-                const rows = tableBody.querySelectorAll('tr');
-                
-                for (let row of rows) {
-                    const pairCell = row.querySelector('td:first-child');
-                    if (pairCell && pairCell.textContent === pair) {
-                        row.querySelector('td:nth-child(2)').textContent = `-$${Math.abs(swapLong).toFixed(2)}`;
-                        row.querySelector('td:nth-child(3)').textContent = `-$${Math.abs(swapShort).toFixed(2)}`;
-                        
-                        // Update data attributes on edit button
-                        const editBtn = row.querySelector('.edit-swap-btn');
-                        if (editBtn) {
-                            editBtn.dataset.long = swapLong;
-                            editBtn.dataset.short = swapShort;
-                        }
-                        break;
-                    }
-                }
-                
-                // Close modal
-                bootstrap.Modal.getInstance(document.getElementById('editSwapModal')).hide();
-                
-                // Show success message
-                alert('Swap charge updated successfully!');
-            } else {
-                alert(data.message || 'Error updating swap charge');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error updating swap charge');
-        });
-    });
-});
-</script>
             // Get the payment method and other details from the row
             const paymentMethod = cells[3].textContent;
             const amount = cells[2].textContent;
@@ -2162,158 +1596,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
-});
-
-// Add event listeners for swap charge management
-document.addEventListener('DOMContentLoaded', function() {
-    // Handle add new swap charge form submission
-    document.getElementById('addSwapChargeForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const pair = document.getElementById('newPair').value;
-        const swapLong = document.getElementById('newLong').value;
-        const swapShort = document.getElementById('newShort').value;
-        
-        // Get CSRF token
-        const csrftoken = getCookie('csrftoken');
-        
-        // Send data to server
-        fetch('/api/add-swap-charge/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            },
-            body: JSON.stringify({
-                pair: pair,
-                swap_long: swapLong,
-                swap_short: swapShort
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                // Add new row to table
-                const tableBody = document.getElementById('swapChargesTableBody');
-                const newRow = document.createElement('tr');
-                newRow.innerHTML = `
-                    <td>${pair}</td>
-                    <td>-$${Math.abs(swapLong).toFixed(2)}</td>
-                    <td>-$${Math.abs(swapShort).toFixed(2)}</td>
-                    <td>$0</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary edit-swap-btn" 
-                                data-pair="${pair}" 
-                                data-long="${swapLong}" 
-                                data-short="${swapShort}">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
-                    </td>
-                `;
-                tableBody.appendChild(newRow);
-                
-                // Reset form
-                document.getElementById('addSwapChargeForm').reset();
-                
-                // Show success message
-                alert('Swap charge added successfully!');
-            } else {
-                alert(data.message || 'Error adding swap charge');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error adding swap charge');
-        });
-    });
-    
-    // Handle edit button clicks
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.edit-swap-btn')) {
-            const btn = e.target.closest('.edit-swap-btn');
-            const pair = btn.dataset.pair;
-            const swapLong = btn.dataset.long;
-            const swapShort = btn.dataset.short;
-            
-            // Fill edit form
-            document.getElementById('editPair').value = pair;
-            document.getElementById('displayPair').value = pair;
-            document.getElementById('editLong').value = swapLong;
-            document.getElementById('editShort').value = swapShort;
-            
-            // Show edit modal
-            const editModal = new bootstrap.Modal(document.getElementById('editSwapModal'));
-            editModal.show();
-        }
-    });
-    
-    // Handle save changes button
-    document.getElementById('saveSwapChanges').addEventListener('click', function() {
-        const pair = document.getElementById('editPair').value;
-        const swapLong = document.getElementById('editLong').value;
-        const swapShort = document.getElementById('editShort').value;
-        
-        // Get CSRF token
-        const csrftoken = getCookie('csrftoken');
-        
-        // Send data to server
-        fetch('/api/update-swap-charge/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            },
-            body: JSON.stringify({
-                pair: pair,
-                swap_long: swapLong,
-                swap_short: swapShort
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                // Update table row
-                const tableBody = document.getElementById('swapChargesTableBody');
-                const rows = tableBody.querySelectorAll('tr');
-                
-                for (let row of rows) {
-                    const pairCell = row.querySelector('td:first-child');
-                    if (pairCell && pairCell.textContent === pair) {
-                        row.querySelector('td:nth-child(2)').textContent = `-$${Math.abs(swapLong).toFixed(2)}`;
-                        row.querySelector('td:nth-child(3)').textContent = `-$${Math.abs(swapShort).toFixed(2)}`;
-                        
-                        // Update data attributes on edit button
-                        const editBtn = row.querySelector('.edit-swap-btn');
-                        if (editBtn) {
-                            editBtn.dataset.long = swapLong;
-                            editBtn.dataset.short = swapShort;
-                        }
-                        break;
-                    }
-                }
-                
-                // Close modal
-                bootstrap.Modal.getInstance(document.getElementById('editSwapModal')).hide();
-                
-                // Show success message
-                alert('Swap charge updated successfully!');
-            } else {
-                alert(data.message || 'Error updating swap charge');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Error updating swap charge');
-        });
-    });
-});
-</script>
-                        row.classList.add('table-row-hidden');
-                    }
-                }
-            });
-        });
-    });
 
     // Withdrawal filter functionality
     const withdrawalButtons = document.querySelectorAll('[data-withdrawal-filter]');
@@ -2341,6 +1623,258 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+});
+
+// Function to open swap charges modal
+function openSwapChargesModal() {
+    const modal = new bootstrap.Modal(document.getElementById('swapChargesModal'));
+    modal.show();
+    loadSavedCharges(); // Load saved charges when modal opens
+}
+
+// Function to load saved charges
+function loadSavedCharges() {
+    const chargesList = document.getElementById('savedChargesList');
+    chargesList.innerHTML = `
+        <div class="text-center py-3">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    `;
+
+    fetch('/api/get-swap-charges/', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        chargesList.innerHTML = '';
+        
+        if (data.charges && data.charges.length > 0) {
+            data.charges.forEach(charge => {
+                const chargeElement = document.createElement('div');
+                chargeElement.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
+                chargeElement.innerHTML = `
+                    <div>
+                        <h6 class="mb-1">${charge.assetPair}</h6>
+                        <small class="text-muted">
+                            ${charge.chargeType === 'percentage' ? charge.chargeValue + '%' : '$' + charge.chargeValue}
+                            (Min: $${charge.minAmount} - Max: $${charge.maxAmount})
+                        </small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge ${charge.status === 'active' ? 'bg-success' : 'bg-danger'} rounded-pill">
+                            ${charge.status}
+                        </span>
+                        <button class="btn btn-link text-danger p-0" onclick="deleteSwapCharge('${charge.id}', event)">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                `;
+                chargesList.appendChild(chargeElement);
+            });
+        } else {
+            chargesList.innerHTML = `
+                <div class="text-center text-muted py-3">
+                    No swap charges added yet
+                </div>
+            `;
+        }
+    })
+    .catch(error => {
+        console.error('Error loading swap charges:', error);
+        chargesList.innerHTML = `
+            <div class="text-center text-danger py-3">
+                <i class="fas fa-exclamation-circle me-2"></i>
+                Error loading swap charges. Please try again.
+            </div>
+        `;
+    });
+}
+
+// Handle form submission
+document.getElementById('swapChargesForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Get form data
+    const formData = {
+        assetPair: document.getElementById('assetPair').value,
+        chargeType: document.getElementById('chargeType').value,
+        chargeValue: document.getElementById('chargeValue').value,
+        minAmount: document.getElementById('minAmount').value,
+        maxAmount: document.getElementById('maxAmount').value,
+        status: document.getElementById('chargeStatus').value
+    };
+
+    // Validate form data
+    if (!formData.assetPair || !formData.chargeValue || !formData.minAmount || !formData.maxAmount) {
+        alert('Please fill in all required fields');
+        return;
+    }
+
+    // Validate amounts
+    if (parseFloat(formData.minAmount) > parseFloat(formData.maxAmount)) {
+        document.getElementById('amountError').textContent = 'Minimum amount cannot be greater than maximum amount';
+        return;
+    }
+
+    // Validate charge value
+    if (formData.chargeType === 'percentage' && parseFloat(formData.chargeValue) > 100) {
+        document.getElementById('chargeValueHelp').textContent = 'Percentage cannot exceed 100%';
+        document.getElementById('chargeValueHelp').className = 'text-danger';
+        return;
+    }
+
+    // Show loading state
+    const submitButton = this.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton.innerHTML;
+    submitButton.disabled = true;
+    submitButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+
+    // Send data to server
+    fetch('/api/save-swap-charges/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => {
+        // Reset button state
+        submitButton.disabled = false;
+        submitButton.innerHTML = originalButtonText;
+
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Server returned non-JSON response. Please check your server configuration.');
+        }
+
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(err.message || 'Server error occurred');
+            });
+        }
+
+        return response.json();
+    })
+    .then(data => {
+        if (data.status === 'success') {
+            // Reset form
+            document.getElementById('swapChargesForm').reset();
+            document.getElementById('chargeValueHelp').textContent = '';
+            document.getElementById('amountError').textContent = '';
+            
+            // Reload saved charges
+            loadSavedCharges();
+            
+            // Show success message
+            alert('Swap charge added successfully!');
+        } else {
+            throw new Error(data.message || 'Error saving swap charge');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert(error.message || 'Error saving swap charge. Please try again.');
+    });
+});
+
+// Handle charge type change
+document.getElementById('chargeType').addEventListener('change', function() {
+    const chargeUnit = document.getElementById('chargeUnit');
+    const chargeValue = document.getElementById('chargeValue');
+    const helpText = document.getElementById('chargeValueHelp');
+    
+    if (this.value === 'percentage') {
+        chargeUnit.textContent = '%';
+        if (parseFloat(chargeValue.value) > 100) {
+            chargeValue.value = 100;
+            helpText.textContent = 'Percentage cannot exceed 100%';
+            helpText.className = 'text-danger';
+        }
+    } else {
+        chargeUnit.textContent = '$';
+        helpText.textContent = '';
+    }
+});
+
+// Function to delete swap charge
+function deleteSwapCharge(chargeId, event) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    if (confirm('Are you sure you want to delete this swap charge?')) {
+        fetch(`/api/delete-swap-charge/${chargeId}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                loadSavedCharges(); // Reload the list
+                alert('Swap charge deleted successfully!');
+            } else {
+                throw new Error(data.message || 'Error deleting swap charge');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(error.message || 'Error deleting swap charge');
+        });
+    }
+}
+
+// Add real-time validation for amounts
+document.getElementById('minAmount').addEventListener('input', validateAmounts);
+document.getElementById('maxAmount').addEventListener('input', validateAmounts);
+
+function validateAmounts() {
+    const minAmount = parseFloat(document.getElementById('minAmount').value);
+    const maxAmount = parseFloat(document.getElementById('maxAmount').value);
+    const errorElement = document.getElementById('amountError');
+    
+    if (minAmount > maxAmount) {
+        errorElement.textContent = 'Minimum amount cannot be greater than maximum amount';
+        return false;
+    } else {
+        errorElement.textContent = '';
+        return true;
+    }
+}
+
+// Add real-time validation for charge value
+document.getElementById('chargeValue').addEventListener('input', function() {
+    const value = parseFloat(this.value);
+    const chargeType = document.getElementById('chargeType').value;
+    const helpText = document.getElementById('chargeValueHelp');
+    
+    if (chargeType === 'percentage') {
+        if (value > 100) {
+            this.value = 100;
+            helpText.textContent = 'Percentage cannot exceed 100%';
+            helpText.className = 'text-danger';
+        } else {
+            helpText.textContent = '';
+        }
+    } else {
+        if (value < 0) {
+            this.value = 0;
+            helpText.textContent = 'Amount cannot be negative';
+            helpText.className = 'text-danger';
+        } else {
+            helpText.textContent = '';
+        }
+    }
 });
 </script>
 
@@ -2530,6 +2064,71 @@ document.addEventListener('DOMContentLoaded', function() {
         color: white;
         box-shadow: none;
     }
+
+    .list-group-item {
+        border-left: none;
+        border-right: none;
+        padding: 1rem;
+    }
+
+    .list-group-item:first-child {
+        border-top: none;
+    }
+
+    .list-group-item:last-child {
+        border-bottom: none;
+    }
+
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .modal-lg {
+        max-width: 800px;
+    }
+
+    .border-end {
+        border-right: 1px solid #dee2e6;
+    }
+
+    #savedChargesList {
+        max-height: 400px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+    }
+
+    #savedChargesList::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    #savedChargesList::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    #savedChargesList::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 3px;
+    }
+
+    #savedChargesList::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+
+    .list-group-item {
+        transition: background-color 0.2s;
+    }
+
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+    }
+
+    .text-danger {
+        color: #dc3545 !important;
+    }
+
+    .text-muted {
+        color: #6c757d !important;
+    }
 </style>
 
 <!-- Bootstrap CSS -->
@@ -2541,19 +2140,6 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
