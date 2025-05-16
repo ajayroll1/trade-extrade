@@ -87,6 +87,20 @@ DATABASES = {
     }
 }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'Tradex',
+#         'USER': 'root',          # अपने MySQL यूज़र का नाम डालें
+#         'PASSWORD': '123456',    # अपने MySQL पासवर्ड से बदलें
+#         'HOST': 'localhost',
+#         'PORT': '3306',          # MySQL का default पोर्ट
+#     }
+# }
+
+
+
+
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 

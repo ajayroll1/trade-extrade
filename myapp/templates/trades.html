@@ -369,11 +369,11 @@
     <div class="account-info">
         <div class="info-item">
             <span>Balance:</span>
-            <span id="balance">10319.97</span>
+            <span id="balance">${{ available_balance|floatformat:2 }}</span>
         </div>
         <div class="info-item">
             <span>Equity:</span>
-            <span id="equity">10319.97</span>
+            <span id="equity">${{ equity|floatformat:2 }}</span>
         </div>
         <div class="info-item">
             <span>Used Margin:</span>
@@ -381,7 +381,7 @@
         </div>
         <div class="info-item">
             <span>Free Margin:</span>
-            <span id="freeMargin">10319.97</span>
+            <span id="freeMargin">${{ available_balance|floatformat:2 }}</span>
         </div>
         <div class="info-item">
             <span>Margin Level:</span>

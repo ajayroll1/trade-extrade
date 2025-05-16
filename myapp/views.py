@@ -159,8 +159,11 @@ def dashboard(request):
 
     context = {
         'payment_methods': payment_methods,
-        'available_balance': available_balance
+        'available_balance': available_balance,
+        'date_joined': request.user.date_joined.strftime('%d/%m/%Y'),
+        'last_login': request.user.last_login.strftime('%d/%m/%Y %I:%M %p')
     }
+
     return render(request, 'dashboard.html', context)
 
 @login_required
@@ -261,15 +264,48 @@ def remove_from_wishlist(request):
 
 @login_required
 def trades(request):
-    # Get active trades for the current user, ordered by creation date (newest first)
-    trades = Trade.objects.filter(user=request.user, status='active').order_by('-created_at')[:50]  # Limit to 50 trades
+    # Get all active trades for the current user
+    trades = Trade.objects.filter(user=request.user, status='active').order_by('-created_at')
+    
+    # Calculate available balance
+    approved_deposits = Transaction.objects.filter(
+        user=request.user,
+        status='completed'
+    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
 
-    # Initialize prices and profits
+    completed_withdrawals = Withdrawal.objects.filter(
+        user=request.user,
+        status='completed'
+    ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+
+    active_trades_total = Trade.objects.filter(
+        user=request.user,
+        status='active'
+    ).aggregate(total=Sum('total_amount'))['total'] or Decimal('0')
+
+    available_balance = approved_deposits - completed_withdrawals - active_trades_total
+    
+    # Calculate floating profit/loss from active trades
+    floating_pnl = Decimal('0')
     for trade in trades:
-        trade.current_price = None  # Will be updated via WebSocket
-        trade.live_profit = 0.0     # Will be updated via WebSocket
-
-    return render(request, 'trades.html', {'trades': trades})
+        current_price = get_current_price(trade.symbol)
+        if current_price is not None:
+            if trade.type == 'BUY':
+                pnl = (Decimal(str(current_price)) - trade.entry_price) * trade.quantity
+            else:  # SELL
+                pnl = (trade.entry_price - Decimal(str(current_price))) * trade.quantity
+            floating_pnl += pnl
+    
+    # Calculate equity (balance + floating P/L)
+    equity = available_balance + floating_pnl
+    
+    context = {
+        'trades': trades,
+        'available_balance': available_balance,
+        'equity': equity,
+        'floating_pnl': floating_pnl
+    }
+    return render(request, 'trades.html', context)
 
 def get_current_price(symbol):
     """
@@ -1079,10 +1115,6 @@ def save_payment_method(request):
         'status': 'error',
         'message': 'Invalid request method'
     }, status=405)
-
-@staff_member_required
-def admin_finance(request):
-    return render(request, 'admin_finance.html')
 
 @csrf_exempt
 def delete_user(request):
